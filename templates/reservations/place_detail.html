@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block navbar %}
+    {% include 'components/navbar.html' %}
+{% endblock %}
+{% block content %}
+<!-- <div class="image-top"><img width="1400" height="789" class="bg-image" alt="{{ place.name }}" src="{% if place.cover_image %}{{ place.cover_image.image.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}"></div> -->
+<div class="container mt-4">
+    <div class="row">
+        <div id="content" class="col-md-9 col-sm-12">
+            <div class="card">
+                <img class="card-img-top" src="{% if place.cover_image %}{{ place.cover_image.image.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ place.name }}">
+                <div class="card-body">
+                    <h1 class="card-title">{{ place.name }}</h1>
+                    <p class="card-text">{{ place.description }}</p>
+                    <ul class="list-unstyled">
+                        <li><strong>Тип заведения:</strong> {{ place.type.name }}</li>
+                        <li><strong>Адрес:</strong> {{ place.address }}</li>
+                        <li><strong>Телефон:</strong> {{ place.phone }}</li>
+                        {% if place.website %}
+                            <li><strong>Веб-сайт:</strong> <a href="{{ place.website }}" target="_blank">{{ place.website }}</a></li>
+                        {% endif %}
+                        <li><strong>Средний чек:</strong> {{ place.average_check }} руб.</li>
+                        <li><strong>Наличие детской комнаты:</strong> {% if place.has_kids_room %}Да{% else %}Нет{% endif %}</li>
+                        <li><strong>Рейтинг:</strong> {{ place.rating }}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Расписание работы -->
+            <div class="schedule mt-4">
+                <h2>Расписание работы</h2>
+                <table class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>День недели</th>
+                            <th>Время открытия</th>
+                            <th>Время закрытия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in place.workschedule_set.all %}
+                            <tr>
+                                <td>{{ schedule.get_weekday_display }}</td>
+                                <td>{{ schedule.opening_time }}</td>
+                                <td>{{ schedule.closing_time }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Кухни -->
+            <div class="cuisines mt-4">
+                <h2>Кухни</h2>
+                <ul class="list-unstyled">
+                    {% for cuisine in place.cuisines.all %}
+                        <li>{{ cuisine.name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Отзывы -->
+            {% if place.reviews.exists %}
+                <div class="reviews mt-4">
+                    <h2>Отзывы</h2>
+                    {% for review in place.reviews.all %}
+                        {% if review.is_approved %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ review.user.first_name }} {{ review.user.last_name }}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ review.created_at|date:"d.m.Y" }}</h6>
+                                    <p class="card-text">Рейтинг: {{ review.rating }}</p>
+                                    <p class="card-text">{{ review.text }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="mt-4">Пока нет отзывов.</p>
+            {% endif %}
+
+            <!-- Сообщение после оставления отзыва -->
+            {% if review_submitted %}
+                <p class="mt-4">Спасибо за оставленный отзыв! Он будет опубликован после модерации.</p>
+            {% endif %}
+
+            <!-- Форма для добавления отзыва -->
+            <div class="add-review mt-4">
+                <h2>Оставить отзыв</h2>
+                <form method="post" action="{% url 'add_review' city_slug=selected_city.slug place_slug=place.slug %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_rating">Рейтинг:</label>
+                        <input type="number" id="id_rating" name="rating" class="form-control" min="1" max="5" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_text">Текст отзыва:</label>
+                        <textarea id="id_text" name="text" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Боковая панель -->
+        <aside class="col-md-3 col-sm-4 col-xs-12 content-aside right_column sidebar-offcanvas">
+            <div class="card">
+                <div class="card-body">
+                    {% if request.session.reservation_successful %}
+                        <div class="d-flex align-items-center"> <!-- Используем flex для выравнивания элементов -->
+                            <span class="text-success mr-2" style="font-size: 1.2em;">&#10004;</span> <!-- Зелёная галочка -->
+                            <div class="reservation-title">
+                                Заявка №{{ reservation.number }}
+                            </div>
+                        </div>
+                        <div class="reservation-info">{{ reservation.first_name }}, ваша заявка №{{ reservation.number }} принята в работу. Ожидаемое время подтверждения 30 минут.</div>
+                        <a href="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}" class="btn btn-outline-secondary">Сделать новый заказ</a>
+                    {% else %}
+                        <h3 class="modtitle">Бронирование столика</h3>
+                        <form method="post" action="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <button type="submit" class="btn btn-primary">Забронировать</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}

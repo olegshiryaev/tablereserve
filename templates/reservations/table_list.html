@@ -1,0 +1,8 @@
+<h1>Tables at {{ restaurant.name }}</h1>
+<ul>
+    {% for table in tables %}
+    <li>
+        <a href="{% url 'create_reservation' table.id %}">Table {{ table.number }} ({{ table.capacity }} guests)</a>
+    </li>
+    {% endfor %}
+</ul>

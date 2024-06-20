@@ -13,6 +13,7 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError('Поле "Электронная почта" должно быть заполнено')
         email = self.normalize_email(email)
+        email = email.lower()
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -36,6 +37,7 @@ class CustomUser(AbstractUser):
         ('owner', 'Владелец'),
         ('user', 'Пользователь'),
     )
+    username = None
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
     first_name = models.CharField(max_length=30, blank=True, verbose_name="Имя")
     last_name = models.CharField(max_length=30, blank=True, verbose_name="Фамилия")

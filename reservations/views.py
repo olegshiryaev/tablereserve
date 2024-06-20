@@ -1,11 +1,36 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from .models import City, Cuisine, Feature, Place, PlaceType, Reservation
+from .models import City, Cuisine, Feature, Place, PlaceType, Reservation, Event, Discount
 from .forms import ReservationForm, ReviewForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
+
+
+def main_page(request, city_slug):
+
+    city = get_object_or_404(City, slug=city_slug)
+
+    # Создаем экземпляр формы для бронирования
+    reservation_form = ReservationForm(place=None)
+
+    popular_places = Place.objects.get_popular_places()
+    upcoming_events = Event.objects.all()
+    active_discounts = Discount.objects.all()
+
+    title = f"Рестораны, кафе и бары {city.name}а"
+
+    context = {
+        'popular_places': popular_places,
+        'upcoming_events': upcoming_events,
+        'active_discounts': active_discounts,
+        'selected_city': city,
+        'form': reservation_form,
+        'title': title,
+
+    }
+    return render(request, 'reservations/main_page.html', context)
 
 
 def place_list(request, city_slug):
@@ -123,7 +148,6 @@ def handle_reservation(request, place, form_class, redirect_to):
     return form
 
 
-@login_required
 def place_detail(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(Place, slug=place_slug, city=city)
@@ -140,7 +164,6 @@ def place_detail(request, city_slug, place_slug):
     return render(request, 'reservations/place_detail.html', context)
 
 
-@login_required
 def reserve_table(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(Place, slug=place_slug, city=city)

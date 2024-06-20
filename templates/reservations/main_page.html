@@ -1,98 +1,20 @@
 {% extends "base.html" %}
 {% load static %}
-{% load custom_tags %}
 {% load floattags %}
+
 {% block navbar %}
     {% include 'components/navbar.html' %}
 {% endblock %}
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<!-- Main Container  -->
-<div class="breadcrumbs {% if selected_city %}{{ selected_city.slug }}{% endif %}">
-    <div class="container">
-        <div class="title-breadcrumb">
-            {{ title }}
-        </div>
-        <form class="search-form" action="{% url 'place_list' selected_city.slug %}" method="GET">
-            <input type="text" name="search" placeholder="Поиск..." value="{{ request.GET.search }}">
-            <button type="submit">Найти</button>
-        </form>
-    </div>
-</div>
-<div class="container mt-4">
+<div class="container">
+    <!-- Популярные заведения -->
     <div class="row">
-        <aside class="col-md-3 sidebar">
-            <div class="filter-box">
-                <h3>Фильтры</h3>
-                <form method="get" action="">
-                    <div class="mb-3">
-                        <label for="placeType">Тип заведения</label>
-                        <select class="form-select" name="place_type" id="placeType">
-                            <option value="">Все типы</option>
-                            {% for place_type in place_types %}
-                                <option value="{{ place_type.slug }}" {% if place_type.slug == selected_place_type %}selected{% endif %}>{{ place_type.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label>Кухня</label><br>
-                        <div class="form-check">
-                            {% for cuisine in cuisines %}
-                                <label class="form-check-label">
-                                    <input class="form-check-input" type="checkbox" name="cuisine" value="{{ cuisine.slug }}" {% if cuisine.slug in selected_cuisines %}checked{% endif %}>
-                                    {{ cuisine.name }}
-                                </label><br>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="averageCheckRange" class="form-label">Средний чек, руб.</label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" name="min_average_check" id="minAverageCheck" placeholder="Мин" value="{{ min_average_check }}">
-                            <span class="input-group-text">-</span>
-                            <input type="number" class="form-control" name="max_average_check" id="maxAverageCheck" placeholder="Макс" value="{{ max_average_check }}">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label>Особенности</label><br>
-                        <div class="form-check">
-                            {% for feature in features %}
-                                <label class="form-check-label">
-                                    <input class="form-check-input" type="checkbox" name="feature" value="{{ feature.id }}" {% if feature.id|stringformat:"s" in selected_features %}checked{% endif %}>
-                                    {{ feature.name }}
-                                </label><br>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="button-submit">
-                        <button type="submit" class="button">Найти <i class="fa fa-angle-right" aria-hidden="true"></i></button>
-                    </div>
-                </form>
-            </div>
-        </aside>
-        <main class="col-md-9">
+        <div class="col-12">
+            <h2 class="text-center my-4">Популярные заведения</h2>
             <div class="row">
-                <div class="col-12 d-flex justify-content-between align-items-center mb-3 info-sort-bar">
-                    <div>
-                        Показано {{ shown_places }} из {{ total_places }} объектов
-                    </div>
-                    <div>
-                        <form method="get" id="sortForm" class="d-flex">
-                            <select name="sort" id="sort" class="form-select" onchange="document.getElementById('sortForm').submit();">
-                                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>По имени</option>
-                                <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>По рейтингу</option>
-                                <option value="average_check" {% if sort_by == 'average_check' %}selected{% endif %}>По среднему чеку</option>
-                            </select>
-                            {% if request.GET.search %}
-                                <input type="hidden" name="search" value="{{ request.GET.search }}">
-                            {% endif %}
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                {% for place in places %}
+                {% for place in popular_places %}
                     <div class="product-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
                         <div class="product-item-container item d-flex flex-column">
                             <div class="item-block so-quickview flex-grow-1 d-flex flex-column">
@@ -150,10 +72,96 @@
                     </div>
                 {% endfor %}
             </div>
-        </main>
+            <div class="text-center mt-4">
+                <a href="{% url 'place_list' city_slug=selected_city.slug %}" class="btn btn-primary">Показать все</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- События -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center my-4">События</h2>
+            <div class="row">
+                {% for event in upcoming_events %}
+                    <div class="product-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                        <div class="product-item-container item d-flex flex-column">
+                            <div class="item-block so-quickview flex-grow-1 d-flex flex-column">
+                                <div class="image">
+                                    {% if event.image %}
+                                        <img src="{{ event.image.url }}" alt="{{ event.name }}" class="img-responsive img-hover-zoom">
+                                    {% else %}
+                                        <img src="{% static 'path_to_default_image.jpg' %}" alt="{{ event.name }}" class="img-responsive img-hover-zoom">
+                                    {% endif %}
+                                    <div class="name">
+                                        <h3>{{ event.name }}</h3>
+                                    </div>
+                                </div>
+                                <div class="item-content d-flex flex-column justify-content-between flex-grow-1">
+                                    <ul>
+                                        <li>
+                                            <i class="fa-solid fa-calendar" data-toggle="tooltip" title="Дата"></i> <!-- Иконка календаря -->
+                                            {{ event.date }} {{ event.start_time }} - {{ event.end_time }}
+                                        </li>
+                                        <li>
+                                            <i class="fa-solid fa-location-dot" data-toggle="tooltip" title="Место проведения"></i> <!-- Иконка геопозиции -->
+                                            {{ event.place.name }}
+                                        </li>
+                                    </ul>
+                                    <div class="mt-auto">
+                                        <button type="button" class="reserve-button" data-place-id="{{ place.slug }}" data-place-name="{{ place.name }}">Забронировать столик</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Акции и скидки -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center my-4">Акции и скидки</h2>
+            <div class="row">
+                {% for discount in active_discounts %}
+                    <div class="product-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                        <div class="product-item-container item d-flex flex-column">
+                            <div class="item-block so-quickview flex-grow-1 d-flex flex-column">
+                                <div class="image">
+                                    {% if discount.image %}
+                                        <img src="{{ discount.image.url }}" alt="{{ discount.title }}" class="img-responsive img-hover-zoom">
+                                    {% else %}
+                                        <img src="{% static 'path_to_default_image.jpg' %}" alt="{{ discount.title }}" class="img-responsive img-hover-zoom">
+                                    {% endif %}
+                                    <div class="name">
+                                        <h3>{{ discount.title }}</h3>
+                                    </div>
+                                </div>
+                                <div class="item-content d-flex flex-column justify-content-between flex-grow-1">
+                                    <ul>
+                                        <li>
+                                            <i class="fa-solid fa-calendar" data-toggle="tooltip" title="Период проведения"></i> <!-- Иконка календаря -->
+                                            {{ discount.start_date }} - {{ discount.end_date }}
+                                        </li>
+                                        <li>
+                                            <i class="fa-solid fa-location-dot" data-toggle="tooltip" title="Место проведения"></i> <!-- Иконка геопозиции -->
+                                            {{ discount.place.name }}
+                                        </li>
+                                    </ul>
+                                    <div class="mt-auto">
+                                        <button type="button" class="reserve-button" data-place-id="{{ place.slug }}" data-place-name="{{ place.name }}">Забронировать столик</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
-
 <!-- Модальное окно -->
 <div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -256,58 +264,5 @@
             });
         });
     });
-</script>
-<script>
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Прочитаем имя cookie
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-function toggleFavorite(element) {
-    const laceId = element.getAttribute('data-place-id');
-    const isFavorite = element.classList.contains('text-danger');
-
-    const url = '/toggle_favorite/';
-    const csrftoken = getCookie('csrftoken');
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({
-            lace_id: laceId,
-            is_favorite: !isFavorite
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Обновляем внешний вид кнопки (если требуется)
-            if (isFavorite) {
-                element.classList.remove('text-danger');
-            } else {
-                element.classList.add('text-danger');
-            }
-        } else {
-            console.error('Произошла ошибка при добавлении в избранное.');
-        }
-    })
-    .catch(error => {
-        console.error('Ошибка:', error);
-    });
-}
 </script>
 {% endblock %}

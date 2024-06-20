@@ -13,7 +13,7 @@ class CityMiddleware:
             if City.objects.filter(slug=city_slug).exists():
                 request.session['selected_city'] = city_slug
         else:
-            city_slug = request.session.get('selected_city')
+            city_slug = request.session.get('selected_city', 'arh')
             if city_slug:
                 return redirect(f'/{city_slug}/')
         response = self.get_response(request)

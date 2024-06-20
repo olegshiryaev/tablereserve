@@ -4,7 +4,7 @@ from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.db.models.signals import pre_save
 from django.db.models.signals import post_save, post_delete
-from django.db.models import Avg
+from django.db.models import Count, Avg
 from django.forms import ValidationError
 from django.utils.text import slugify
 from django.dispatch import receiver
@@ -104,6 +104,12 @@ class PlaceManager(models.Manager):
     def active(self):
         return self.filter(is_active=True).select_related('cover_image').prefetch_related('cuisines', 'images')
 
+    def get_popular_places(self, limit=5):
+        return self.get_queryset().filter(is_active=True).annotate(
+            avg_rating=Avg('reviews__rating'),
+            review_count=Count('reviews')
+        ).order_by('-avg_rating', '-review_count')[:limit]
+
 
 class Place(models.Model):
     type = models.ForeignKey(PlaceType, on_delete=models.SET_NULL, null=True, verbose_name="Тип заведения")
@@ -138,6 +144,15 @@ class Place(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+    def get_popular_places(self, limit=5):
+        return Place.objects.filter(
+            is_active=True,
+            city=self.city
+        ).annotate(
+            avg_rating=Avg('reviews__rating'),
+            review_count=Count('reviews')
+        ).order_by('-avg_rating', '-review_count')[:limit]
 
     def update_rating(self):
         reviews = self.reviews.filter(is_approved=True)
@@ -324,33 +339,43 @@ class ReviewImage(models.Model):
 
 
 class Event(models.Model):
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='events')
-    name = models.CharField(max_length=100, verbose_name="Название мероприятия")
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='events', verbose_name="Заведение")
+    name = models.CharField(max_length=100, verbose_name="Название события")
     description = models.TextField(blank=True, verbose_name="Описание")
     date = models.DateField(verbose_name="Дата")
     start_time = models.TimeField(verbose_name="Время начала")
     end_time = models.TimeField(verbose_name="Время окончания")
+    image = models.ImageField(upload_to='events/', null=True, blank=True, verbose_name="Изображение")
     is_active = models.BooleanField(default=True, verbose_name="Активное мероприятие")
 
     def __str__(self):
         return f"{self.name} - {self.place.name}"
 
+    def get_upcoming_events(self, limit=5):
+        today = date.today()
+        return self.get_queryset().filter(date__gte=today, is_active=True).order_by('date', 'start_time')[:limit]
+
     class Meta:
-        verbose_name = "Мероприятие"
-        verbose_name_plural = "Мероприятия"
+        verbose_name = "Событие"
+        verbose_name_plural = "События"
 
 
 class Discount(models.Model):
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='discounts')
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='discounts', verbose_name="Заведение")
     title = models.CharField(max_length=100, verbose_name="Название акции")
     description = models.TextField(blank=True, verbose_name="Описание")
     start_date = models.DateField(verbose_name="Дата начала")
     end_date = models.DateField(verbose_name="Дата окончания")
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Процент скидки")
+    image = models.ImageField(upload_to='discounts/', null=True, blank=True, verbose_name="Изображение")
 
     def __str__(self):
         return f"{self.title} - {self.place.name}"
 
+    def get_active_discounts(self, limit=5):
+        today = date.today()
+        return self.get_queryset().filter(start_date__lte=today, end_date__gte=today).order_by('end_date')[:limit]
+
     class Meta:
-        verbose_name = "Скидка"
-        verbose_name_plural = "Скидки"
+        verbose_name = "Акция"
+        verbose_name_plural = "Акции"

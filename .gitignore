@@ -1,5 +1,6 @@
 *.pyc
 __pycache__
+.idea
 .venv
 db.sqlite3
 .DS_Store

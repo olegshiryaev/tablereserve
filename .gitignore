@@ -20,9 +20,10 @@ Thumbs.db
 
 # PYTHON FILES
 # ---------------------------------------
-**/__pycache__
+__pycache__
+__init__.py
 *.pyc
-.venv
+.venv/
 .coverage
 
 # DJANGO
@@ -31,4 +32,7 @@ media/*
 static/*
 **/migrations/*
 db.sqlite3
-tablereserve/settings.py
+.env
+env/
+venv/
+.docker/

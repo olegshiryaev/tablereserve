@@ -1,6 +1,22 @@
 from django import forms
+from allauth.account.forms import SignupForm
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import CustomUser
+
+class CustomSignupForm(SignupForm):
+    first_name = forms.CharField(max_length=30, label='First Name')
+
+    def __init__(self, *args, **kwargs):
+        super(CustomSignupForm, self).__init__(*args, **kwargs)
+        # Можно добавить настройки формы здесь, если необходимо
+        self.fields['first_name'].required = True  # Необязательное поле
+
+    def save(self, request):
+        # Вы можете переопределить метод save, если необходимо выполнить дополнительные действия при сохранении формы
+        user = super(CustomSignupForm, self).save(request)
+        user.first_name = self.cleaned_data['first_name']
+        user.save()
+        return user
 
 
 class CustomUserCreationForm(UserCreationForm):

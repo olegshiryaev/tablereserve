@@ -14,7 +14,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Поле "Электронная почта" должно быть заполнено')
         email = self.normalize_email(email)
         email = email.lower()
-        user = self.model(email=email, **extra_fields)
+        phone_number = extra_fields.pop('phone_number', None)
+        user = self.model(email=email, phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -42,7 +43,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=30, blank=True, verbose_name="Имя")
     last_name = models.CharField(max_length=30, blank=True, verbose_name="Фамилия")
     email = models.EmailField(unique=True, verbose_name="Адрес электронной почты")
-    phone_number = PhoneNumberField(unique=True, blank=True, verbose_name="Телефон")
+    phone_number = PhoneNumberField(unique=True, blank=True, null=True, verbose_name="Телефон")
     date_joined = models.DateTimeField(default=timezone.now, verbose_name="Дата регистрации")
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     is_staff = models.BooleanField(default=False, verbose_name="Статус сотрудника")

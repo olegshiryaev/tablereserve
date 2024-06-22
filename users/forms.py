@@ -9,12 +9,12 @@ class CustomSignupForm(SignupForm):
     def __init__(self, *args, **kwargs):
         super(CustomSignupForm, self).__init__(*args, **kwargs)
         # Можно добавить настройки формы здесь, если необходимо
-        self.fields['first_name'].required = True  # Необязательное поле
+        self.fields['name'].required = True  # Необязательное поле
 
     def save(self, request):
         # Вы можете переопределить метод save, если необходимо выполнить дополнительные действия при сохранении формы
         user = super(CustomSignupForm, self).save(request)
-        user.first_name = self.cleaned_data['first_name']
+        user.first_name = self.cleaned_data['name']
         user.save()
         return user
 
@@ -22,7 +22,7 @@ class CustomSignupForm(SignupForm):
 class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm):
         model = CustomUser
-        fields = ('email', 'first_name', 'last_name')
+        fields = ('email', 'name',)
         error_messages = {
             'email': {
                 'unique': "Пользователь с таким адресом электронной почты уже существует.",
@@ -34,7 +34,7 @@ class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = CustomUser
         fields = (
-            'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
+            'email', 'name', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
         error_messages = {
             'email': {
                 'unique': "Пользователь с таким адресом электронной почты уже существует.",

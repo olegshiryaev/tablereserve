@@ -1,3 +1,4 @@
+from datetime import date
 import os
 import random
 from django.db import models
@@ -92,12 +93,27 @@ def upload_to_instance_directory(instance, filename):
 
 
 class PlaceImage(models.Model):
-    place = models.ForeignKey('Place', on_delete=models.CASCADE, related_name='images')
+    place = models.ForeignKey('Place', on_delete=models.CASCADE, related_name='images', verbose_name="Заведение")
     image = models.ImageField(upload_to=upload_to_instance_directory, verbose_name="Изображение")
     is_cover = models.BooleanField(default=False, verbose_name="Обложка")
+    upload_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
 
     def __str__(self):
-        return f"Image for {self.place.name}"
+        return f"Изображение {self.place.name}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.is_cover:
+            self.place.cover_image = self
+            self.place.save(update_fields=['cover_image'])
+
+    def delete(self, *args, **kwargs):
+        self.image.delete()
+        super().delete(*args, **kwargs)
+    
+    class Meta:
+        verbose_name = "Изображение заведения"
+        verbose_name_plural = "Изображения заведений"
 
 
 class PlaceManager(models.Manager):
@@ -105,7 +121,7 @@ class PlaceManager(models.Manager):
         return self.filter(is_active=True).select_related('cover_image').prefetch_related('cuisines', 'images')
 
     def get_popular_places(self, limit=5):
-        return self.get_queryset().filter(is_active=True).annotate(
+        return self.filter(is_active=True).annotate(
             avg_rating=Avg('reviews__rating'),
             review_count=Count('reviews')
         ).order_by('-avg_rating', '-review_count')[:limit]
@@ -116,11 +132,11 @@ class Place(models.Model):
     name = models.CharField(max_length=100, unique=True, db_index=True, verbose_name="Название заведения")
     city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='places', verbose_name="Город заведения")
     address = models.CharField(max_length=255, verbose_name="Адрес заведения")
-    phone = models.CharField(max_length=15,
-                             validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$',
-                                                        message="Номер телефона должен быть введен в формате: '+999999999'. Допустимо до 15 цифр.")],
-                             verbose_name="Телефон заведения"
-                             )
+    phone = models.CharField(
+        max_length=15,
+        validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Номер телефона должен быть введен в формате: '+999999999'. Допустимо до 15 цифр.")],
+        verbose_name="Телефон заведения"
+    )
     website = models.URLField(blank=True, verbose_name="Веб-сайт")
     cuisines = models.ManyToManyField(Cuisine, blank=True, verbose_name="Кухни")
     description = models.TextField(null=True, blank=True, verbose_name="Описание")
@@ -130,13 +146,14 @@ class Place(models.Model):
     capacity = models.IntegerField(default=0, verbose_name="Вместимость")
     cover_image = models.ForeignKey(PlaceImage, on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='cover_for', verbose_name="Обложка")
-    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0,
-                                 validators=[MinValueValidator(0), MaxValueValidator(5)], verbose_name="Рейтинг")
+    rating = models.DecimalField(
+        max_digits=3, decimal_places=2, default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(5)], verbose_name="Рейтинг"
+    )
     is_active = models.BooleanField(default=True, db_index=True, verbose_name="Активное заведение")
     slug = models.SlugField(max_length=100, unique=True, blank=True, db_index=True,
                             verbose_name="Уникальный идентификатор")
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
-                              related_name='establishments', verbose_name="Владелец")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True, related_name='places', verbose_name="Владелец")
 
     objects = PlaceManager()
 
@@ -145,14 +162,8 @@ class Place(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-    def get_popular_places(self, limit=5):
-        return Place.objects.filter(
-            is_active=True,
-            city=self.city
-        ).annotate(
-            avg_rating=Avg('reviews__rating'),
-            review_count=Count('reviews')
-        ).order_by('-avg_rating', '-review_count')[:limit]
+    def get_absolute_url(self):
+        return reverse('place_detail', kwargs={'slug': self.slug})
 
     def update_rating(self):
         reviews = self.reviews.filter(is_approved=True)
@@ -162,6 +173,13 @@ class Place(models.Model):
         else:
             self.rating = 0
         self.save(update_fields=['rating'])
+
+    @property
+    def favorite_count(self):
+        return self.favorited_by.count()
+
+    def is_favorited_by(self, user):
+        return self.favorited_by.filter(user=user).exists()
 
     def get_cover_image(self):
         return self.images.filter(is_cover=True).first()
@@ -182,7 +200,7 @@ class Place(models.Model):
 
 
 class WorkSchedule(models.Model):
-    WEEKDAYS = (
+    DAY_CHOICES = (
         ('MON', 'Понедельник'),
         ('TUE', 'Вторник'),
         ('WED', 'Среда'),
@@ -192,21 +210,23 @@ class WorkSchedule(models.Model):
         ('SUN', 'Воскресенье'),
     )
     place = models.ForeignKey(Place, on_delete=models.CASCADE, verbose_name="Заведение")
-    weekday = models.CharField(max_length=3, choices=WEEKDAYS, verbose_name="День недели")
-    opening_time = models.TimeField(verbose_name="Время открытия")
-    closing_time = models.TimeField(verbose_name="Время закрытия")
+    day = models.CharField(max_length=3, choices=DAY_CHOICES, verbose_name="День недели")
+    open_time = models.TimeField(verbose_name="Время открытия")
+    close_time = models.TimeField(verbose_name="Время закрытия")
     is_closed = models.BooleanField(default=False, verbose_name="Закрыто")
 
     def clean(self):
-        if self.opening_time >= self.closing_time:
+        if self.open_time >= self.close_time:
             raise ValidationError('Время открытия должно быть раньше времени закрытия.')
 
     def __str__(self):
-        return f"{self.place.name} - {self.get_weekday_display()}: {self.opening_time} - {self.closing_time}"
+        return f"{self.place.name} - {self.get_day_display()}: {self.open_time} - {self.close_time}"
 
     class Meta:
         verbose_name = "Время работы"
         verbose_name_plural = "Время работы"
+        unique_together = ('place', 'day')
+        ordering = ['day']
 
 
 class Table(models.Model):
@@ -353,7 +373,7 @@ class Event(models.Model):
 
     def get_upcoming_events(self, limit=5):
         today = date.today()
-        return self.get_queryset().filter(date__gte=today, is_active=True).order_by('date', 'start_time')[:limit]
+        return Event.objects.filter(place=self.place, date__gte=today, is_active=True).order_by('date', 'start_time')[:limit]
 
     class Meta:
         verbose_name = "Событие"
@@ -374,8 +394,19 @@ class Discount(models.Model):
 
     def get_active_discounts(self, limit=5):
         today = date.today()
-        return self.get_queryset().filter(start_date__lte=today, end_date__gte=today).order_by('end_date')[:limit]
+        return Discount.objects.filter(place=self.place, start_date__lte=today, end_date__gte=today).order_by('end_date')[:limit]
 
     class Meta:
         verbose_name = "Акция"
         verbose_name_plural = "Акции"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorites', verbose_name="Пользователь")
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='favorited_by', verbose_name="Заведение")
+    added_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
+
+    class Meta:
+        unique_together = ('user', 'place')
+        verbose_name = "Избранное"
+        verbose_name_plural = "Избранные"

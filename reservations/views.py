@@ -1,25 +1,29 @@
+from datetime import date
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from .models import City, Cuisine, Feature, Place, PlaceType, Reservation, Event, Discount
+from .models import City, Cuisine, Favorite, Feature, Place, PlaceType, Reservation, Event, Discount
 from .forms import ReservationForm, ReviewForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 
 
 def main_page(request, city_slug):
-
     city = get_object_or_404(City, slug=city_slug)
 
-    # Создаем экземпляр формы для бронирования
+    # Получаем популярные заведения, предстоящие события и активные акции для выбранного города
+    popular_places = Place.objects.filter(city=city, is_active=True).order_by('-rating')[:5]
+    upcoming_events = Event.objects.filter(place__city=city, date__gte=date.today(), is_active=True).order_by('date', 'start_time')[:5]
+    active_discounts = Discount.objects.filter(place__city=city, start_date__lte=date.today(), end_date__gte=date.today()).order_by('end_date')[:5]
+
+    # Создаем экземпляр формы для бронирования (предполагая, что ReservationForm определена и имеет атрибут place=None)
     reservation_form = ReservationForm(place=None)
 
-    popular_places = Place.objects.get_popular_places()
-    upcoming_events = Event.objects.all()
-    active_discounts = Discount.objects.all()
-
-    title = f"Рестораны, кафе и бары {city.name}а"
+    title = f"Рестораны, кафе и бары {city.name}"
 
     context = {
         'popular_places': popular_places,
@@ -28,8 +32,8 @@ def main_page(request, city_slug):
         'selected_city': city,
         'form': reservation_form,
         'title': title,
-
     }
+
     return render(request, 'reservations/main_page.html', context)
 
 

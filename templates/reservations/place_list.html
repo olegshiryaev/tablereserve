@@ -103,11 +103,19 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
-                                <div class="favorite-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M20.84 4.27a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.4a5.5 5.5 0 0 0-7.78 0 6 6 0 0 0 0 8.49L12 21l8.84-7.84a6 6 0 0 0 0-8.49z"></path>
-                                    </svg>
-                                </div>
+                                {% if place in favorite_places %}
+                                    <div class="favorite-icon" data-place-id="{{ place.id }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="red" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="favorite-toggle">
+                                            <path d="M20.84 4.27a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.4a5.5 5.5 0 0 0-7.78 0 6 6 0 0 0 0 8.49L12 21l8.84-7.84a6 6 0 0 0 0-8.49z"></path>
+                                        </svg>
+                                    </div>
+                                {% else %}
+                                    <div class="favorite-icon" data-place-id="{{ place.id }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="favorite-toggle">
+                                            <path d="M20.84 4.27a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.4a5.5 5.5 0 0 0-7.78 0 6 6 0 0 0 0 8.49L12 21l8.84-7.84a6 6 0 0 0 0-8.49z"></path>
+                                        </svg>
+                                    </div>
+                                {% endif %}
                                 <div class="image">
                                     <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" target="_self">
                                         {% if place.cover_image %}
@@ -256,58 +264,5 @@
             });
         });
     });
-</script>
-<script>
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Прочитаем имя cookie
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-function toggleFavorite(element) {
-    const laceId = element.getAttribute('data-place-id');
-    const isFavorite = element.classList.contains('text-danger');
-
-    const url = '/toggle_favorite/';
-    const csrftoken = getCookie('csrftoken');
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({
-            lace_id: laceId,
-            is_favorite: !isFavorite
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Обновляем внешний вид кнопки (если требуется)
-            if (isFavorite) {
-                element.classList.remove('text-danger');
-            } else {
-                element.classList.add('text-danger');
-            }
-        } else {
-            console.error('Произошла ошибка при добавлении в избранное.');
-        }
-    })
-    .catch(error => {
-        console.error('Ошибка:', error);
-    });
-}
 </script>
 {% endblock %}

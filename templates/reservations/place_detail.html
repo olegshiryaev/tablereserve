@@ -24,6 +24,7 @@
                         <li><strong>Средний чек:</strong> {{ place.average_check }} руб.</li>
                         <li><strong>Наличие детской комнаты:</strong> {% if place.has_kids_room %}Да{% else %}Нет{% endif %}</li>
                         <li><strong>Рейтинг:</strong> {{ place.rating }}</li>
+                        <li><strong>Добавили в избранное:</strong> {{ place.favorite_count }} пользователей</li>
                     </ul>
                 </div>
             </div>
@@ -42,9 +43,9 @@
                     <tbody>
                         {% for schedule in place.workschedule_set.all %}
                             <tr>
-                                <td>{{ schedule.get_weekday_display }}</td>
-                                <td>{{ schedule.opening_time }}</td>
-                                <td>{{ schedule.closing_time }}</td>
+                                <td>{{ schedule.get_day_display }}</td>
+                                <td>{{ schedule.open_time }}</td>
+                                <td>{{ schedule.close_time }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -132,11 +133,11 @@
                         <div class="reservation-info">{{ reservation.first_name }}, ваша заявка №{{ reservation.number }} принята в работу. Ожидаемое время подтверждения 30 минут.</div>
                         <a href="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}" class="btn btn-outline-secondary">Сделать новый заказ</a>
                     {% else %}
-                        <h3 class="modtitle">Бронирование столика</h3>
+                        <h3 class="modtitle">Заказ столика</h3>
                         <form method="post" action="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}">
                             {% csrf_token %}
                             {{ form.as_p }}
-                            <button type="submit" class="btn btn-primary">Забронировать</button>
+                            <button type="submit" class="btn btn-primary">Заказать столик</button>
                         </form>
                     {% endif %}
                 </div>

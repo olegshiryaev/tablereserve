@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import toggle_favorite
+from .views import user_profile
 
 urlpatterns = [
-    path('toggle_favorite/', toggle_favorite, name='toggle_favorite'),
+    path('profile/', user_profile, name='user_profile'),
 ]

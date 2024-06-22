@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import City, Cuisine, Discount, Feature, Place, PlaceImage, Menu, MenuItem, PlaceType, Review, Reservation, \
+from .models import City, Cuisine, Discount, Favorite, Feature, Place, PlaceImage, Menu, MenuItem, PlaceType, Review, Reservation, \
     ReviewImage, Table, WorkSchedule, Event
 
 
@@ -34,8 +34,24 @@ class FeatureInline(admin.TabularInline):
     extra = 1
 
 
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'place', 'added_at')
+    list_filter = ('user', 'place')
+    search_fields = ('user__email', 'place__name')
+
+
+class FavoriteInline(admin.TabularInline):
+    model = Favorite
+    extra = 0
+    raw_id_fields = ('user',)
+
+
 class WorkScheduleInline(admin.TabularInline):
     model = WorkSchedule
+    extra = 1
+    min_num = 7
+    max_num = 7
 
 
 @admin.register(PlaceType)
@@ -49,8 +65,11 @@ class PlaceAdmin(admin.ModelAdmin):
         'name', 'city', 'type', 'address', 'phone', 'website', 'average_check', 'capacity', 'rating', 'is_active')
     search_fields = ('name', 'city__name', 'address', 'phone')
     list_filter = ('city', 'type', 'is_active')
-    inlines = [FeatureInline]
+    inlines = [WorkScheduleInline, FeatureInline, FavoriteInline]
     prepopulated_fields = {'slug': ('name',)}
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('city', 'type').prefetch_related('cuisines', 'features')
 
 
 @admin.register(PlaceImage)
@@ -61,8 +80,12 @@ class PlaceImageAdmin(admin.ModelAdmin):
 
 @admin.register(WorkSchedule)
 class WorkScheduleAdmin(admin.ModelAdmin):
-    list_display = ('weekday', 'opening_time', 'closing_time', 'is_closed')
-    list_filter = ('weekday', 'is_closed')
+    list_display = ('place', 'day', 'open_time', 'close_time', 'is_closed')
+    list_filter = ('place', 'day', 'is_closed')
+    search_fields = ('place__name',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('place')
 
 
 @admin.register(Table)

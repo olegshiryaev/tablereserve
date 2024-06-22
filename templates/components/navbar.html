@@ -43,10 +43,10 @@
                 {% if user.is_authenticated %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ user.first_name }}
+                        {{ user.name }}
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Профиль</a></li>
+                        <li><a class="dropdown-item" href="{% url 'user_profile' %}">Профиль</a></li>
                         <li><a class="dropdown-item" href="{% url 'account_logout' %}">Выйти</a></li>
                     </ul>
                 </li>
@@ -172,7 +172,7 @@ $(document).ready(function () {
             </div>
             <div class="mb-3">
                 <label for="name" class="form-label">Имя</label>
-                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                <input type="text" class="form-control" id="name" name="name" required>
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Пароль</label>

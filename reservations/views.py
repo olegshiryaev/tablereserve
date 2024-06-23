@@ -2,7 +2,7 @@ from datetime import date
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from .models import City, Cuisine, Favorite, Feature, Place, PlaceType, Reservation, Event, Discount
+from .models import City, Cuisine, Feature, Place, PlaceType, Reservation, Event, Discount
 from .forms import ReservationForm, ReviewForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required

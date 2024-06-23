@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import CustomUser
 
 class CustomSignupForm(SignupForm):
-    first_name = forms.CharField(max_length=30, label='First Name')
+    name = forms.CharField(max_length=30, label='First Name')
 
     def __init__(self, *args, **kwargs):
         super(CustomSignupForm, self).__init__(*args, **kwargs)
@@ -14,7 +14,7 @@ class CustomSignupForm(SignupForm):
     def save(self, request):
         # Вы можете переопределить метод save, если необходимо выполнить дополнительные действия при сохранении формы
         user = super(CustomSignupForm, self).save(request)
-        user.first_name = self.cleaned_data['name']
+        user.name = self.cleaned_data['name']
         user.save()
         return user
 

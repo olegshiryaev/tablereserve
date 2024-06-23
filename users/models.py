@@ -40,7 +40,7 @@ class CustomUser(AbstractUser):
     )
     username = None
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
-    name = models.CharField(max_length=30, blank=True, verbose_name="Имя")
+    name = models.CharField(max_length=50, blank=True, verbose_name="Имя")
     email = models.EmailField(unique=True, verbose_name="Адрес электронной почты")
     phone_number = PhoneNumberField(unique=True, blank=True, null=True, verbose_name="Телефон")
     date_joined = models.DateTimeField(default=timezone.now, verbose_name="Дата регистрации")

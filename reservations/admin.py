@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import City, Cuisine, Discount, Favorite, Feature, Place, PlaceImage, Menu, MenuItem, PlaceType, Review, Reservation, \
+from .models import City, Cuisine, Discount, Feature, Place, PlaceImage, Menu, MenuItem, PlaceType, Review, Reservation, \
     ReviewImage, Table, WorkSchedule, Event
 
 
@@ -34,17 +34,17 @@ class FeatureInline(admin.TabularInline):
     extra = 1
 
 
-@admin.register(Favorite)
-class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'place', 'added_at')
-    list_filter = ('user', 'place')
-    search_fields = ('user__email', 'place__name')
+# @admin.register(Favorite)
+# class FavoriteAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'place', 'added_at')
+#     list_filter = ('user', 'place')
+#     search_fields = ('user__email', 'place__name')
 
 
-class FavoriteInline(admin.TabularInline):
-    model = Favorite
-    extra = 0
-    raw_id_fields = ('user',)
+# class FavoriteInline(admin.TabularInline):
+#     model = Favorite
+#     extra = 0
+#     raw_id_fields = ('user',)
 
 
 class WorkScheduleInline(admin.TabularInline):
@@ -65,7 +65,7 @@ class PlaceAdmin(admin.ModelAdmin):
         'name', 'city', 'type', 'address', 'phone', 'website', 'average_check', 'capacity', 'rating', 'is_active')
     search_fields = ('name', 'city__name', 'address', 'phone')
     list_filter = ('city', 'type', 'is_active')
-    inlines = [WorkScheduleInline, FeatureInline, FavoriteInline]
+    inlines = [WorkScheduleInline, FeatureInline]
     prepopulated_fields = {'slug': ('name',)}
 
     def get_queryset(self, request):

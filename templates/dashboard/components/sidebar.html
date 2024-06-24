@@ -1,0 +1,25 @@
+<nav id="sidebar" class="sidebar js-sidebar">
+    <div class="sidebar-content js-simplebar">
+        <a class="sidebar-brand" href="{% url 'dashboard:places_list' %}">
+            <span class="align-middle">AdminKit</span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li class="sidebar-header">
+                Меню
+            </li>
+
+            <li class="sidebar-item {% if request.resolver_match.url_name == 'places_list' %}active{% endif %}">
+                <a class="sidebar-link" href="{% url 'dashboard:places_list' %}">
+                    <i class="align-middle" data-feather="grid"></i> <span class="align-middle">Заведения</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item {% if request.resolver_match.url_name == 'all_reservations' %}active{% endif %}">
+                <a class="sidebar-link" href="{% url 'dashboard:all_reservations' %}">
+                    <i class="align-middle" data-feather="book"></i> <span class="align-middle">Бронирования</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>

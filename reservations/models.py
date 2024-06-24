@@ -135,15 +135,17 @@ class Place(models.Model):
     phone = models.CharField(
         max_length=15,
         validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Номер телефона должен быть введен в формате: '+999999999'. Допустимо до 15 цифр.")],
-        verbose_name="Телефон заведения"
+        verbose_name="Телефон заведения",
+        blank=True,
+        null=True
     )
     website = models.URLField(blank=True, verbose_name="Веб-сайт")
     cuisines = models.ManyToManyField(Cuisine, blank=True, verbose_name="Кухни")
     description = models.TextField(null=True, blank=True, verbose_name="Описание")
-    average_check = models.IntegerField(default=0, verbose_name="Средний чек")
+    average_check = models.IntegerField(default=0, null=True, blank=True, verbose_name="Средний чек")
     features = models.ManyToManyField(Feature, blank=True, verbose_name="Особенности заведения")
     has_kids_room = models.BooleanField(default=False, verbose_name="Наличие детской комнаты")
-    capacity = models.IntegerField(default=0, verbose_name="Вместимость")
+    capacity = models.IntegerField(default=0, verbose_name="Вместимость", blank=True)
     cover_image = models.ForeignKey(PlaceImage, on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='cover_for', verbose_name="Обложка")
     rating = models.DecimalField(
@@ -153,7 +155,7 @@ class Place(models.Model):
     is_active = models.BooleanField(default=True, db_index=True, verbose_name="Активное заведение")
     slug = models.SlugField(max_length=100, unique=True, blank=True, db_index=True,
                             verbose_name="Уникальный идентификатор")
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True, related_name='places', verbose_name="Владелец")
+    manager = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='managed_places', verbose_name="Представитель", blank=True)
 
     objects = PlaceManager()
 
@@ -187,6 +189,7 @@ class Place(models.Model):
     def approved_reviews(self):
         return self.reviews.filter(is_approved=True)
 
+    @property
     def review_count(self):
         return self.reviews.filter(is_approved=True).count()
 
@@ -214,10 +217,6 @@ class WorkSchedule(models.Model):
     open_time = models.TimeField(verbose_name="Время открытия")
     close_time = models.TimeField(verbose_name="Время закрытия")
     is_closed = models.BooleanField(default=False, verbose_name="Закрыто")
-
-    def clean(self):
-        if self.open_time >= self.close_time:
-            raise ValidationError('Время открытия должно быть раньше времени закрытия.')
 
     def __str__(self):
         return f"{self.place.name} - {self.get_day_display()}: {self.open_time} - {self.close_time}"
@@ -257,14 +256,13 @@ class Reservation(models.Model):
     time = models.TimeField(null=True, blank=True, verbose_name="Время бронирования")
     guests = models.IntegerField(validators=[MinValueValidator(1)], verbose_name="Количество гостей")
     wishes = models.TextField(blank=True, verbose_name="Пожелания")
-    first_name = models.CharField(max_length=100, verbose_name="Имя")
-    last_name = models.CharField(max_length=100, blank=True, verbose_name="Фамилия")
-    phone = models.CharField(max_length=15,
+    customer_name = models.CharField(max_length=100, verbose_name="Имя и фамилия")
+    customer_phone = models.CharField(max_length=15,
                              validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$',
                                                         message="Номер телефона должен быть введен в формате: '+999999999'. Допустимо до 15 цифр.")],
                              verbose_name="Телефон", blank=False, null=False
                              )
-    email = models.EmailField(blank=True, verbose_name="Email")
+    customer_email = models.EmailField(blank=True, verbose_name="Email")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Статус")
     created_at = models.DateTimeField(default=timezone.now, editable=False, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
@@ -399,14 +397,3 @@ class Discount(models.Model):
     class Meta:
         verbose_name = "Акция"
         verbose_name_plural = "Акции"
-
-
-class Favorite(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorites', verbose_name="Пользователь")
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='favorited_by', verbose_name="Заведение")
-    added_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
-
-    class Meta:
-        unique_together = ('user', 'place')
-        verbose_name = "Избранное"
-        verbose_name_plural = "Избранные"

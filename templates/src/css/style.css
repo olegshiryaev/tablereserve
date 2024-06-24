@@ -87,29 +87,61 @@ button[type="submit"]:hover {
     box-shadow: 4px 4px 24px rgba(0, 0, 0, .15);
 }
 
-.favorite-icon {
+.place-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.place-image {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+}
+
+.place-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.favorite-place-button {
     position: absolute;
     top: 10px;
     right: 10px;
-    z-index: 2;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 5px;
     cursor: pointer;
+    transition: transform 0.2s ease-in-out;
 }
 
-.favorite-icon svg {
-    stroke-width: 2px;
-    stroke: white;
-    fill: none;
-    transition: stroke 0.3s ease;
-    width: 24px;
-    height: 24px;
+.favorite-toggle {
+    transition: fill 0.2s ease-in-out;
 }
 
-.favorite-icon:hover svg {
-    stroke: red;
+.favorite-place-button__container {
+    min-width: 70px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 26px;
+    background: #ececec;
+    color: #333;
+    box-shadow: 1px 4px 20px rgba(153, 153, 169, .35);
+    transition: all .3s ease-out;
 }
 
-.favorite-icon:hover svg path {
-    fill: red;
+.favorite-count {
+    margin-left: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: .0125em;
 }
 
 .image {

@@ -87,19 +87,36 @@ button[type="submit"]:hover {
     box-shadow: 4px 4px 24px rgba(0, 0, 0, .15);
 }
 
+.favorite-container {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
 .favorite-icon {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 2;
+    display: flex;
+    align-items: center;
     cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.favorite-icon:hover {
+    transform: scale(1.1);
+}
+
+.favorite-toggle {
+    margin-right: 5px;
+    transition: fill 0.2s ease-in-out;
+}
+
+.favorite-count {
+    font-size: 14px;
+    color: #333;
+    font-weight: bold;
 }
 
 .favorite-icon svg {
     stroke-width: 2px;
-    stroke: white;
-    fill: none;
-    transition: stroke 0.3s ease;
     width: 24px;
     height: 24px;
 }

@@ -1,0 +1,105 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+        <!-- Кнопка "Назад" -->
+        <a href="{% url 'dashboard:all_reservations' %}" class="btn btn-secondary mb-3">Назад</a>
+    <h1 class="h3 mb-3">Бронирование #{{ reservation.id }}</h1>
+
+    <!-- Форма редактирования информации о заведении -->
+    <div class="card">
+        <div class="card-body">
+            <button id="editButton" class="btn btn-primary mb-3">Редактировать</button>
+            <button id="cancelButton" class="btn btn-danger mb-3" style="display:none;">Отменить</button>
+            <form id="reservationForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Дата</label>
+                        <input type="date" class="form-control" name="date" value="{{ reservation.date|date:"Y-m-d" }}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Время</label>
+                        <input type="time" class="form-control" name="time" value="{{ reservation.time }}" disabled>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Количество гостей</label>
+                        <input type="number" class="form-control" name="guests" value="{{ reservation.guests }}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Имя</label>
+                        <input type="text" class="form-control" name="customer_name" value="{{ reservation.customer_name }}" disabled>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Телефон</label>
+                        <input type="text" class="form-control" name="customer_phone" value="{{ reservation.customer_phone }}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="customer_email" value="{{ reservation.customer_email }}" disabled>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Пожелания</label>
+                    <textarea class="form-control" name="wishes" disabled>{{ reservation.wishes }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Статус</label>
+                    <select class="form-select" name="status" disabled>
+                        <option value="pending" {% if reservation.status == 'pending' %}selected{% endif %}>В ожидании</option>
+                        <option value="confirmed" {% if reservation.status == 'confirmed' %}selected{% endif %}>Подтверждено</option>
+                        <option value="cancelled" {% if reservation.status == 'cancelled' %}selected{% endif %}>Отменено</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success" id="saveButton" style="display:none;">Сохранить изменения</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('editButton').addEventListener('click', function() {
+        var formElements = document.getElementById('reservationForm').elements;
+        for (var i = 0; i < formElements.length; i++) {
+            formElements[i].disabled = false;
+        }
+        document.getElementById('saveButton').style.display = 'block';
+        document.getElementById('cancelButton').style.display = 'block';
+        this.style.display = 'none';
+    });
+
+    document.getElementById('cancelButton').addEventListener('click', function() {
+        var formElements = document.getElementById('reservationForm').elements;
+        for (var i = 0; i < formElements.length; i++) {
+            formElements[i].disabled = true;
+        }
+        document.getElementById('saveButton').style.display = 'none';
+        document.getElementById('editButton').style.display = 'block';
+        this.style.display = 'none';
+    });
+</script>
+{% endblock %}

@@ -12,14 +12,13 @@ class ReviewForm(forms.ModelForm):
 class ReservationForm(forms.ModelForm):
     class Meta:
         model = Reservation
-        fields = ['date', 'time', 'guests', 'first_name', 'last_name', 'phone', 'email', 'wishes']
+        fields = ['date', 'time', 'guests', 'customer_name', 'customer_phone', 'customer_email', 'wishes']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'min': datetime.now().date().strftime('%Y-%m-%d')}),
             'time': forms.TimeInput(format='%H:%M', attrs={'type': 'time', 'class': 'form-control'}),
-            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+7999999999'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'customer_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'customer_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+7999999999'}),
+            'customer_email': forms.EmailInput(attrs={'class': 'form-control'}),
             'wishes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': '(необязательно)'}),
         }
 

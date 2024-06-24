@@ -156,6 +156,9 @@ def place_detail(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(Place, slug=place_slug, city=city)
     form = handle_reservation(request, place, ReservationForm, 'place_detail')
+    is_favorited = False
+    if request.user.is_authenticated:
+        is_favorited = place.is_favorited_by(request.user)
 
     title = f"{place.type} {place.name}, {place.address}"
 
@@ -164,6 +167,7 @@ def place_detail(request, city_slug, place_slug):
         'form': form,
         'selected_city': city,
         'title': title,
+        'is_favorited': is_favorited,
     }
     return render(request, 'reservations/place_detail.html', context)
 

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load floattags %}
 {% block title %}{{ title }}{% endblock %}
 {% block navbar %}
     {% include 'components/navbar.html' %}
@@ -23,8 +24,18 @@
                         {% endif %}
                         <li><strong>Средний чек:</strong> {{ place.average_check }} руб.</li>
                         <li><strong>Наличие детской комнаты:</strong> {% if place.has_kids_room %}Да{% else %}Нет{% endif %}</li>
-                        <li><strong>Рейтинг:</strong> {{ place.rating }}</li>
+                        <li><strong>Рейтинг:</strong> {{ place.rating|formatted_float }}</li>
                         <li><strong>Добавили в избранное:</strong> {{ place.favorite_count }} пользователей</li>
+                        {% if user.is_authenticated %}
+                            <button class="favorite-place-button" data-place-id="{{ place.id }}" data-is-favorited="{{ is_favorited|yesno:'true,false' }}">
+                                <span class="favorite-place-button__container">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="{% if is_favorited %}#ff0032{% else %}none{% endif %}" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="favorite-toggle">
+                                        <path d="M20.84 4.27a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.4a5.5 5.5 0 0 0-7.78 0 6 6 0 0 0 0 8.49L12 21l8.84-7.84a6 6 0 0 0 0-8.49z"></path>
+                                    </svg>
+                                    <span class="favorite-count">{{ place.favorite_count }}</span>
+                                </span>
+                            </button>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -145,4 +156,34 @@
         </aside>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const favoriteButtons = document.querySelectorAll('.favorite-place-button');
+        
+        favoriteButtons.forEach(favoriteButton => {
+            favoriteButton.addEventListener('click', function () {
+                const placeId = this.getAttribute('data-place-id');
+                const isFavorited = this.getAttribute('data-is-favorited') === 'true';
+                const url = isFavorited ? '{% url "users:remove_from_favorites" place.id %}' : '{% url "users:add_to_favorites" place.id %}';
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    this.setAttribute('data-is-favorited', !isFavorited);
+                    this.querySelector('svg').setAttribute('fill', !isFavorited ? 'red' : 'none');
+                    const favoriteCountElem = this.querySelector('.favorite-count');
+                    let favoriteCount = parseInt(favoriteCountElem.textContent);
+                    favoriteCountElem.textContent = isFavorited ? favoriteCount - 1 : favoriteCount + 1;
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}

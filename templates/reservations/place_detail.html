@@ -138,11 +138,15 @@
                         <div class="d-flex align-items-center"> <!-- Используем flex для выравнивания элементов -->
                             <span class="text-success mr-2" style="font-size: 1.2em;">&#10004;</span> <!-- Зелёная галочка -->
                             <div class="reservation-title">
-                                Заявка №{{ reservation.number }}
+                                Заявка №{{ request.session.reservation_number }} <!-- Используем номер из сессии -->
                             </div>
                         </div>
-                        <div class="reservation-info">{{ reservation.first_name }}, ваша заявка №{{ reservation.number }} принята в работу. Ожидаемое время подтверждения 30 минут.</div>
-                        <a href="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}" class="btn btn-outline-secondary">Сделать новый заказ</a>
+                        <div class="reservation-info">
+                            {{ reservation.name }}, ваша заявка №{{ request.session.reservation_number }} принята в работу. Ожидаемое время подтверждения 30 минут.
+                        </div>
+                        
+                        <!-- Кнопка "Сделать новый заказ" с параметром clear_reservation -->
+                        <a href="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}?clear_reservation=true" class="btn btn-outline-secondary">Сделать новый заказ</a>
                     {% else %}
                         <h3 class="modtitle">Заказ столика</h3>
                         <form method="post" action="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}">
@@ -184,6 +188,45 @@
                 });
             });
         });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dateInput = document.querySelector('#id_date');
+        const timeSelect = document.querySelector('#id_time');
+
+        // Set the default date to today in the format yyyy-mm-dd
+        if (dateInput) {
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+            const year = today.getFullYear();
+            const formattedDate = `${year}-${month}-${day}`;
+            dateInput.value = formattedDate; // Set in yyyy-mm-dd format for input type date
+
+            // Fetch available time slots for today
+            fetchAvailableTimes(formattedDate);
+
+            // Update available times when date changes
+            dateInput.addEventListener('change', function () {
+                const selectedDate = this.value;
+                fetchAvailableTimes(selectedDate);
+            });
+        }
+
+        function fetchAvailableTimes(date) {
+            fetch(`{% url 'update_time_choices' place_id=place.id date='DATE_PLACEHOLDER' %}`.replace('DATE_PLACEHOLDER', date))
+                .then(response => response.json())
+                .then(data => {
+                    timeSelect.innerHTML = '';
+                    data.time_choices.forEach(time => {
+                        const option = document.createElement('option');
+                        option.value = time;
+                        option.textContent = time;
+                        timeSelect.appendChild(option);
+                    });
+                });
+        }
     });
 </script>
 {% endblock %}

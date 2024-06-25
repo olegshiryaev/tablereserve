@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from .models import City, Cuisine, Feature, Place, PlaceType, Reservation, Event, Discount
+from .models import City, Cuisine, Feature, Place, PlaceType, Reservation, Event, Discount, WorkSchedule
 from .forms import ReservationForm, ReviewForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -154,22 +154,58 @@ def handle_reservation(request, place, form_class, redirect_to):
 
 def place_detail(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
-    place = get_object_or_404(Place, slug=place_slug, city=city)
-    form = handle_reservation(request, place, ReservationForm, 'place_detail')
-    is_favorited = False
-    if request.user.is_authenticated:
-        is_favorited = place.is_favorited_by(request.user)
+    place = get_object_or_404(Place, slug=place_slug)
+    reservation_form = ReservationForm(place=place)
+    
+    if request.method == 'POST':
+        form = ReservationForm(place, request.POST)
+        if form.is_valid():
+            reservation = form.save(commit=False)
+            reservation.place = place
+            reservation.user = request.user
+            reservation.save()
+            request.session['reservation_successful'] = True
+            return HttpResponseRedirect(reverse('place_detail', kwargs={'city_slug': city_slug, 'place_slug': place_slug}))
 
-    title = f"{place.type} {place.name}, {place.address}"
-
-    context = {
+    return render(request, 'reservations/place_detail.html', {
         'place': place,
-        'form': form,
+        'form': reservation_form,
         'selected_city': city,
-        'title': title,
-        'is_favorited': is_favorited,
-    }
-    return render(request, 'reservations/place_detail.html', context)
+    })
+
+
+def update_time_choices(request, place_id, date):
+    place = Place.objects.get(id=place_id)
+    selected_date = datetime.strptime(date, '%Y-%m-%d').date()
+    day_name = selected_date.strftime('%a').upper()
+    work_schedule = WorkSchedule.objects.filter(place=place, day=day_name).first()
+
+    time_choices = []
+    if work_schedule:
+        start_time = work_schedule.open_time
+        end_time = (datetime.combine(datetime.today(), work_schedule.close_time) - timedelta(hours=1)).time()
+        interval = timedelta(minutes=15)
+        
+        now = datetime.now()
+        current_time = now.time()
+
+        # Calculate the next half hour
+        if now.minute < 30:
+            next_half_hour = now.replace(minute=30, second=0, microsecond=0)
+        else:
+            next_half_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+
+        # Use either the start time or the next half hour, whichever is later
+        if selected_date == now.date():
+            current_time = max(next_half_hour.time(), start_time)
+        else:
+            current_time = start_time
+
+        while current_time <= end_time:
+            time_choices.append(current_time.strftime('%H:%M'))
+            current_time = (datetime.combine(datetime.today(), current_time) + interval).time()
+
+    return JsonResponse({'time_choices': time_choices})
 
 
 def reserve_table(request, city_slug, place_slug):

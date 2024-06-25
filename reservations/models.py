@@ -15,11 +15,8 @@ from django.urls import reverse
 
 
 def upload_to_city_image(instance, filename):
-    # Получаем расширение загружаемого файла
     ext = filename.split('.')[-1]
-    # Генерируем имя файла в формате <slug города>.jpg
     filename = f"{instance.slug}.{ext}"
-    # Возвращаем путь для сохранения файла
     return os.path.join('cities', filename)
 
 
@@ -27,11 +24,6 @@ class City(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Город")
     image = models.ImageField(upload_to=upload_to_city_image, verbose_name="Изображение", null=True, blank=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True, verbose_name="Уникальный идентификатор")
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -45,11 +37,6 @@ class City(models.Model):
 class Cuisine(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Наименование кухни")
     slug = models.SlugField(max_length=100, blank=True, verbose_name="Уникальный идентификатор")
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Кухня"
@@ -74,18 +61,13 @@ class PlaceType(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name="Тип заведения")
     slug = models.SlugField(max_length=50, unique=True, blank=True, verbose_name="Уникальный идентификатор")
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = "Тип заведения"
         verbose_name_plural = "Типы заведений"
         ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 def upload_to_instance_directory(instance, filename):
@@ -107,13 +89,14 @@ class PlaceImage(models.Model):
             self.place.cover_image = self
             self.place.save(update_fields=['cover_image'])
 
-    def delete(self, *args, **kwargs):
-        self.image.delete()
-        super().delete(*args, **kwargs)
-    
     class Meta:
         verbose_name = "Изображение заведения"
         verbose_name_plural = "Изображения заведений"
+
+
+@receiver(post_delete, sender=PlaceImage)
+def delete_image_file(sender, instance, **kwargs):
+    instance.image.delete(False)
 
 
 class PlaceManager(models.Manager):
@@ -159,6 +142,11 @@ class Place(models.Model):
 
     objects = PlaceManager()
 
+    class Meta:
+        verbose_name = "Заведение"
+        verbose_name_plural = "Заведения"
+        ordering = ['name']
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
@@ -196,10 +184,14 @@ class Place(models.Model):
     def __str__(self):
         return self.name
 
-    class Meta:
-        verbose_name = "Заведение"
-        verbose_name_plural = "Заведения"
-        ordering = ['name']
+
+@receiver(pre_save, sender=City)
+@receiver(pre_save, sender=Cuisine)
+@receiver(pre_save, sender=PlaceType)
+@receiver(pre_save, sender=Place)
+def pre_save_slug(sender, instance, *args, **kwargs):
+    if not instance.slug:
+        instance.slug = slugify(instance.name)
 
 
 class WorkSchedule(models.Model):
@@ -287,7 +279,7 @@ class Reservation(models.Model):
     class Meta:
         verbose_name = "Бронирование"
         verbose_name_plural = "Бронирования"
-        ordering = ['-date', '-time']  # Порядок отображения по умолчанию
+        ordering = ['-date', '-time']
 
 
 class Menu(models.Model):

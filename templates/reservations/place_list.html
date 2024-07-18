@@ -1,268 +1,294 @@
 {% extends "base.html" %}
 {% load static %}
-{% load custom_tags %}
 {% load floattags %}
+{% load custom_filters %}
+
 {% block navbar %}
     {% include 'components/navbar.html' %}
 {% endblock %}
+{% block footer %}
+    {% include 'components/footer.html' %}
+{% endblock %}
+
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<!-- Main Container  -->
-<div class="breadcrumbs {% if selected_city %}{{ selected_city.slug }}{% endif %}">
-    <div class="container">
-        <div class="title-breadcrumb">
-            {{ title }}
-        </div>
-        <form class="search-form" action="{% url 'place_list' selected_city.slug %}" method="GET">
-            <input type="text" name="search" placeholder="Поиск..." value="{{ request.GET.search }}">
-            <button type="submit">Найти</button>
-        </form>
-    </div>
-</div>
-<div class="container mt-4">
-    <div class="row">
-        <aside class="col-md-3 sidebar">
-            <div class="filter-box">
-                <h3>Фильтры</h3>
-                <form method="get" action="">
-                    <div class="mb-3">
-                        <label for="placeType">Тип заведения</label>
-                        <select class="form-select" name="place_type" id="placeType">
-                            <option value="">Все типы</option>
-                            {% for place_type in place_types %}
-                                <option value="{{ place_type.slug }}" {% if place_type.slug == selected_place_type %}selected{% endif %}>{{ place_type.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label>Кухня</label><br>
-                        <div class="form-check">
-                            {% for cuisine in cuisines %}
-                                <label class="form-check-label">
-                                    <input class="form-check-input" type="checkbox" name="cuisine" value="{{ cuisine.slug }}" {% if cuisine.slug in selected_cuisines %}checked{% endif %}>
-                                    {{ cuisine.name }}
-                                </label><br>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="averageCheckRange" class="form-label">Средний чек, руб.</label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" name="min_average_check" id="minAverageCheck" placeholder="Мин" value="{{ min_average_check }}">
-                            <span class="input-group-text">-</span>
-                            <input type="number" class="form-control" name="max_average_check" id="maxAverageCheck" placeholder="Макс" value="{{ max_average_check }}">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label>Особенности</label><br>
-                        <div class="form-check">
-                            {% for feature in features %}
-                                <label class="form-check-label">
-                                    <input class="form-check-input" type="checkbox" name="feature" value="{{ feature.id }}" {% if feature.id|stringformat:"s" in selected_features %}checked{% endif %}>
-                                    {{ feature.name }}
-                                </label><br>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="button-submit">
-                        <button type="submit" class="button">Найти <i class="fa fa-angle-right" aria-hidden="true"></i></button>
-                    </div>
-                </form>
+<!-- Секция с фильтрами и списком заведений -->
+<section class="container places-listing">
+    <div class="filter-container">
+        <form class="filter-form" method="get" action="">
+
+            <!-- Поле поиска по названию заведения -->
+            <div class="filter-block">
+                <input type="search" class="form-control search-field" name="search" placeholder="Название заведения" value="{{ request.GET.search }}">
             </div>
-        </aside>
-        <main class="col-md-9">
-            <div class="row">
-                <div class="col-12 d-flex justify-content-between align-items-center mb-3 info-sort-bar">
-                    <div>
-                        Показано {{ shown_places }} из {{ total_places }} объектов
+            
+            <!-- Блок фильтра по типу заведения -->
+            <div class="filter-block">
+                <label>Тип заведения</label>
+                <div class="form-check">
+                    {% for place_type in place_types %}
+                        <div class="filter-item">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" name="place_type" value="{{ place_type.slug }}" {% if place_type.slug in selected_place_types %}checked{% endif %}>
+                                {{ place_type.name }}
+                            </label>
+                            <span class="filter-count">{{ place_type.count }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Блок фильтра по среднему чеку -->
+            <div class="filter-block">
+                <label>Средний чек</label>
+                <div class="form-check">
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" name="average_check" value="<500" {% if "<500" in selected_average_checks %}checked{% endif %}>
+                            Менее 500
+                        </label>
                     </div>
-                    <div>
-                        <form method="get" id="sortForm" class="d-flex">
-                            <select name="sort" id="sort" class="form-select" onchange="document.getElementById('sortForm').submit();">
-                                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>По имени</option>
-                                <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>По рейтингу</option>
-                                <option value="average_check" {% if sort_by == 'average_check' %}selected{% endif %}>По среднему чеку</option>
-                            </select>
-                            {% if request.GET.search %}
-                                <input type="hidden" name="search" value="{{ request.GET.search }}">
-                            {% endif %}
-                        </form>
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" name="average_check" value="500-1000" {% if "500-1000" in selected_average_checks %}checked{% endif %}>
+                            500 - 1000
+                        </label>
+                    </div>
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" name="average_check" value="1000-1500" {% if "1000-1500" in selected_average_checks %}checked{% endif %}>
+                            1000 - 1500
+                        </label>
+                    </div>
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" name="average_check" value="1500-2000" {% if "1500-2000" in selected_average_checks %}checked{% endif %}>
+                            1500 - 2000
+                        </label>
+                    </div>
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" name="average_check" value=">2000" {% if ">2000" in selected_average_checks %}checked{% endif %}>
+                            Более 2000
+                        </label>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                {% for place in places %}
-                    <div class="product-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                        <div class="product-item-container item d-flex flex-column">
-                            <div class="item-block so-quickview flex-grow-1 d-flex flex-column">
-                                {% if place.features.exists %}
-                                    <div class="feature">
-                                        {% for feature in place.features.all %}
-                                            <div class="feature-item">{{ feature.name }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                {% if place in favorite_places %}
-                                    <div class="favorite-icon" data-place-id="{{ place.id }}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="red" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="favorite-toggle">
-                                            <path d="M20.84 4.27a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.4a5.5 5.5 0 0 0-7.78 0 6 6 0 0 0 0 8.49L12 21l8.84-7.84a6 6 0 0 0 0-8.49z"></path>
-                                        </svg>
-                                    </div>
-                                {% else %}
-                                    <div class="favorite-icon" data-place-id="{{ place.id }}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="favorite-toggle">
-                                            <path d="M20.84 4.27a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.4a5.5 5.5 0 0 0-7.78 0 6 6 0 0 0 0 8.49L12 21l8.84-7.84a6 6 0 0 0 0-8.49z"></path>
-                                        </svg>
-                                    </div>
-                                {% endif %}
-                                <div class="image">
-                                    <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" target="_self">
-                                        {% if place.cover_image %}
-                                            <img src="{{ place.cover_image.image.url }}" alt="{{ place.name }}" class="img-responsive img-hover-zoom">
-                                        {% else %}
-                                            <img src="{% static 'path_to_default_image.jpg' %}" alt="{{ place.name }}" class="img-responsive img-hover-zoom">
-                                        {% endif %}
-                                        <div class="name">
-                                            <h3>{{ place.name }}</h3>
-                                            <p>{{ place.type }}</p>
-                                        </div>
-                                        <div class="rating-box">
-                                            <span class="rating-number">{{ place.rating|formatted_float }}</span>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="item-content d-flex flex-column justify-content-between flex-grow-1">
-                                    <ul>
-                                        <li>
-                                            <i class="fa-solid fa-location-dot" data-toggle="tooltip" title="Адрес"></i> <!-- Иконка геопозиции -->
-                                            {{ place.address }}
-                                        </li>
-                                        <li>
-                                            <i class="fa-solid fa-utensils" data-toggle="tooltip" title="Кухня"></i> <!-- Иконка кухни -->
-                                            {% for cuisine in place.cuisines.all %}
-                                                {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
-                                            {% endfor %}
-                                        </li>
-                                        <li>
-                                            <i class="fa-solid fa-coins" data-toggle="tooltip" title="Средний чек"></i> <!-- Иконка среднего чека -->
-                                            {{ place.average_check }} ₽
-                                        </li>
-                                    </ul>
-                                    <div class="mt-auto">
-                                        <button type="button" class="reserve-button" data-place-id="{{ place.slug }}" data-place-name="{{ place.name }}">Забронировать столик</button>
-                                    </div>
-                                </div>
+
+            <!-- Блок фильтра по рейтингу -->
+            <div class="filter-block">
+                <label>Рейтинг</label>
+                <div class="form-check">
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="rating" value="" {% if selected_rating == "" %}checked{% endif %}>
+                            Любой
+                        </label>
+                    </div>
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="rating" value="4.5" {% if selected_rating == "4.5" %}checked{% endif %}>
+                            4.5 и выше
+                        </label>
+                    </div>
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="rating" value="4" {% if selected_rating == "4" %}checked{% endif %}>
+                            4 и выше
+                        </label>
+                    </div>
+                    <div class="filter-item">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="rating" value="3" {% if selected_rating == "3" %}checked{% endif %}>
+                            3 и выше
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок фильтра по кухне -->
+            <div class="filter-block">
+                <label>Кухня</label>
+                <div class="form-check">
+                    {% for cuisine in cuisines %}
+                        <div class="filter-item">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" name="cuisine" value="{{ cuisine.slug }}" {% if cuisine.slug in selected_cuisines %}checked{% endif %}>
+                                {{ cuisine.name }}
+                            </label>
+                            <span class="filter-count">{{ cuisine.count }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Блок фильтра по особенностям -->
+            <div class="filter-block">
+                <label>Особенности</label>
+                <div class="form-check">
+                    {% for feature in features %}
+                        <div class="filter-item">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" name="feature" value="{{ feature.id }}" {% if feature.id|stringformat:"s" in selected_features %}checked{% endif %}>
+                                {{ feature.name }}
+                            </label>
+                            <span class="filter-count">{{ feature.count }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="places-container">
+        <div class="places-header">
+            <div>Найдено {{ shown_places }} {{ place_word }}</div>
+            <form method="get" class="sorting-form">
+                <select name="sort" id="sort">
+                    <option value="name" {% if sort_by == "name" %}selected{% endif %}>По названию</option>
+                    <option value="rating" {% if sort_by == "rating" %}selected{% endif %}>По рейтингу</option>
+                    <option value="average_check" {% if sort_by == "average_check" %}selected{% endif %}>По среднему чеку</option>
+                </select>
+                <!-- Include hidden inputs for current filters to retain them -->
+                {% if search_query %}
+                    <input type="hidden" name="search" value="{{ search_query }}">
+                {% endif %}
+                {% for place_type in selected_place_types %}
+                    <input type="hidden" name="place_type" value="{{ place_type }}">
+                {% endfor %}
+                {% for cuisine in selected_cuisines %}
+                    <input type="hidden" name="cuisine" value="{{ cuisine }}">
+                {% endfor %}
+                {% for feature in selected_features %}
+                    <input type="hidden" name="feature" value="{{ feature }}">
+                {% endfor %}
+                {% for check in selected_average_checks %}
+                    <input type="hidden" name="average_check" value="{{ check }}">
+                {% endfor %}
+                {% if selected_rating %}
+                    <input type="hidden" name="rating" value="{{ selected_rating }}">
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="places-cards">
+            {% for place in places %}
+            <div class="place-card">
+                <div class="place-card-image">
+                    <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}">
+                        <img src="{{ place.get_cover_image }}" alt="{{ place.name }}" class="place-image">
+                        <div class="place-features">
+                            {% for feature in place.features.all %}
+                            <span class="feature">{{ feature.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="place-details">
+                            <div class="place-type">
+                                {{ place.type.name }}
+                            </div>
+                            <div class="place-name">
+                                {{ place.name }}
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
+                        {% if place.rating > 0 %}
+                        <div class="place-rating {{ place.rating|rating_color }} image-rating">
+                            {{ place.rating|formatted_float }}
+                        </div>
+                        {% endif %}
+                    </a>
+                    <button class="favorite-button {% if place.id in favorite_places %}favorited{% endif %}" data-place-id="{{ place.id }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="place-card-content">
+                    <p class="place-address">
+                        <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="bi bi-geo-alt">
+                            <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/>
+                            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                        </svg>
+                        {{ place.address }}
+                    </p>
+                    <p class="place-cuisines">
+                        <svg width="16" height="16" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M256 410.304V96a32 32 0 0 1 64 0v314.304a96 96 0 0 0 64-90.56V96a32 32 0 0 1 64 0v223.744a160 160 0 0 1-128 156.8V928a32 32 0 1 1-64 0V476.544a160 160 0 0 1-128-156.8V96a32 32 0 0 1 64 0v223.744a96 96 0 0 0 64 90.56zM672 572.48C581.184 552.128 512 446.848 512 320c0-141.44 85.952-256 192-256s192 114.56 192 256c0 126.848-69.184 232.128-160 252.48V928a32 32 0 1 1-64 0V572.48zM704 512c66.048 0 128-82.56 128-192s-61.952-192-128-192-128 82.56-128 192 61.952 192 128 192z"/></svg>
+                        {% with cuisines_list=place.cuisines.all %}
+                            {% if cuisines_list|length > 2 %}
+                                {% for cuisine in cuisines_list|slice:":2" %}
+                                    {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                                и ещё {{ cuisines_list|length|add:"-2" }}
+                            {% else %}
+                                {% for cuisine in cuisines_list %}
+                                    {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    </p>
+                    <p class="place-average-check">
+                        <svg width="16" height="16" viewBox="0 0 24 24" id="ruble-2" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color"><path id="primary" d="M14,12A5,5,0,0,0,14,2H9A1,1,0,0,0,8,3v7H6a1,1,0,0,0,0,2H8v2H6a1,1,0,0,0,0,2H8v5a1,1,0,0,0,2,0V16h5a1,1,0,0,0,0-2H10V12ZM10,4h4a3,3,0,0,1,0,6H10Z"></path></svg>
+                        {{ place.average_check }}
+                    </p>
+                    <p class="place-short-description">{{ place.short_description|default_if_none:"" |truncatewords:15 }}</p>
+                    <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" class="btn">Заказать столик</a>
+                </div>
             </div>
-        </main>
-    </div>
-</div>
-
-<!-- Модальное окно -->
-<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="reservationModalLabel">Бронирование столика</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Форма бронирования -->
-                <form id="reservationForm">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="id_date" class="form-label">Дата бронирования</label>
-                        {{ form.date }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_time" class="form-label">Время бронирования</label>
-                        {{ form.time }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_guests" class="form-label">Количество гостей</label>
-                        {{ form.guests }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_first_name" class="form-label">Имя</label>
-                        {{ form.first_name }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_last_name" class="form-label">Фамилия</label>
-                        {{ form.last_name }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_phone" class="form-label">Телефон</label>
-                        {{ form.phone }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_email" class="form-label">Email</label>
-                        {{ form.email }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_wishes" class="form-label">Пожелания</label>
-                        {{ form.wishes }}
-                    </div>
-                    <div class="text-center mt-3">
-                        <button type="submit" class="btn btn-primary">Отправить</button>
-                    </div>
-                </form>
-            </div>
+            {% endfor %}
         </div>
     </div>
-</div>
-<script>
-    $(document).ready(function(){
-        $('[data-toggle="tooltip"]').tooltip();
-    });
-</script>
+</section>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const reserveButtons = document.querySelectorAll('.reserve-button');
-        const modal = new bootstrap.Modal(document.getElementById('reservationModal')); // Bootstrap modal instance
+        const form = document.querySelector('.filter-form');
     
-        reserveButtons.forEach(button => {
+        form.addEventListener('change', function() {
+            form.submit();
+        });
+
+        const sortSelect = document.querySelector('.sorting-form select');
+        sortSelect.addEventListener('change', function() {
+            document.querySelector('.sorting-form').submit();
+        });
+
+        const favoriteButtons = document.querySelectorAll('.favorite-button');
+        favoriteButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const placeSlug = this.getAttribute('data-place-id');
-                const actionUrl = "{% url 'reserve_table' city_slug=selected_city.slug place_slug='PLACE_SLUG' %}".replace('PLACE_SLUG', placeSlug);
-                document.getElementById('reservationForm').action = actionUrl;
-                modal.show(); // Show modal
+                const placeId = this.getAttribute('data-place-id');
+                const url = "{% url 'users:toggle_favorite' 0 %}".replace('/0/', `/${placeId}/`);
+    
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'added') {
+                        this.classList.add('favorited');
+                    } else if (data.status === 'removed') {
+                        this.classList.remove('favorited');
+                    }
+                });
             });
         });
-
-        const reservationForm = document.getElementById('reservationForm');
-        reservationForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
+    
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Optionally, you can close the modal after successful submission
-                    modal.hide();
-                    // Display success message (you need to implement this in your template)
-                    alert('Заявка на бронирование успешно отправлена!');
-                    // You can also redirect to the same page or refresh here
-                    // window.location.reload();
-                } else {
-                    throw new Error('Ошибка при отправке формы');
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                // Handle error cases here
-                alert('Произошла ошибка при отправке формы');
-            });
-        });
+            }
+            return cookieValue;
+        }
     });
 </script>
 {% endblock %}

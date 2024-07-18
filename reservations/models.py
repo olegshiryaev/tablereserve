@@ -11,7 +11,9 @@ from django.utils.text import slugify
 from django.dispatch import receiver
 from django.utils import timezone
 from django.conf import settings
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from PIL import Image
+from django.core.validators import URLValidator
 from django.db.models import Case, When, IntegerField, Value
 
 
@@ -69,6 +71,19 @@ class Feature(models.Model):
         verbose_name_plural = "Особенности"
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="Название тега")
+    slug = models.SlugField(max_length=50, unique=True, verbose_name="Слаг тега")
+
+    class Meta:
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class PlaceType(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name="Тип заведения")
     slug = models.SlugField(
@@ -105,7 +120,21 @@ class PlaceImage(models.Model):
         return f"Изображение {self.place.name}"
 
     def save(self, *args, **kwargs):
+        # Сначала сохраняем изображение, чтобы получить его путь
         super().save(*args, **kwargs)
+
+        # Открываем изображение с помощью Pillow
+        img = Image.open(self.image.path)
+
+        # Проверяем размеры изображения и изменяем размер, если нужно
+        max_width, max_height = 1500, 1000
+        if img.width > max_width or img.height > max_height:
+            img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+
+            # Сохраняем измененное изображение в том же месте
+            img.save(self.image.path)
+
+        # Обновляем обложку заведения, если изображение отмечено как обложка
         if self.is_cover:
             self.place.cover_image = self
             self.place.save(update_fields=["cover_image"])
@@ -117,7 +146,8 @@ class PlaceImage(models.Model):
 
 @receiver(post_delete, sender=PlaceImage)
 def delete_image_file(sender, instance, **kwargs):
-    instance.image.delete(False)
+    if instance.image:
+        instance.image.delete(False)
 
 
 class PlaceManager(models.Manager):
@@ -137,6 +167,18 @@ class PlaceManager(models.Manager):
 
 
 class Place(models.Model):
+    STREET_TYPES = [
+        ("улица", "ул."),
+        ("проспект", "пр-кт"),
+        ("переулок", "пер."),
+        ("набережная", "наб."),
+        ("бульвар", "б-р"),
+        ("шоссе", "ш."),
+        ("площадь", "пл."),
+        ("аллея", "ал."),
+        ("линия", "лн."),
+        ("проезд", "пр-д"),
+    ]
     type = models.ForeignKey(
         PlaceType, on_delete=models.SET_NULL, null=True, verbose_name="Тип заведения"
     )
@@ -149,7 +191,11 @@ class Place(models.Model):
         related_name="places",
         verbose_name="Город заведения",
     )
-    address = models.CharField(max_length=255, verbose_name="Адрес заведения")
+    street_type = models.CharField(
+        max_length=50, choices=STREET_TYPES, verbose_name="Тип улицы"
+    )
+    street_name = models.CharField(max_length=255, verbose_name="Название улицы")
+    house_number = models.CharField(max_length=10, verbose_name="Номер дома")
     phone = models.CharField(
         max_length=15,
         validators=[
@@ -162,14 +208,62 @@ class Place(models.Model):
         blank=True,
         null=True,
     )
+    facebook = models.URLField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Facebook",
+        validators=[URLValidator],
+    )
+    instagram = models.URLField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Instagram",
+        validators=[URLValidator],
+    )
+    telegram = models.URLField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Telegram",
+        validators=[URLValidator],
+    )
+    whatsapp = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        verbose_name="WhatsApp",
+        validators=[
+            RegexValidator(
+                regex=r"^\+?1?\d{9,15}$",
+                message=(
+                    "Номер телефона должен быть введен в формате: '+999999999'. Допустимо до 15 цифр."
+                ),
+            )
+        ],
+    )
+    vkontakte = models.URLField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="ВКонтакте",
+        validators=[URLValidator],
+    )
     website = models.URLField(blank=True, verbose_name="Веб-сайт")
     cuisines = models.ManyToManyField(Cuisine, blank=True, verbose_name="Кухни")
     description = models.TextField(null=True, blank=True, verbose_name="Описание")
+    short_description = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name="Краткое описание"
+    )
     average_check = models.IntegerField(
         default=0, null=True, blank=True, verbose_name="Средний чек"
     )
     features = models.ManyToManyField(
         Feature, blank=True, verbose_name="Особенности заведения"
+    )
+    tags = models.ManyToManyField(
+        Tag, blank=True, related_name="places", verbose_name="Теги"
     )
     has_kids_room = models.BooleanField(
         default=False, verbose_name="Наличие детской комнаты"
@@ -206,6 +300,8 @@ class Place(models.Model):
         verbose_name="Представитель",
         blank=True,
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     objects = PlaceManager()
 
@@ -220,7 +316,7 @@ class Place(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("place_detail", kwargs={"slug": self.slug})
+        return reverse_lazy("place_detail", kwargs={"slug": self.slug})
 
     def update_rating(self):
         reviews = self.reviews.filter(is_approved=True)
@@ -239,7 +335,11 @@ class Place(models.Model):
         return self.favorited_by.filter(user=user).exists()
 
     def get_cover_image(self):
-        return self.images.filter(is_cover=True).first()
+        cover_image = self.images.filter(is_cover=True).first()
+        if cover_image and cover_image.image:
+            return cover_image.image.url
+        else:
+            return settings.STATIC_URL + "images/default_place_image.jpg"
 
     def approved_reviews(self):
         return self.reviews.filter(is_approved=True)
@@ -248,12 +348,19 @@ class Place(models.Model):
     def review_count(self):
         return self.reviews.filter(is_approved=True).count()
 
+    @property
+    def address(self):
+        return (
+            f"{self.get_street_type_display()} {self.street_name}, {self.house_number}"
+        )
+
     def __str__(self):
         return self.name
 
 
 @receiver(pre_save, sender=City)
 @receiver(pre_save, sender=Cuisine)
+@receiver(pre_save, sender=Tag)
 @receiver(pre_save, sender=PlaceType)
 @receiver(pre_save, sender=Place)
 def pre_save_slug(sender, instance, *args, **kwargs):
@@ -275,8 +382,8 @@ class WorkSchedule(models.Model):
     day = models.CharField(
         max_length=3, choices=DAY_CHOICES, verbose_name="День недели"
     )
-    open_time = models.TimeField(verbose_name="Время открытия")
-    close_time = models.TimeField(verbose_name="Время закрытия")
+    open_time = models.TimeField(null=True, blank=True, verbose_name="Время открытия")
+    close_time = models.TimeField(null=True, blank=True, verbose_name="Время закрытия")
     is_closed = models.BooleanField(default=False, verbose_name="Закрыто")
 
     def __str__(self):
@@ -300,6 +407,16 @@ class WorkSchedule(models.Model):
             )
             .order_by("day_order")
         )
+
+    def clean(self):
+        if self.is_closed:
+            self.open_time = None
+            self.close_time = None
+        else:
+            if not self.open_time or not self.close_time:
+                raise ValidationError(
+                    "Введите время открытия и закрытия или отметьте, что заведение в этот день закрыто."
+                )
 
     class Meta:
         verbose_name = "Время работы"
@@ -429,7 +546,8 @@ class Review(models.Model):
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
     is_approved = models.BooleanField(default=False, verbose_name="Одобрен")
     is_spam = models.BooleanField(default=False, verbose_name="Спам")
     is_inappropriate = models.BooleanField(default=False, verbose_name="Неуместный")

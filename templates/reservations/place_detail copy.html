@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ place.name }}</title>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+</head>
+<body>
+    <!-- Верхняя панель навигации -->
+    <header>
+        <div class="container">
+            <div class="logo">ЛОГОТИП</div>
+            <nav>
+                <ul>
+                    <li><a href="#">Главная</a></li>
+                    <li><a href="#">О нас</a></li>
+                    <li><a href="#">Рестораны</a></li>
+                    <li><a href="#">Акции</a></li>
+                    <li><a href="#">Контакты</a></li>
+                    <li><a href="#">Войти/Регистрация</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Описание заведения -->
+    <section class="place-detail">
+        <div class="container">
+            <h1>{{ place.name }}</h1>
+            <div class="place-content">
+                {% if place.cover_image %}
+                <img src="{{ place.cover_image.image.url }}" alt="{{ place.name }}">
+                {% endif %}
+                <div class="place-info">
+                    <p>{{ place.description }}</p>
+                    <p><strong>Адрес:</strong> {{ place.address }}</p>
+                    <p><strong>Телефон:</strong> {{ place.phone }}</p>
+                    <p><strong>Рейтинг:</strong> {{ place.rating|default:"Нет рейтинга" }}</p>
+                    <button class="reserve-btn">Забронировать</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Нижняя часть страницы (Футер) -->
+    <footer>
+        <div class="container">
+            <div class="footer-info">
+                <h3>О компании</h3>
+                <p><a href="#">Политика конфиденциальности</a></p>
+                <p><a href="#">Пользовательское соглашение</a></p>
+                <p><a href="#">Часто задаваемые вопросы</a></p>
+            </div>
+            <div class="social-media">
+                <h3>Мы в социальных сетях</h3>
+                <a href="#">Facebook</a>
+                <a href="#">Instagram</a>
+                <a href="#">Twitter</a>
+            </div>
+            <div class="contact-info">
+                <h3>Контакты</h3>
+                <p>Адрес: Улица, Город, Страна</p>
+                <p>Телефон: +123 456 7890</p>
+                <p>Email: info@example.com</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

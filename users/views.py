@@ -1,9 +1,11 @@
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
+from django.views.decorators.http import require_POST
 
 from reservations.models import Place
-from users.models import Favorite
+from users.models import CustomUser, Favorite
 
 
 @login_required
@@ -11,34 +13,38 @@ def user_profile(request):
     favorite_places = request.user.favorites.all()
 
     context = {
-        'favorite_places': favorite_places,
+        "favorite_places": favorite_places,
     }
-    return render(request, 'users/user_profile.html', context)
+    return render(request, "users/user_profile.html", context)
 
 
+@require_POST
 @login_required
-def add_to_favorites(request, place_id):
-    place = get_object_or_404(Place, id=place_id)
+def toggle_favorite(request, place_id):
     user = request.user
+    try:
+        place = Place.objects.get(id=place_id)
+    except Place.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "Place does not exist"}, status=404
+        )
 
-    if not Favorite.objects.filter(user=user, place=place).exists():
-        Favorite.objects.create(user=user, place=place)
-        message = 'Заведение добавлено в избранное'
-    else:
-        message = 'Заведение уже добавлено в избранное'
+    favorite, created = Favorite.objects.get_or_create(user=user, place=place)
 
-    return JsonResponse({'message': message})
-
-@login_required
-def remove_from_favorites(request, place_id):
-    place = get_object_or_404(Place, id=place_id)
-    user = request.user
-
-    favorite = Favorite.objects.filter(user=user, place=place).first()
-    if favorite:
+    if not created:
         favorite.delete()
-        message = 'Заведение удалено из избранного'
-    else:
-        message = 'Заведение не было добавлено в избранное'
+        return JsonResponse({"status": "removed"})
 
-    return JsonResponse({'message': message})
+    return JsonResponse({"status": "added"})
+
+
+def activate_account(request, email, token):
+    user = get_object_or_404(CustomUser, email=email)
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        # Перенаправление на страницу успешной активации
+        return redirect("activation_success")
+    else:
+        # Обработка неудачной активации
+        return redirect("activation_failed")

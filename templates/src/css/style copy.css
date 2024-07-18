@@ -1,0 +1,703 @@
+body {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #202020;
+    -webkit-font-smoothing: antialiased;
+}
+
+button[type="submit"] {
+    background: #2db2ff;
+    color: white;
+    border: none;
+}
+
+button[type="submit"]:hover {
+    background: #009ef9;
+}
+
+.filter-box {
+    border: 1px solid #ddd;
+    box-shadow: 0 0 8px #dedede;
+    padding: 28px 20px 37px 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    background-color: #fff;
+}
+
+.filter-box h3 {
+    margin: 0 0 26px 0;
+    font-size: 18px;
+    color: #000;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.filter-box button {
+    padding: 7px 15px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 13px;
+    width: 100%;
+}
+
+.filter-box button:hover {
+    background: #009ef9;
+}
+
+.info-sort-bar {
+    font-size: 13px;
+    border-radius: 0px;
+    background: #f8f8f8;
+    padding: 10px 20px;
+    color: #909090;
+}
+
+.info-sort-bar form#sortForm {
+    display: flex;
+    align-items: center;
+}
+
+.info-sort-bar form#sortForm select {
+    font-size: 13px;
+    padding: 0px 33px 0 10px;
+    color: #909090;
+    line-height: 33px;
+    border-radius: 4px;
+    border: 1px solid #e5e5e5;
+    background-color: #fff;
+}
+
+.product-layout {
+    margin-bottom: 20px; /* Adjust the value as needed */
+}
+
+.product-item-container {
+    height: 100%;
+    transition: box-shadow .2s ease-in-out, border .2s ease-in-out;
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+    position: relative;
+}
+
+.product-item-container:hover {
+    border-color: #ddd;
+    box-shadow: 4px 4px 24px rgba(0, 0, 0, .15);
+}
+
+.place-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.place-image {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+}
+
+.place-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.favorite-place-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.favorite-toggle {
+    transition: fill 0.2s ease-in-out;
+}
+
+.favorite-place-button__container {
+    min-width: 70px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 26px;
+    background: #ececec;
+    color: #333;
+    box-shadow: 1px 4px 20px rgba(153, 153, 169, .35);
+    transition: all .3s ease-out;
+}
+
+.favorite-count {
+    margin-left: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: .0125em;
+}
+
+.image {
+    position: relative;
+    overflow: hidden; /* Обрезать любой контент, выходящий за рамки блока */
+}
+
+.image img {
+    width: 100%;
+    height: auto; /* Адаптивная высота */
+    object-fit: cover;
+    transition: transform 0.3s ease; /* Плавное изменение масштаба при наведении */
+}
+
+.image:hover img {
+    transform: scale(1.05); /* Немного увеличиваем при наведении */
+}
+
+.image::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(0deg, #00000080, #0000);
+    z-index: 1;
+    opacity: 0.6; /* Уменьшаем непрозрачность затемнения */
+}
+
+.feature {
+    position: absolute;
+    top: 10px;
+    left: -5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.feature .feature-item {
+    background: #2db2ff;
+    color: #fff;
+    font-size: 12px;
+    height: 24px;
+    line-height: 24px;
+    display: inline-block;
+    vertical-align: top;
+    padding-right: 10px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    cursor: default;
+    border-radius: 4px;
+    padding-left: 15px; /* Добавлено дополнительное пространство для лучшей видимости */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Тень для метки */
+    z-index: 2; /* Увеличиваем z-index для видимости поверх затемнения */
+}
+
+.name {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    z-index: 1;
+    color: white;
+}
+
+.name h3 {
+    line-height: 24px;
+    margin: 0;
+}
+
+.name p {
+    color: #ddd;
+    font-size: 14px;
+    font-weight: 400;
+    margin: 0;
+}
+
+.rating-box {
+    position: absolute;
+    bottom: 15px;
+    right: 10px;
+    z-index: 1;
+    background: none;
+    padding: 0 10px;
+    border-radius: 4px;
+    border: 1px solid #f9a825; /* Золотистая рамка */
+    overflow: hidden; /* Скрыть псевдоэлемент за границами блока */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Тень для затемнения */
+}
+
+.rating-box::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Цвет затемнения */
+    z-index: -1; /* Поместить псевдоэлемент под рамку */
+}
+
+.rating-number {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #f9a825; /* Белый текст */
+}
+
+.item-content {
+    padding: 15px;
+    position: relative;
+    box-sizing: border-box;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.item-content h3 {
+    font-size: 1.2rem;
+    color: #202020;
+    margin-bottom: 10px;
+    display: none; /* Скрываем заголовок под изображением */
+}
+
+.item-content h3 a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.item-content h3 a:hover {
+    color: #009ef9;
+}
+
+.item-content ul {
+    position: relative;
+    list-style: none;
+    padding: 0;
+}
+
+.item-content ul li {
+    color: #909090;
+    margin-bottom: 10px; /* Add margin between each detail */
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.star-rating {
+    display: flex;
+    align-items: center;
+    margin-right: 5px;
+}
+
+.star-rating .star {
+    font-size: 1.2rem;
+    color: #ccc;
+}
+
+.star-rating .star.full,
+.star-rating .star.half::before,
+.star-rating .star.three-quarters::before,
+.star-rating .star.quarter::before {
+    color: #f90;
+}
+
+.review-link {
+    display: inline-block;
+    vertical-align: top;
+    color: #909090;
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 18px;
+    padding: 0 3px;
+}
+
+.review-link:hover {
+    text-decoration: none;
+    color: #909090;
+}
+
+.address {
+    display: flex;
+    align-items: center;
+    margin-top: 10px; /* Отступ сверху для разделения от предыдущего элемента */
+}
+
+.item-content .fa-solid {
+    margin-right: 5px; /* Отступ справа от иконки */
+    color: #2db2ff; /* Цвет иконки */
+}
+
+.des {
+    font-size: 0.9rem;
+    color: #505050;
+    margin-bottom: 15px;
+}
+
+.reserve-button {
+    display: block;
+    width: 100%;
+    padding: 10px; /* Внутренний отступ для кнопки */
+    background-color: #ededed; /* Цвет фона */
+    color: #191919; /* Цвет текста */
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 5px; /* Закругленные углы */
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease 0s;
+}
+
+.reserve-button:hover {
+    background-color: #2db2ff; /* Цвет фона при наведении */
+    color: #fff;
+    transition: all 0.3s ease 0s;
+    text-decoration: none;
+}
+
+/*============MODULE BREADCRUMB ==================*/
+.breadcrumbs {
+    position: relative;
+    margin-top: 0;
+    padding: 71px 0 66px;
+    margin-bottom: 60px;
+    color: #fff;
+    text-align: center;
+}
+.breadcrumbs::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); }
+.breadcrumbs.arh {
+    background: url("../../media/cities/arh_JkVN9Tp.jpg");
+    background-size: cover; /* Заполнение фона по размеру блока */
+    background-position: 50%; /* Центрирование изображения */
+    background-repeat: no-repeat; }
+.breadcrumbs.sev {
+    background: url("../../media/cities/sev.jpg");
+    background-size: cover; /* Заполнение фона по размеру блока */
+    background-position: 50%; /* Центрирование изображения */
+    background-repeat: no-repeat; }
+.breadcrumbs .title-breadcrumb {
+    color: #fff;
+    display: block;
+    font-size: 48px;
+    line-height: 64px;
+    font-weight: 700;
+    max-width: 900px;
+    margin: 20px auto;
+    position: relative;
+    z-index: 1; }
+
+.breadcrumbs .search-form {
+    position: relative;
+    margin-top: 20px; /* Примерный отступ от заголовка */
+    max-width: 600px; /* Примерная максимальная ширина строки поиска */
+    margin: 0 auto; /* Центрирование по горизонтали */
+    height: 54px;
+    padding: 0;
+    background: #f9f9f9;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.breadcrumbs .search-form input[type="text"] {
+    width: 100%;
+    background: none;
+    font-size: 16px; /* Размер шрифта */
+    border: none;
+    box-sizing: border-box; /* Учитывать границы и внутренние отступы в размерах элемента */
+    vertical-align: top;
+    color: #00000080;
+    line-height: 54px;
+    padding: 0 120px 0 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color .2s ease;
+    outline: none;
+}
+
+.breadcrumbs .search-form button[type="submit"] {
+    height: 54px;
+    width: 110px;
+    background-color: #2db2ff; /* Цвет фона кнопки */
+    color: #fff; /* Цвет текста кнопки */
+    border: none; /* Убираем границу кнопки */
+    padding: 10px 20px; /* Внутренние отступы кнопки */
+    font-size: 16px; /* Размер шрифта кнопки */
+    border-radius: 0; /* Закругление углов кнопки */
+    cursor: pointer; /* Показать указатель при наведении */
+    position: absolute; /* Абсолютное позиционирование относительно родителя */
+    right: 0; /* Прижимаем кнопку к правому краю родительского элемента */
+    top: 0; /* Выравниваем кнопку по верхнему краю родительского элемента */
+    text-transform: uppercase;
+    transition: background-color .15s ease;
+}
+
+.breadcrumbs .search-form button[type="submit"]:hover {
+    background-color: #009ef9; /* Цвет фона кнопки при наведении */
+}
+
+/* Стили для модального окна */
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4); /* Черный с непрозрачностью */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% сверху и по центру */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Можно изменить для различной ширины */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.reservation-title {
+    color: #222;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 21px;
+    margin-left: 8px;
+    -webkit-text-decoration: none;
+    text-decoration: none;
+    transition: .3s linear;
+}
+
+.reservation-info {
+    color: #222;
+    font-size: 16px;
+    line-height: 22px;
+}
+
+.bg-image {
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: .35;
+    background-color: #000;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    -webkit-backface-visibility: hidden;
+    -o-object-fit: cover;
+    object-fit: cover;
+    transition: opacity .2s ease;
+}
+
+.popover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Тень popover */
+}
+
+.custom-popover {
+    min-width: 260px; /* Минимальная ширина popover 260 пикселей */
+}
+
+.popover-header {
+    margin-top: -10px;
+    text-align: center;
+    font-size: 20px; /* Размер шрифта заголовка popover 20 пикселей */
+    font-weight: 600;
+    color: #333; /* Цвет текста заголовка popover */
+}
+
+.info-item {
+    font-size: 16px;
+    line-height: 22px;
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between; /* Выравнивание по центру */
+}
+
+.info-item-image {
+    background-size: cover;
+    height: 24px;
+    width: 24px;
+    margin-right: 8px; /* Отступ справа между изображением и содержимым */
+}
+
+.working-hours-content {
+    flex-grow: 1; /* Занимать всё доступное пространство в строке */
+}
+
+.working-hours-link {
+    color: #007bff; /* Цвет текста ссылки */
+    text-decoration: none; /* Убираем подчёркивание */
+    cursor: pointer; /* Указываем, что это ссылка с возможностью наведения курсора */
+}
+
+.working-hours-link:hover {
+    text-decoration: underline; /* Подчёркивание текста при наведении */
+}
+
+.place-gallery {
+    margin-top: 16px;
+    margin-bottom: 24px;
+}
+
+.place-gallery-wrapper {
+    position: relative;
+}
+
+.place-gallery-grid {
+    display: grid;
+    grid-gap: 4px;
+    grid-template-columns:1fr repeat(2,304px);
+    border-radius: 20px;
+    overflow: hidden
+}
+
+.place-gallery-grid__item{
+    background-color: #eeeef2;
+    position: relative;
+    background-size: cover;
+    background-position: 50%;
+}
+
+.place-gallery-grid__item:first-child {
+    grid-row: 1/3;
+}
+
+.place-gallery-grid__item:not(:first-child) {
+    height: 222px;
+}
+
+.place-gallery-grid__item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    padding-top: 20px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    overflow: auto;
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    max-width: 80%;
+    max-height: 80%;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.place-rating {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #666;
+}
+
+.place-rating span {
+    margin-right: 5px;
+}
+
+.place-rating svg {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+.place-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.place-contact-item {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: #666;
+}
+
+.place-contact-item svg {
+    margin-right: 5px;
+    width: 20px;
+    height: 20px;
+}
+
+.place-contact-item svg.feather-phone {
+    fill: #2db2ff;
+}
+
+.place-contact-item svg.feather-map-pin {
+    fill: #2db2ff;
+}
+
+
+.place-main {
+    margin-bottom: 30px;
+}
+
+.place-main-container {
+    margin-right: 124px;
+}

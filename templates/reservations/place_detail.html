@@ -1,193 +1,163 @@
 {% extends "base.html" %}
 {% load static %}
 {% load floattags %}
-{% block title %}{{ title }}{% endblock %}
+{% load custom_filters %}
+
 {% block navbar %}
     {% include 'components/navbar.html' %}
 {% endblock %}
+{% block footer %}
+    {% include 'components/footer.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
 {% block content %}
-<!-- <div class="image-top"><img width="1400" height="789" class="bg-image" alt="{{ place.name }}" src="{% if place.cover_image %}{{ place.cover_image.image.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}"></div> -->
-<div class="container mt-4">
-    <div class="row">
-        <div id="content" class="col-md-9 col-sm-12">
-            <div class="card">
-                <img class="card-img-top" src="{% if place.cover_image %}{{ place.cover_image.image.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ place.name }}">
-                <div class="card-body">
-                    <h1 class="card-title">{{ place.name }}</h1>
-                    <p class="card-text">{{ place.description }}</p>
-                    <ul class="list-unstyled">
-                        <li><strong>Тип заведения:</strong> {{ place.type.name }}</li>
-                        <li><strong>Адрес:</strong> {{ place.address }}</li>
-                        <li><strong>Телефон:</strong> {{ place.phone }}</li>
-                        {% if place.website %}
-                            <li><strong>Веб-сайт:</strong> <a href="{{ place.website }}" target="_blank">{{ place.website }}</a></li>
-                        {% endif %}
-                        <li><strong>Средний чек:</strong> {{ place.average_check }} руб.</li>
-                        <li><strong>Наличие детской комнаты:</strong> {% if place.has_kids_room %}Да{% else %}Нет{% endif %}</li>
-                        <li><strong>Рейтинг:</strong> {{ place.rating|formatted_float }}</li>
-                        <li><strong>Добавили в избранное:</strong> {{ place.favorite_count }} пользователей</li>
-                        {% if user.is_authenticated %}
-                            <button class="favorite-place-button" data-place-id="{{ place.id }}" data-is-favorited="{{ is_favorited|yesno:'true,false' }}">
-                                <span class="favorite-place-button__container">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="{% if is_favorited %}#ff0032{% else %}none{% endif %}" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="favorite-toggle">
-                                        <path d="M20.84 4.27a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.4a5.5 5.5 0 0 0-7.78 0 6 6 0 0 0 0 8.49L12 21l8.84-7.84a6 6 0 0 0 0-8.49z"></path>
-                                    </svg>
-                                    <span class="favorite-count">{{ place.favorite_count }}</span>
-                                </span>
-                            </button>
-                        {% endif %}
-                    </ul>
-                </div>
+<section class="container place-detail">
+    <div class="place-header">
+        <h1>{{ place.type }} {{ place.name }}</h1>
+        <div class="place-info">
+            <div class="left-info">
+                <p class="place-address">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+                        fill="currentColor" class="icon">
+                        <path
+                            d="M12 2C8.13 2 5 5.13 5 9c0 4.25 7 13 7 13s7-8.75 7-13c0-3.87-3.13-7-7-7zm0 10.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 5.5 12 5.5 15.5 7.07 15.5 9 13.93 12.5 12 12.5z" />
+                    </svg>
+                    {{ place.address }}
+                </p>
+                <p class="place-phone">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+                        fill="currentColor" class="icon">
+                        <path
+                            d="M6.62 10.79a15.53 15.53 0 006.59 6.59l2.2-2.2a1.5 1.5 0 011.7-.27c1.2.48 2.5.74 3.84.74a1.5 1.5 0 011.5 1.5v3.75a1.5 1.5 0 01-1.5 1.5A18 18 0 012 4.5a1.5 1.5 0 011.5-1.5H7.25a1.5 1.5 0 011.5 1.5c0 1.34.26 2.63.74 3.84a1.5 1.5 0 01-.27 1.7l-2.2 2.2z" />
+                    </svg>
+                    {{ place.phone }}
+                </p>
             </div>
-
-            <!-- Расписание работы -->
-            <div class="schedule mt-4">
-                <h2>Расписание работы</h2>
-                <table class="table table-bordered">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>День недели</th>
-                            <th>Время открытия</th>
-                            <th>Время закрытия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for schedule in place.workschedule_set.all %}
-                            <tr>
-                                <td>{{ schedule.get_day_display }}</td>
-                                <td>{{ schedule.open_time }}</td>
-                                <td>{{ schedule.close_time }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Кухни -->
-            <div class="cuisines mt-4">
-                <h2>Кухни</h2>
-                <ul class="list-unstyled">
-                    {% for cuisine in place.cuisines.all %}
-                        <li>{{ cuisine.name }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <!-- Отзывы -->
-            {% if place.reviews.exists %}
-                <div class="reviews mt-4">
-                    <h2>Отзывы</h2>
-                    {% for review in place.reviews.all %}
-                        {% if review.is_approved %}
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ review.user.first_name }} {{ review.user.last_name }}</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">{{ review.created_at|date:"d.m.Y" }}</h6>
-                                    <p class="card-text">Рейтинг: {{ review.rating }}</p>
-                                    <p class="card-text">{{ review.text }}</p>
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="mt-4">Пока нет отзывов.</p>
-            {% endif %}
-
-            <!-- Сообщение после оставления отзыва -->
-            {% if review_submitted %}
-                <p class="mt-4">Спасибо за оставленный отзыв! Он будет опубликован после модерации.</p>
-            {% endif %}
-
-            <!-- Форма для добавления отзыва -->
-			<div class="add-review mt-4">
-    			<h2>Оставить отзыв</h2>
-    			<form method="post" action="{% url 'add_review' city_slug=selected_city.slug place_slug=place.slug %}">
-        			{% csrf_token %}
-        			<div class="form-group">
-            			<label for="id_rating">Рейтинг:</label>
-            			<div class="star-rating">
-                			<input type="radio" id="star5" name="rating" value="5" />
-                			<label for="star5" title="5 звёзд">&#9733;</label>
-                			<input type="radio" id="star4" name="rating" value="4" />
-                			<label for="star4" title="4 звезды">&#9733;</label>
-                			<input type="radio" id="star3" name="rating" value="3" />
-                			<label for="star3" title="3 звезды">&#9733;</label>
-                			<input type="radio" id="star2" name="rating" value="2" />
-                			<label for="star2" title="2 звезды">&#9733;</label>
-                			<input type="radio" id="star1" name="rating" value="1" />
-                			<label for="star1" title="1 звезда">&#9733;</label>
-            			</div>
-        			</div>
-        			<div class="form-group">
-            			<label for="id_text">Текст отзыва:</label>
-            			<textarea id="id_text" name="text" class="form-control" rows="4" required></textarea>
-        			</div>
-					<div class="mt-3">
-        				<button type="submit" class="btn btn-primary">Отправить отзыв</button>
-					</div>
-    			</form>
-			</div>
-        </div>
-
-        <!-- Боковая панель -->
-        <aside class="col-md-3 col-sm-4 col-xs-12 content-aside right_column sidebar-offcanvas">
-            <div class="card">
-                <div class="card-body">
-                    {% if request.session.reservation_successful %}
-                        <div class="d-flex align-items-center"> <!-- Используем flex для выравнивания элементов -->
-                            <span class="text-success mr-2" style="font-size: 1.2em;">&#10004;</span> <!-- Зелёная галочка -->
-                            <div class="reservation-title">
-                                Заявка №{{ request.session.reservation_number }} <!-- Используем номер из сессии -->
-                            </div>
-                        </div>
-                        <div class="reservation-info">
-                            {{ reservation.name }}, ваша заявка №{{ request.session.reservation_number }} принята в работу. Ожидаемое время подтверждения 30 минут.
-                        </div>
-                        
-                        <!-- Кнопка "Сделать новый заказ" с параметром clear_reservation -->
-                        <a href="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}?clear_reservation=true" class="btn btn-outline-secondary">Сделать новый заказ</a>
-                    {% else %}
-                        <h3 class="modtitle">Заказ столика</h3>
-                        <form method="post" action="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                            <button type="submit" class="btn btn-primary">Заказать столик</button>
-                        </form>
+            <div class="right-info">
+                <div class="place-rating-and-reviews">
+                    <div class="review-count">
+                        {{ reviews.count }} {{ review_word }}
+                    </div>
+                    {% if place.rating > 1 %}
+                    <div class="place-rating {{ place.rating|rating_color }} address-rating">
+                        {{ place.rating|formatted_float }}
+                    </div>
                     {% endif %}
                 </div>
             </div>
-        </aside>
+        </div>
     </div>
-</div>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const favoriteButtons = document.querySelectorAll('.favorite-place-button');
-        
-        favoriteButtons.forEach(favoriteButton => {
-            favoriteButton.addEventListener('click', function () {
-                const placeId = this.getAttribute('data-place-id');
-                const isFavorited = this.getAttribute('data-is-favorited') === 'true';
-                const url = isFavorited ? '{% url "users:remove_from_favorites" place.id %}' : '{% url "users:add_to_favorites" place.id %}';
 
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    this.setAttribute('data-is-favorited', !isFavorited);
-                    this.querySelector('svg').setAttribute('fill', !isFavorited ? 'red' : 'none');
-                    const favoriteCountElem = this.querySelector('.favorite-count');
-                    let favoriteCount = parseInt(favoriteCountElem.textContent);
-                    favoriteCountElem.textContent = isFavorited ? favoriteCount - 1 : favoriteCount + 1;
-                });
-            });
-        });
+    <div class="place-detail-container">
+        <div class="place-detail-sub-title">
+            <div class="place-sub-title font-semibold"></div>
+        </div>
+        <div class="place-detail-gallery">
+            <div class="place-detail-gallery-wrapper">
+                <!-- Кнопка добавления в избранное -->
+                <button class="favorite-button {% if is_favorited %}favorited{% endif %}" data-place-id="{{ place.id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                </button>
+                <div class="place-gallery-grid">
+                    {% for image in place.images.all|slice:":5" %}
+                    <div class="place-gallery-grid-item u-bg-cover u-clickable {% if forloop.last %}last-image{% endif %}">
+                        <img src="{{ image.image.url }}" class="place-gallery-grid-img" />
+                        {% if forloop.last and place.images.count > 5 %}
+                        <div class="image-count">
+                            <span class="count-number">{{ place.images.count }}</span>
+                            <span class="count-label">фото</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="place-detail-main">
+            <div class="place-detail-main-container">
+                <div class="place-detail-section">
+                    <div class="place-detail-inner">
+                        <div class="place-detail-item">
+                            <div class="place-detail-item-label">
+                                Кухня
+                            </div>
+                            <div class="place-detail-item-body">
+                                <div class="place-detail-item-value">
+                                    {% for cuisine in place.cuisines.all %}
+                                    {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="place-detail-item">
+                            <div class="place-detail-item-label">
+                                Средний чек
+                            </div>
+                            <div class="place-detail-item-body">
+                                <div class="place-detail-item-value">
+                                    {{ place.average_check }} руб.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <aside class="place-detail-aside">
+                <div class="place-detail-booking">
+                    <div class="booking-popup">
+                        <form method="post" class="booking-popup-form"
+                            action="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}">
+                            {% csrf_token %}
+                            <div class="booking-popup-wrapper">
+                                <div class="booking-popup-wrapper-container">
+                                    <h3>Заказ столика</h3>
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            {{ reservation_form.date.label_tag }}
+                                            {{ reservation_form.date }}
+                                        </div>
+                                        <div class="form-col">
+                                            {{ reservation_form.time.label_tag }}
+                                            {{ reservation_form.time }}
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            {{ reservation_form.customer_phone.label_tag }}
+                                            {{ reservation_form.customer_phone }}
+                                        </div>
+                                        <div class="form-col">
+                                            {{ reservation_form.guests.label_tag }}
+                                            {{ reservation_form.guests }}
+                                        </div>
+                                    </div>
+                                    {{ reservation_form.customer_name.label_tag }}
+                                    {{ reservation_form.customer_name }}
+                                    {{ reservation_form.customer_email.label_tag }}
+                                    {{ reservation_form.customer_email }}
+                                    {{ reservation_form.wishes.label_tag }}
+                                    {{ reservation_form.wishes }}
+                                    <button type="submit">
+                                        Забронировать
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const galleryGrid = document.querySelector('.place-gallery-grid');
+        const imageCount = galleryGrid.children.length;
+        galleryGrid.setAttribute('data-count', imageCount);
     });
 </script>
 <script>
@@ -226,6 +196,51 @@
                         timeSelect.appendChild(option);
                     });
                 });
+        }
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const favoriteButtons = document.querySelectorAll('.favorite-button');
+        favoriteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const placeId = this.getAttribute('data-place-id');
+                const url = `{% url 'users:toggle_favorite' place.id %}`.replace('place.id', placeId);
+    
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'added') {
+                        this.classList.add('favorited');
+                    } else if (data.status === 'removed') {
+                        this.classList.remove('favorited');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+    
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
     });
 </script>

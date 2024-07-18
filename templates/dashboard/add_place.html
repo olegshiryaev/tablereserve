@@ -1,32 +1,10 @@
-{% extends 'dashboard/base.html' %}
-{% block title %}{{ title }}{% endblock %}
-{% load static %}
-
-{% block navbar %}
-    {% include 'dashboard/components/navbar.html' %}
-{% endblock %}
-
-{% block sidebar %}
-    {% include 'dashboard/components/sidebar.html' %}
-{% endblock %}
-
-{% block footer %}
-    {% include 'dashboard/components/footer.html' %}
-{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid p-0">
-    <a href="{% url 'dashboard:places_list' %}" class="btn btn-secondary mb-3">Назад</a>
-    <h1 class="h3 mb-3">Добавить новое заведение</h1>
-
-    <!-- Форма добавления нового заведения -->
-    <div class="card">
-        <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-success">Добавить заведение</button>
-            </form>
-        </div>
-    </div>
-</div>
+<h2>Добавить заведение</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Добавить заведение</button>
+</form>
 {% endblock %}

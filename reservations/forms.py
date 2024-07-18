@@ -1,6 +1,29 @@
 from datetime import datetime, date, timezone, timedelta
 from django import forms
-from .models import Reservation, Review, WorkSchedule
+from .models import Place, Reservation, Review, WorkSchedule
+
+
+class WorkScheduleForm(forms.ModelForm):
+    class Meta:
+        model = WorkSchedule
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_closed = cleaned_data.get("is_closed")
+        open_time = cleaned_data.get("open_time")
+        close_time = cleaned_data.get("close_time")
+
+        if is_closed:
+            cleaned_data["open_time"] = None
+            cleaned_data["close_time"] = None
+        else:
+            if not open_time or not close_time:
+                raise forms.ValidationError(
+                    "Введите время открытия и закрытия или отметьте, что заведение в этот день закрыто."
+                )
+
+        return cleaned_data
 
 
 class ReviewForm(forms.ModelForm):
@@ -55,9 +78,9 @@ class ReservationForm(forms.ModelForm):
         self.place = place
 
         # Настройка меток полей
-        self.fields["date"].label = "Дата бронирования"
-        self.fields["time"].label = "Время бронирования"
-        self.fields["guests"].label = "Количество гостей"
+        self.fields["date"].label = "Дата"
+        self.fields["time"].label = "Время"
+        self.fields["guests"].label = "Кол-во гостей"
 
         # Установка начального значения для даты и времени
         if self.instance.pk is None:  # Проверяем, создается ли новая запись

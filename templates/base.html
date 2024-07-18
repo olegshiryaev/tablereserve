@@ -1,31 +1,129 @@
 {% load i18n %}
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     {% load static %}
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>{{ title }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
     <!-- Custom CSS -->
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" />
     {% block extra_head %}{% endblock %}
 </head>
+
 <body>
-{% block navbar %}
-{% endblock %}
+    {% block navbar %}
+    {% endblock %}
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    {%block footer %}
+    {% endblock %}
 
-{% block content %}
-{% endblock %}
-
-<!-- Bootstrap JS and dependencies -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-{% block extra_js %}
-{% endblock %}
+    <script src="{% static 'js/script.js' %}"></script>
+    <!-- Bootstrap JS and dependencies -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cityDropdownToggle = document.getElementById('cityDropdownToggle');
+            const cityDropdownMenu = document.getElementById('cityDropdownMenu');
+            const userDropdownToggle = document.getElementById('userDropdownToggle');
+            const userDropdownMenu = document.getElementById('userDropdownMenu');
+            const loginButton = document.getElementById('loginButton');
+            const loginPopover = document.getElementById('loginPopover');
+        
+            const modal = document.getElementById('loginModal');
+            const modalClose = document.querySelector('.modal .close');
+            const loginPopoverBtn = document.querySelector('.login-popover-btn');
+        
+            if (cityDropdownToggle) {
+                cityDropdownToggle.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    cityDropdownMenu.classList.toggle('show');
+                });
+            }
+        
+            if (userDropdownToggle) {
+                userDropdownToggle.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    userDropdownMenu.classList.toggle('show');
+                });
+            }
+        
+            if (loginButton && loginPopover) {
+                loginButton.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Остановка распространения события клика
+                    if (loginPopover.style.display === 'block') {
+                        loginPopover.style.display = 'none'; // Скрываем popover, если он уже отображается
+                    } else {
+                        loginPopover.style.display = 'block'; // Показываем popover, если он скрыт
+                    }
+                });
+        
+                document.addEventListener('click', function(event) {
+                    if (!cityDropdownToggle.contains(event.target) && !cityDropdownMenu.contains(event.target)) {
+                        cityDropdownMenu.classList.remove('show');
+                    }
+                    if (!userDropdownToggle.contains(event.target) && !userDropdownMenu.contains(event.target)) {
+                        userDropdownMenu.classList.remove('show');
+                    }
+                    if (!loginButton.contains(event.target) && !loginPopover.contains(event.target)) {
+                        loginPopover.style.display = 'none'; // Скрываем popover при клике вне его
+                    }
+                });
+            }
+        
+            // Обработчик для кнопки в popover, чтобы открыть модальное окно
+            if (loginPopoverBtn) {
+                loginPopoverBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    loginPopover.style.display = 'none'; // Скрываем popover
+                    modal.style.display = 'block'; // Открываем модальное окно
+                });
+            }
+        
+            // Обработчик для закрытия модального окна
+            if (modalClose) {
+                modalClose.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+            }
+        
+            // Закрытие модального окна при клике вне его
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger');
+            const menu = document.querySelector('.menu');
+        
+            hamburger.addEventListener('click', function() {
+                menu.classList.toggle('active');
+            });
+        
+            window.addEventListener('scroll', function() {
+                const header = document.querySelector('header');
+                if (window.scrollY > 0) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    {% block extra_js %} {% endblock %}
 </body>
+
 </html>

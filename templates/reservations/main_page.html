@@ -1,268 +1,265 @@
 {% extends "base.html" %}
 {% load static %}
 {% load floattags %}
+{% load custom_filters %}
 
 {% block navbar %}
     {% include 'components/navbar.html' %}
 {% endblock %}
+{% block footer %}
+    {% include 'components/footer.html' %}
+{% endblock %}
+
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Популярные заведения -->
-    <div class="row">
-        <div class="col-12">
-            <h2 class="text-center my-4">Популярные заведения</h2>
-            <div class="row">
-                {% for place in popular_places %}
-                    <div class="product-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                        <div class="product-item-container item d-flex flex-column">
-                            <div class="item-block so-quickview flex-grow-1 d-flex flex-column">
-                                {% if place.features.exists %}
-                                    <div class="feature">
-                                        {% for feature in place.features.all %}
-                                            <div class="feature-item">{{ feature.name }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="favorite-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M20.84 4.27a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.4a5.5 5.5 0 0 0-7.78 0 6 6 0 0 0 0 8.49L12 21l8.84-7.84a6 6 0 0 0 0-8.49z"></path>
-                                    </svg>
-                                </div>
-                                <div class="image">
-                                    <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" target="_self">
-                                        {% if place.cover_image %}
-                                            <img src="{{ place.cover_image.image.url }}" alt="{{ place.name }}" class="img-responsive img-hover-zoom">
-                                        {% else %}
-                                            <img src="{% static 'path_to_default_image.jpg' %}" alt="{{ place.name }}" class="img-responsive img-hover-zoom">
+<!-- Секция с популярными местами -->
+<section class="popular-restaurants">
+    <div class="container">
+        <h2>Популярные места</h2>
+        <div class="places-cards">
+            {% for place in popular_places %}
+            <div class="place-card">
+                <div class="place-card-image">
+                    <a
+                        href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}"
+                    >
+                        <img
+                            src="{{ place.get_cover_image }}"
+                            alt="{{ place.name }}"
+                            class="place-image"
+                        />
+                        <div class="place-features">
+                            {% for feature in place.features.all %}
+                            <span class="feature">{{ feature.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="place-details">
+                            <div class="place-type">{{ place.type.name }}</div>
+                            <div class="place-name">{{ place.name }}</div>
+                        </div>
+                        {% if place.rating > 0 %}
+                        <div
+                            class="place-rating {{ place.rating|rating_color }}"
+                        >
+                            {{ place.rating|formatted_float }}
+                        </div>
+                        {% endif %}
+                    </a>
+                    <button
+                        class="favorite-button {% if place.id in favorite_places %}favorited{% endif %}"
+                        data-place-id="{{ place.id }}"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                            />
+                        </svg>
+                    </button>
+                </div>
+                <div class="place-card-content">
+                    <p class="place-address">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="bi bi-geo-alt"
+                        >
+                            <path
+                                d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"
+                            />
+                            <path
+                                d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+                            />
+                        </svg>
+                        {{ place.address }}
+                    </p>
+                    <p class="place-cuisines">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 1024 1024"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="M256 410.304V96a32 32 0 0 1 64 0v314.304a96 96 0 0 0 64-90.56V96a32 32 0 0 1 64 0v223.744a160 160 0 0 1-128 156.8V928a32 32 0 1 1-64 0V476.544a160 160 0 0 1-128-156.8V96a32 32 0 0 1 64 0v223.744a96 96 0 0 0 64 90.56zM672 572.48C581.184 552.128 512 446.848 512 320c0-141.44 85.952-256 192-256s192 114.56 192 256c0 126.848-69.184 232.128-160 252.48V928a32 32 0 1 1-64 0V572.48zM704 512c66.048 0 128-82.56 128-192s-61.952-192-128-192-128 82.56-128 192 61.952 192 128 192z"
+                            />
+                        </svg>
+                        {% with cuisines_list=place.cuisines.all %} 
+                            {% if cuisines_list|length > 2 %} 
+                                {% for cuisine in cuisines_list|slice:":2" %}
+                                    {{ cuisine.name }}
+                                    {% if not forloop.last %},
+                                    {% endif %} 
+                                {% endfor %} и ещё
+                                {{cuisines_list|length|add:"-2" }}
+                                    {% else %}
+                                    {% for cuisine in cuisines_list %}
+                                        {{ cuisine.name }}
+                                        {% if not forloop.last %},
                                         {% endif %}
-                                        <div class="name">
-                                            <h3>{{ place.name }}</h3>
-                                            <p>{{ place.type }}</p>
-                                        </div>
-                                        <div class="rating-box">
-                                            <span class="rating-number">{{ place.rating|formatted_float }}</span>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="item-content d-flex flex-column justify-content-between flex-grow-1">
-                                    <ul>
-                                        <li>
-                                            <i class="fa-solid fa-location-dot" data-toggle="tooltip" title="Адрес"></i> <!-- Иконка геопозиции -->
-                                            {{ place.address }}
-                                        </li>
-                                        <li>
-                                            <i class="fa-solid fa-utensils" data-toggle="tooltip" title="Кухня"></i> <!-- Иконка кухни -->
-                                            {% for cuisine in place.cuisines.all %}
-                                                {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
-                                            {% endfor %}
-                                        </li>
-                                        <li>
-                                            <i class="fa-solid fa-coins" data-toggle="tooltip" title="Средний чек"></i> <!-- Иконка среднего чека -->
-                                            {{ place.average_check }} ₽
-                                        </li>
-                                    </ul>
-                                    <div class="mt-auto">
-                                        <button type="button" class="reserve-button" data-place-id="{{ place.slug }}" data-place-name="{{ place.name }}">Забронировать столик</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+                                    {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    </p>
+                    <p class="place-average-check">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            id="ruble-2"
+                            data-name="Flat Color"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="icon flat-color"
+                        >
+                            <path
+                                id="primary"
+                                d="M14,12A5,5,0,0,0,14,2H9A1,1,0,0,0,8,3v7H6a1,1,0,0,0,0,2H8v2H6a1,1,0,0,0,0,2H8v5a1,1,0,0,0,2,0V16h5a1,1,0,0,0,0-2H10V12ZM10,4h4a3,3,0,0,1,0,6H10Z"
+                            ></path>
+                        </svg>
+                        {{ place.average_check }}
+                    </p>
+                    <p class="place-short-description">
+                        {{ place.short_description|default_if_none:"" |truncatewords:16 }}
+                    </p>
+                    <a
+                        href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}"
+                        class="btn"
+                        >Заказать столик</a
+                    >
+                </div>
             </div>
-            <div class="text-center mt-4">
-                <a href="{% url 'place_list' city_slug=selected_city.slug %}" class="btn btn-primary">Показать все</a>
-            </div>
+            {% endfor %}
+        </div>
+        <div class="show-more-container">
+            <a href="{% url 'place_list' selected_city.slug %}" class="btn show-more">Показать все {{ total_places_count }}</a>
         </div>
     </div>
+</section>
 
-    <!-- События -->
-    <div class="row">
-        <div class="col-12">
-            <h2 class="text-center my-4">События</h2>
-            <div class="row">
-                {% for event in upcoming_events %}
-                    <div class="product-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                        <div class="product-item-container item d-flex flex-column">
-                            <div class="item-block so-quickview flex-grow-1 d-flex flex-column">
-                                <div class="image">
-                                    {% if event.image %}
-                                        <img src="{{ event.image.url }}" alt="{{ event.name }}" class="img-responsive img-hover-zoom">
-                                    {% else %}
-                                        <img src="{% static 'path_to_default_image.jpg' %}" alt="{{ event.name }}" class="img-responsive img-hover-zoom">
-                                    {% endif %}
-                                    <div class="name">
-                                        <h3>{{ event.name }}</h3>
-                                    </div>
-                                </div>
-                                <div class="item-content d-flex flex-column justify-content-between flex-grow-1">
-                                    <ul>
-                                        <li>
-                                            <i class="fa-solid fa-calendar" data-toggle="tooltip" title="Дата"></i> <!-- Иконка календаря -->
-                                            {{ event.date }} {{ event.start_time }} - {{ event.end_time }}
-                                        </li>
-                                        <li>
-                                            <i class="fa-solid fa-location-dot" data-toggle="tooltip" title="Место проведения"></i> <!-- Иконка геопозиции -->
-                                            {{ event.place.name }}
-                                        </li>
-                                    </ul>
-                                    <div class="mt-auto">
-                                        <button type="button" class="reserve-button" data-place-id="{{ place.slug }}" data-place-name="{{ place.name }}">Забронировать столик</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+<!-- Секция с предстоящими событиями -->
+<section class="upcoming-events">
+    <div class="container">
+        <h2>Предстоящие события</h2>
+        <div class="event-cards">
+            {% for event in upcoming_events %}
+            <div class="event-card">
+                <h3>{{ event.title }}</h3>
+                <p>{{ event.description|truncatewords:15 }}</p>
+                <p>Дата: {{ event.date }} Время: {{ event.start_time }}</p>
+                <button>Узнать больше</button>
             </div>
+            {% endfor %}
         </div>
     </div>
+</section>
 
-    <!-- Акции и скидки -->
-    <div class="row">
-        <div class="col-12">
-            <h2 class="text-center my-4">Акции и скидки</h2>
-            <div class="row">
-                {% for discount in active_discounts %}
-                    <div class="product-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
-                        <div class="product-item-container item d-flex flex-column">
-                            <div class="item-block so-quickview flex-grow-1 d-flex flex-column">
-                                <div class="image">
-                                    {% if discount.image %}
-                                        <img src="{{ discount.image.url }}" alt="{{ discount.title }}" class="img-responsive img-hover-zoom">
-                                    {% else %}
-                                        <img src="{% static 'path_to_default_image.jpg' %}" alt="{{ discount.title }}" class="img-responsive img-hover-zoom">
-                                    {% endif %}
-                                    <div class="name">
-                                        <h3>{{ discount.title }}</h3>
-                                    </div>
-                                </div>
-                                <div class="item-content d-flex flex-column justify-content-between flex-grow-1">
-                                    <ul>
-                                        <li>
-                                            <i class="fa-solid fa-calendar" data-toggle="tooltip" title="Период проведения"></i> <!-- Иконка календаря -->
-                                            {{ discount.start_date }} - {{ discount.end_date }}
-                                        </li>
-                                        <li>
-                                            <i class="fa-solid fa-location-dot" data-toggle="tooltip" title="Место проведения"></i> <!-- Иконка геопозиции -->
-                                            {{ discount.place.name }}
-                                        </li>
-                                    </ul>
-                                    <div class="mt-auto">
-                                        <button type="button" class="reserve-button" data-place-id="{{ place.slug }}" data-place-name="{{ place.name }}">Забронировать столик</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+<!-- Секция с акциями и предложениями -->
+<section class="special-offers">
+    <div class="container">
+        <h2>Специальные предложения</h2>
+        <div class="offer-cards">
+            {% for discount in active_discounts %}
+            <div class="offer-card">
+                {% if discount.image %}
+                <img
+                    src="{{ discount.image.url }}"
+                    alt="{{ discount.title }}"
+                />
+                {% endif %}
+                <h3>{{ discount.title }}</h3>
+                <p>{{ discount.description|truncatewords:15 }}</p>
+                <button>Узнать больше</button>
             </div>
+            {% endfor %}
         </div>
     </div>
-</div>
-<!-- Модальное окно -->
-<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="reservationModalLabel">Бронирование столика</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</section>
+
+<!-- Секция "Как это работает" -->
+<section class="how-it-works">
+    <div class="container">
+        <h2>Как это работает</h2>
+        <ol>
+            <li>Найдите ресторан</li>
+            <li>Выберите дату и время</li>
+            <li>Забронируйте столик</li>
+            <li>Наслаждайтесь визитом</li>
+        </ol>
+    </div>
+</section>
+
+<!-- Отзывы клиентов -->
+<section class="reviews">
+    <div class="container">
+        <h2>Отзывы наших клиентов</h2>
+        <div class="review-cards">
+            <div class="review-card">
+                <img src="client1.jpg" alt="Клиент 1" />
+                <p>Отличный сервис! Очень удобно бронировать столики.</p>
+                <p>Рейтинг: ★★★★★</p>
             </div>
-            <div class="modal-body">
-                <!-- Форма бронирования -->
-                <form id="reservationForm">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="id_date" class="form-label">Дата бронирования</label>
-                        {{ form.date }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_time" class="form-label">Время бронирования</label>
-                        {{ form.time }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_guests" class="form-label">Количество гостей</label>
-                        {{ form.guests }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_first_name" class="form-label">Имя</label>
-                        {{ form.first_name }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_last_name" class="form-label">Фамилия</label>
-                        {{ form.last_name }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_phone" class="form-label">Телефон</label>
-                        {{ form.phone }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_email" class="form-label">Email</label>
-                        {{ form.email }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_wishes" class="form-label">Пожелания</label>
-                        {{ form.wishes }}
-                    </div>
-                    <div class="text-center mt-3">
-                        <button type="submit" class="btn btn-primary">Отправить</button>
-                    </div>
-                </form>
+            <div class="review-card">
+                <img src="client2.jpg" alt="Клиент 2" />
+                <p>Прекрасный выбор ресторанов и быстрое бронирование.</p>
+                <p>Рейтинг: ★★★★☆</p>
             </div>
+            <!-- Добавьте больше отзывов по необходимости -->
         </div>
     </div>
-</div>
+</section>
 <script>
-    $(document).ready(function(){
-        $('[data-toggle="tooltip"]').tooltip();
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const reserveButtons = document.querySelectorAll('.reserve-button');
-        const modal = new bootstrap.Modal(document.getElementById('reservationModal')); // Bootstrap modal instance
-    
-        reserveButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const placeSlug = this.getAttribute('data-place-id');
-                const actionUrl = "{% url 'reserve_table' city_slug=selected_city.slug place_slug='PLACE_SLUG' %}".replace('PLACE_SLUG', placeSlug);
-                document.getElementById('reservationForm').action = actionUrl;
-                modal.show(); // Show modal
-            });
-        });
+    document.addEventListener("DOMContentLoaded", function () {
+        const favoriteButtons = document.querySelectorAll(".favorite-button")
+        favoriteButtons.forEach((button) => {
+            button.addEventListener("click", function () {
+                const placeId = this.getAttribute("data-place-id")
+                const url = "{% url 'users:toggle_favorite' 0 %}".replace(
+                    "/0/",
+                    `/${placeId}/`
+                )
 
-        const reservationForm = document.getElementById('reservationForm');
-        reservationForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken"),
+                    },
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.status === "added") {
+                            this.classList.add("favorited")
+                        } else if (data.status === "removed") {
+                            this.classList.remove("favorited")
+                        }
+                    })
+            })
+        })
+    })
 
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
+    function getCookie(name) {
+        let cookieValue = null
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";")
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim()
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+                    cookieValue = decodeURIComponent(
+                        cookie.substring(name.length + 1)
+                    )
+                    break
                 }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Optionally, you can close the modal after successful submission
-                    modal.hide();
-                    // Display success message (you need to implement this in your template)
-                    alert('Заявка на бронирование успешно отправлена!');
-                    // You can also redirect to the same page or refresh here
-                    // window.location.reload();
-                } else {
-                    throw new Error('Ошибка при отправке формы');
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                // Handle error cases here
-                alert('Произошла ошибка при отправке формы');
-            });
-        });
-    });
+            }
+        }
+        return cookieValue
+    }
 </script>
 {% endblock %}

@@ -24,8 +24,8 @@ main {
 }
 
 header {
-    background: #fff;
-    color: #000;
+    background: #383838;
+    color: #fff;
     padding: 10px 0;
     position: fixed;
     top: 0;
@@ -43,24 +43,7 @@ header .logo {
     height: 50px;
 }
 
-.city-selector {
-    margin-right: auto;
-    margin-left: 20px;
-    position: relative;
-}
-
-.city-selector .dropdown-toggle {
-    text-decoration: none;
-    color: #000;
-    border-bottom: 1px dotted grey;
-    transition: border-bottom 0.3s ease;
-}
-
-.city-selector .dropdown-toggle:hover {
-    border-bottom: none;
-}
-
-.navbar-nav {
+.menu {
     list-style: none;
     display: flex;
     align-items: center;
@@ -68,19 +51,18 @@ header .logo {
     padding: 0;
 }
 
-.nav-item {
+.menu li {
     margin: 0 15px;
     position: relative;
 }
 
-.nav-link {
+.menu a {
     text-decoration: none;
-    color: #000;
-    transition: color 0.3s ease;
+    color: #fff;
 }
 
-.nav-link:hover {
-    color: #007bff; /* Синий цвет при наведении */
+.dropdown:hover .dropdown-menu {
+    display: block;
 }
 
 .dropdown-menu {
@@ -93,20 +75,15 @@ header .logo {
     z-index: 1000;
     list-style: none;
     padding: 0;
-    margin-top: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    margin: 0;
 }
 
 .dropdown-item {
     padding: 10px 20px;
     text-decoration: none;
     display: block;
-    width: 100%;
     color: #333;
-    font-weight: 400;
     white-space: nowrap;
-    transition: background-color 0.3s ease;
 }
 
 .dropdown-item:hover {
@@ -122,180 +99,48 @@ header .logo {
 .hamburger span {
     width: 25px;
     height: 3px;
-    background-color: #000;
+    background-color: #333;
     margin: 4px 0;
 }
 
 header.scrolled {
-    background-color: #f9f9f9;
+    background-color: #222;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.dropdown-menu.show {
-    display: block;
-}
-
-.user-dropdown {
-    position: relative;
-}
-
-.user-dropdown .dropdown-toggle {
-    text-decoration: none;
-    color: #000;
-    border-bottom: 1px dotted grey;
-    transition: border-bottom 0.3s ease;
-}
-
-.user-dropdown .dropdown-toggle:hover {
-    border-bottom: none;
-}
-
-.user-dropdown .dropdown-menu {
-    left: auto;
-    right: 0;
-    top: 100%;
-}
-
-.popover-content {
-    display: none;
-    position: absolute;
-    top: calc(100% + 10px); /* Отступ сверху */
-    right: 0;
-    background-color: #fff;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    padding: 15px;
-    border: 1px solid #ddd; /* Обводка */
-    border-radius: 4px; /* Радиус скругления */
-    z-index: 1000;
-    width: 250px;
-}
-
-.popover-content p {
-    margin: 0 0 10px;
-}
-
-.social-login {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-}
-
-.social-login p {
-    margin: 0 10px 0 0;
-}
-
-.social-icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-}
-
-.login-btn {
-    background-color: #007bff;
+.hero {
+    background: url('{% static 'images/hero-bg.jpg' %}') no-repeat center center/cover;
     color: #fff;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 4px;
+    padding: 100px 0;
+    text-align: center;
 }
 
-.login-btn:hover {
-    background-color: #0056b3;
+.hero h1 {
+    font-size: 36px;
+    margin: 0;
 }
 
-.login-popover-btn {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 4px;
-    width: 100%;
+.hero p {
+    font-size: 18px;
+    margin: 10px 0 30px;
 }
 
-.login-popover-btn:hover {
-    background-color: #0056b3;
-}
-
-header.scrolled {
-    background-color: #f9f9f9;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content {
-    background-color: #fff;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 500px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-#loginForm {
+.search-form {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
 }
 
-#loginForm h2 {
-    margin-bottom: 15px;
-    font-size: 1.5rem;
-    font-weight: bold;
-}
-
-#loginForm label {
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-#loginForm input {
-    margin-bottom: 15px;
+.search-form input, .search-form button {
     padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    font-size: 16px;
 }
 
-.login-modal-btn {
-    background-color: #007bff;
+.search-form button {
+    background: #333;
     color: #fff;
     border: none;
-    padding: 10px 20px;
     cursor: pointer;
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-}
-
-.login-modal-btn:hover {
-    background-color: #0056b3;
 }
 
 .popular-restaurants, .upcoming-events, .special-offers, .how-it-works, .reviews {
@@ -426,14 +271,12 @@ h2 {
     margin: 0;
     font-size: .875rem;
     line-height: 1.25rem;
-    cursor: pointer;
 }
 
 .filter-form .form-check-input {
     margin-right: 10px;
     margin-left: 0;
     transform: scale(1.5);
-    cursor: pointer;
 }
 
 .filter-form button {
@@ -506,7 +349,6 @@ h2 {
     color: #353535;
     border-radius: 1rem;
     border: 1px solid #e5e5e5;
-    cursor: pointer;
 }
 
 .places-container {
@@ -533,7 +375,7 @@ h2 {
     text-align: left;
     display: flex;
     flex-direction: column;
-    max-height: 408px;
+    max-height: 380px;
     min-height: 280px;
 }
 
@@ -585,10 +427,6 @@ h2 {
 
 .place-rating.orange {
     background: #ff9900; /* оранжевый */
-}
-
-.place-rating.red {
-    background: #ff0000; /* Красный */
 }
 
 .place-features {
@@ -710,49 +548,25 @@ h2 {
     border: none;
     padding: 10px 20px;
     font-size: 14px;
-    border-radius: 4px;
+    border-radius: 12px;
     cursor: pointer;
     transition: background 0.3s;
     text-decoration: none;
     text-align: center;
     line-height: 16px;
-    letter-spacing: .25px;
+    letter-spacing: .05em;
     font-weight: 500;
     text-transform: uppercase;
     margin-top: auto;
     align-self: center;
-    outline: none;
-    white-space: nowrap;
 }
 
 .place-card-content .btn:hover {
     background-color: #145DA0;
 }
 
-.show-more-container {
-    text-align: center;
-    margin-top: 1.5rem;
-}
-
-.show-more {
-    display: block;
-    width: 100%;
-    border-radius: 4px;
-    padding: .625rem 1rem;
-    font-size: .875rem;
-    text-transform: uppercase;
-    background-color: #333;
-    color: #fff;
-    text-decoration: none;
-    transition: background-color 0.3s;
-}
-
-.show-more:hover {
-    background-color: #555;
-}
-
 footer {
-    background: #1f2124;
+    background: #383838;
     color: #fff;
     padding: 20px 0;
 }
@@ -784,13 +598,6 @@ footer a:hover {
     text-decoration: underline;
 }
 
-@media (min-width: 768px) {
-    .show-more {
-        width: auto;
-        display: inline-block;
-    }
-}
-
 @media (max-width: 1200px) {
     .popular-restaurants .places-cards {
         grid-template-columns: repeat(2, 1fr);
@@ -808,7 +615,7 @@ footer a:hover {
         margin-top: 60px;
     }
 
-    .navbar-nav {
+    .menu {
         display: none;
         flex-direction: column;
         width: 100%;
@@ -819,11 +626,11 @@ footer a:hover {
         z-index: 1000;
     }
 
-    .navbar-nav li {
+    .menu li {
         margin: 10px 0;
     }
 
-    .navbar-nav a {
+    .menu a {
         color: #fff;
     }
 
@@ -831,7 +638,7 @@ footer a:hover {
         display: flex;
     }
 
-    .hamburger.active + .navbar-nav {
+    .hamburger.active + .menu {
         display: flex;
     }
 
@@ -860,9 +667,7 @@ footer a:hover {
     }
 
     .place-card-content p {
-        font-size: 16px;
-        letter-spacing: .15px;
-        line-height: 18px;
+        font-size: 12px;
     }
 
     .places-listing {
@@ -878,16 +683,12 @@ footer a:hover {
     }
 
     .place-gallery-grid {
-        display: flex;
-        overflow-x: scroll;
-        scroll-snap-type: x mandatory;
+        display: none;
     }
 
-    .place-gallery-grid-item {
-        flex: 0 0 100%;
-        scroll-snap-align: start;
+    .swiper-container {
+        display: block;
     }
-
 
     footer .container {
         flex-direction: column;
@@ -899,6 +700,13 @@ footer a:hover {
         margin: 20px 0;
     }
 }
+
+@media (min-width: 769px) {
+    .swiper-container {
+        display: none;
+    }
+}
+
 
 /* Place detail */
 
@@ -936,77 +744,33 @@ footer a:hover {
     position: relative;
 }
 
+@media (min-width: 1024px) {
+    .place-gallery-grid {
+        grid-template-columns: 1fr repeat(2, 304px);
+    }
+}
+
 .place-gallery-grid {
     display: grid;
     grid-gap: 4px;
+    grid-template-columns:1fr repeat(2,304px);
     border-radius: 20px;
-    overflow: hidden;
+    overflow: hidden
 }
 
-/* Одна фотография */
-.place-gallery-grid[data-count="1"] {
-    grid-template-columns: 1fr;
-}
-
-.place-gallery-grid[data-count="1"] .place-gallery-grid-item {
-    height: 450px;
-}
-
-/* Две фотографии */
-.place-gallery-grid[data-count="2"] {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.place-gallery-grid[data-count="2"] .place-gallery-grid-item {
-    height: 450px;
-}
-
-/* Три фотографии */
-.place-gallery-grid[data-count="3"] {
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: repeat(2, 1fr);
-}
-
-.place-gallery-grid[data-count="3"] .place-gallery-grid-item:first-child {
-    grid-row: span 2;
-    height: 100%;
-}
-
-.place-gallery-grid[data-count="3"] .place-gallery-grid-item:nth-child(2),
-.place-gallery-grid[data-count="3"] .place-gallery-grid-item:nth-child(3) {
-    height: calc(450px / 2 - 2px);
-}
-
-/* Четыре фотографии */
-.place-gallery-grid[data-count="4"] {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-}
-
-.place-gallery-grid[data-count="4"] .place-gallery-grid-item {
-    height: 225px;
-}
-
-/* Пять фотографий */
-.place-gallery-grid[data-count="5"] {
-    grid-template-columns: 2fr repeat(2, 1fr);
-}
-
-.place-gallery-grid[data-count="5"] .place-gallery-grid-item:first-child {
-    grid-row: span 2;
-    height: auto;
-}
-
-.place-gallery-grid[data-count="5"] .place-gallery-grid-item:not(:first-child) {
-    height: 222px;
-}
-
-/* Общие стили для элементов */
 .place-gallery-grid-item {
     background-color: #eeeef2;
     position: relative;
     background-size: cover;
     background-position: 50%;
+}
+
+.place-gallery-grid-item:first-child {
+    grid-row: 1/3
+}
+
+.place-gallery-grid-item:not(:first-child) {
+    height: 222px;
 }
 
 .place-gallery-grid-img {

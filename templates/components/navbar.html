@@ -1,253 +1,74 @@
 {% load static %}
-{% load socialaccount %}
-
-<!--HEADER-->
-<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+<!-- Верхняя панель навигации -->
+<header>
     <div class="container">
-        <a class="navbar-brand" href="{% url 'main_page' selected_city.slug %}">
-            <img src="{% static 'images/logo.png' %}" alt="Logo" style="height: 40px;">
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {% if selected_city %}
-                            {{ selected_city.name }}
-                        {% else %}
-                            Выберите город
-                        {% endif %}
-                    </a>
-                    <ul class="dropdown-menu">
-                        {% for city in cities %}
-                            <li><a class="dropdown-item" href="/{{ city.slug }}/">{{ city.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            </ul>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{% if selected_city %}{% url 'place_list' selected_city.slug %}{% else %}#{% endif %}">Места</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">События</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Акции</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Новости</a>
-                </li>
-                {% if user.is_authenticated %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ user.name }}
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{% url 'users:user_profile' %}">Профиль</a></li>
-                        <li><a class="dropdown-item" href="{% url 'account_logout' %}">Выйти</a></li>
-                    </ul>
-                </li>
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}" alt="Logo" />
+        </div>
+        <div class="city-selector">
+            <a href="#" class="nav-link dropdown-toggle" id="cityDropdownToggle">
+                {% if selected_city %}
+                    {{ selected_city.name }}
                 {% else %}
-                <li class="nav-item">
-                    <a class="btn btn-primary" id="loginButton" role="button">Войти</a>
-                </li>
+                    Выберите город
                 {% endif %}
+            </a>
+            <ul class="dropdown-menu" id="cityDropdownMenu">
+                {% for city in cities %}
+                    <li><a class="dropdown-item" href="/{{ city.slug }}/">{{ city.name }}</a></li>
+                {% endfor %}
             </ul>
         </div>
-    </div>
-</nav>
-<!--/HEADER-->
-
-
-<!-- Popover Content -->
-<div id="popover-content" class="d-none">
-    <p>Войдите, чтобы сохранять любимые заведения и оставлять отзывы.</p>
-    <a class="btn btn-primary btn-block" id="openLoginModal" role="button">Войти или зарегистрироваться</a>
-    <p class="text-center mt-3">Войти с помощью</p>
-    <div class="d-flex justify-content-around">
-        <a href="{% provider_login_url 'vk' %}">
-            <img src="{% static 'images/vk_icon.png' %}" alt="ВКонтакте" style="width: 24px; height: 24px;">
-        </a>
-        <a href="{% provider_login_url 'google' %}">
-            <img src="{% static 'images/google_icon.png' %}" alt="Google" style="width: 24px; height: 24px;">
-        </a>
-        <a href="{% provider_login_url 'yandex' %}">
-            <img src="{% static 'images/yandex_icon.png' %}" alt="Яндекс" style="width: 24px; height: 24px;">
-        </a>
-    </div>
-</div>
-
-<!-- Модальное окно -->
-<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="loginModalLabel">Войти или зарегистрироваться</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="{% url 'account_login' %}" id="authForm">
-                    {% csrf_token %}
-                    <div id="formFields">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="login" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Пароль</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="bi bi-eye"></i>
-                                </button>
+        <nav>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="{% if selected_city %}{% url 'place_list' selected_city.slug %}{% else %}#{% endif %}">Места</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">События</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Акции</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdownToggle">{{ user.name }}</a>
+                        <ul class="dropdown-menu" id="userDropdownMenu">
+                            <li><a class="dropdown-item" href="{% url 'users:user_profile' %}">Профиль</a></li>
+                            <li><a class="dropdown-item" href="{% url 'account_logout' %}">Выйти</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <button id="loginButton" class="login-btn">Войти</button>
+                        <div id="loginPopover" class="popover-content">
+                            <p>Войдите, чтобы сохранять любимые заведения и оставлять отзывы.</p>
+                            <button class="login-popover-btn">Войти или зарегистрироваться</button>
+                            <div class="social-login">
+                                <p>Войти с помощью:</p>
+                                <a href="#"><img src="{% static 'images/vk_icon.png' %}" alt="VK" class="social-icon"></a>
+                                <a href="#"><img src="{% static 'images/yandex_icon.png' %}" alt="Yandex" class="social-icon"></a>
                             </div>
                         </div>
-                    </div>
-                    <div id="extraLinks" class="mb-3">
-                        <a href="#" id="forgotPasswordLink">Забыли пароль?</a>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 mb-2" id="authSubmitButton">Войти</button>
-                </form>
-                <a href="#" class="btn btn-secondary w-100 mb-2" id="showSignupForm">Зарегистрироваться</a>
-                <p class="text-center mt-3">Войти с помощью</p>
-                <div class="d-flex justify-content-around">
-                    <a href="{% provider_login_url 'vk' %}">
-                        <img src="{% static 'images/vk_icon.png' %}" alt="ВКонтакте" style="width: 32px; height: 32px;">
-                    </a>
-                    <a href="{% provider_login_url 'google' %}">
-                        <img src="{% static 'images/google_icon.png' %}" alt="Google" style="width: 32px; height: 32px;">
-                    </a>
-                    <a href="{% provider_login_url 'yandex' %}">
-                        <img src="{% static 'images/yandex_icon.png' %}" alt="Яндекс" style="width: 32px; height: 32px;">
-                    </a>
-                </div>
+                    </li>
+                {% endif %}
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-        </div>
+        </nav>
+    </div>
+</header>
+
+<!-- Модальное окно -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <form method="POST" action="{% url 'account_login' %}" id="loginForm">
+            {% csrf_token %}
+            <h2>Вход или регистрация</h2>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="login" required>
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit" class="login-modal-btn">Войти</button>
+        </form>
     </div>
 </div>
-
-<!-- Bootstrap и jQuery (если не подключены) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
-
-<script>
-$(document).ready(function () {
-    function updateForm(action, title, fieldsHtml, showSubmitButton, submitButtonText, extraLinksHtml) {
-        $('#loginModalLabel').text(title);
-        $('#authForm').attr('action', action);
-        $('#formFields').html(fieldsHtml);
-        $('#authSubmitButton').toggle(showSubmitButton).text(submitButtonText);
-        $('#extraLinks').html(extraLinksHtml);
-    }
-
-    function openLoginModal() {
-        $('#loginModal').modal('show');
-        $('#loginButton').popover('hide');
-    }
-
-    // Инициализация popover
-    $('#loginButton').popover({
-        html: true,
-        content: $('#popover-content').html(),
-        placement: 'bottom',
-        trigger: 'click'
-    });
-
-    // Открытие модального окна входа
-    $(document).on('click', '#openLoginModal', function () {
-        openLoginModal();
-    });
-
-    // Показать форму регистрации
-    $(document).on('click', '#showSignupForm', function (e) {
-        e.preventDefault();
-        const signupFields = `
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="mb-3">
-                <label for="name" class="form-label">Имя</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Пароль</label>
-                <input type="password" class="form-control" id="password" name="password1" required>
-            </div>
-            <div class="mb-3">
-                <label for="password-confirm" class="form-label">Подтвердите пароль</label>
-                <input type="password" class="form-control" id="password-confirm" name="password2" required>
-            </div>
-        `;
-        const extraLinks = '<p class="text-center mb-0">Уже есть аккаунт? <a href="#" id="switchToLogin">Войти</a></p>';
-        updateForm('{% url 'account_signup' %}', 'Регистрация', signupFields, true, 'Зарегистрироваться', extraLinks);
-        $('#showSignupForm').hide(); // Скрыть кнопку "Зарегистрироваться"
-    });
-
-    // Показать форму входа
-    $(document).on('click', '#switchToLogin', function (e) {
-        e.preventDefault();
-        const loginFields = `
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="login" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Пароль</label>
-                <div class="input-group">
-                    <input type="password" class="form-control" id="password" name="password" required>
-                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        const extraLinks = '<a href="#" id="forgotPasswordLink">Забыли пароль?</a>';
-        updateForm('{% url 'account_login' %}', 'Войти или зарегистрироваться', loginFields, true, 'Войти', extraLinks);
-        $('#showSignupForm').show(); // Показать кнопку "Зарегистрироваться"
-    });
-
-    // Открыть форму восстановления пароля
-    $(document).on('click', '#forgotPasswordLink', function (e) {
-        e.preventDefault();
-        const resetFields = `
-            <p>Введите адрес электронной почты, который вы использовали при регистрации, чтобы восстановить ваш пароль. Вы получите ссылку для изменения пароля.</p>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-        `;
-        const extraLinks = `
-            <button type="submit" class="btn btn-primary w-100 mb-2">Отправить новый пароль</button>
-            <a href="#" class="btn btn-secondary w-100" id="switchToLogin">Войти</a>
-        `;
-        updateForm('{% url 'account_reset_password' %}', 'Восстановление пароля', resetFields, false, '', extraLinks);
-        $('#showSignupForm').hide(); // Скрыть кнопку "Зарегистрироваться"
-    });
-
-    // Закрытие popover при клике вне его
-    $(document).on('click', function (e) {
-        if (!$(e.target).closest('#loginButton').length && !$(e.target).closest('.popover').length) {
-            $('#loginButton').popover('hide');
-        }
-    });
-
-    // Переключение видимости пароля
-    $(document).on('click', '#togglePassword', function () {
-        var passwordField = $('#password');
-        var passwordFieldType = passwordField.attr('type');
-        passwordField.attr('type', passwordFieldType === 'password' ? 'text' : 'password');
-        $(this).find('i').toggleClass('bi-eye bi-eye-slash');
-    });
-});
-</script>
-
-<style>
-    #popover-content {
-        display: none;
-    }
-</style>

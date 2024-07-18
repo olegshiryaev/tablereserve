@@ -2,6 +2,8 @@ from datetime import date, datetime, timedelta
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+
+from users.models import CustomUser, Favorite
 from .models import (
     City,
     Cuisine,
@@ -20,15 +22,27 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+
+User = get_user_model()
 
 
 def main_page(request, city_slug):
     city = get_object_or_404(City, slug=city_slug)
 
-    # Получаем популярные заведения, предстоящие события и активные акции для выбранного города
+    # Популярные места, предстоящие события и активные скидки для выбранного города
     popular_places = Place.objects.filter(city=city, is_active=True).order_by(
         "-rating"
-    )[:5]
+    )[:9]
+    total_places_count = Place.objects.filter(city=city, is_active=True).count()
+
+    if request.user.is_authenticated:
+        favorite_places = Favorite.objects.filter(user=request.user).values_list(
+            "place_id", flat=True
+        )
+    else:
+        favorite_places = []
     upcoming_events = Event.objects.filter(
         place__city=city, date__gte=date.today(), is_active=True
     ).order_by("date", "start_time")[:5]
@@ -48,9 +62,22 @@ def main_page(request, city_slug):
         "selected_city": city,
         "form": reservation_form,
         "title": title,
+        "favorite_places": favorite_places,
+        "total_places_count": total_places_count,
     }
 
     return render(request, "reservations/main_page.html", context)
+
+
+def get_place_word(count):
+    if 11 <= count % 100 <= 19:
+        return "мест"
+    elif count % 10 == 1:
+        return "место"
+    elif 2 <= count % 10 <= 4:
+        return "места"
+    else:
+        return "мест"
 
 
 def place_list(request, city_slug):
@@ -62,15 +89,13 @@ def place_list(request, city_slug):
     # Получаем параметры из GET-запроса
     search_query = request.GET.get("search", "")
     sort_by = request.GET.get("sort", "name")  # По умолчанию сортируем по имени
-    place_type_filter = request.GET.get("place_type", "")  # Фильтр по типу заведения
+    place_type_filters = request.GET.getlist("place_type")  # Фильтр по типу заведения
     cuisine_filters = request.GET.getlist("cuisine")  # Фильтры по кухням
-    min_average_check = request.GET.get(
-        "min_average_check", ""
-    )  # Минимальный средний чек
-    max_average_check = request.GET.get(
-        "max_average_check", ""
-    )  # Максимальный средний чек
+    average_check_filters = request.GET.getlist(
+        "average_check"
+    )  # Фильтры по среднему чеку
     feature_filters = request.GET.getlist("feature")  # Фильтры по особенностям
+    rating_filter = request.GET.get("rating", "")  # Фильтр по рейтингу
 
     # Фильтрация заведений по городу и поисковому запросу
     places = (
@@ -79,7 +104,14 @@ def place_list(request, city_slug):
         .annotate(
             approved_reviews_count=Count("reviews", filter=Q(reviews__is_approved=True))
         )
+        .select_related("type")  # Загрузка связанных данных о типе заведения
     )
+    if request.user.is_authenticated:
+        favorite_places = Favorite.objects.filter(user=request.user).values_list(
+            "place_id", flat=True
+        )
+    else:
+        favorite_places = []
 
     if search_query:
         places = places.filter(
@@ -87,9 +119,8 @@ def place_list(request, city_slug):
         )
 
     # Фильтрация по типу заведения
-    if place_type_filter:
-        place_type = get_object_or_404(PlaceType, slug=place_type_filter)
-        places = places.filter(type=place_type)
+    if place_type_filters:
+        places = places.filter(type__slug__in=place_type_filters).distinct()
 
     # Фильтрация по кухням
     if cuisine_filters:
@@ -97,15 +128,35 @@ def place_list(request, city_slug):
         places = places.filter(cuisines__in=cuisines).distinct()
 
     # Фильтрация по диапазону среднего чека
-    if min_average_check:
-        places = places.filter(average_check__gte=min_average_check)
-    if max_average_check:
-        places = places.filter(average_check__lte=max_average_check)
+    if average_check_filters:
+        average_check_conditions = Q()
+        for check in average_check_filters:
+            if check == "<500":
+                average_check_conditions |= Q(average_check__lt=500)
+            elif check == "500-1000":
+                average_check_conditions |= Q(
+                    average_check__gte=500, average_check__lte=1000
+                )
+            elif check == "1000-1500":
+                average_check_conditions |= Q(
+                    average_check__gte=1000, average_check__lte=1500
+                )
+            elif check == "1500-2000":
+                average_check_conditions |= Q(
+                    average_check__gte=1500, average_check__lte=2000
+                )
+            elif check == ">2000":
+                average_check_conditions |= Q(average_check__gt=2000)
+        places = places.filter(average_check_conditions)
 
     # Фильтрация по особенностям
     if feature_filters:
         features = Feature.objects.filter(id__in=feature_filters)
         places = places.filter(features__in=features).distinct()
+
+    # Фильтрация по рейтингу
+    if rating_filter:
+        places = places.filter(rating__gte=rating_filter)
 
     # Сортировка заведений
     sort_options = {
@@ -121,13 +172,26 @@ def place_list(request, city_slug):
     shown_places = places.count()
 
     # Получение доступных типов заведений для фильтрации
-    place_types = PlaceType.objects.all()
+    place_types = PlaceType.objects.annotate(
+        count=Count("place", filter=Q(place__city=city))
+    ).order_by("-count")
 
     # Получение доступных кухонь для фильтрации
-    cuisines = Cuisine.objects.all()
+    cuisines = (
+        Cuisine.objects.all()
+        .annotate(count=Count("place", filter=Q(place__city=city)))
+        .order_by("-count")
+    )
 
     # Получение доступных особенностей для фильтрации
-    features = Feature.objects.all()
+    features = (
+        Feature.objects.all()
+        .annotate(count=Count("place", filter=Q(place__city=city)))
+        .order_by("-count")
+    )
+
+    # Получение корректной формы слова "место"
+    place_word = get_place_word(shown_places)
 
     title = f"Рестораны, кафе и бары {city.name}а"
 
@@ -137,16 +201,18 @@ def place_list(request, city_slug):
         "title": title,
         "total_places": total_places,
         "shown_places": shown_places,
+        "place_word": place_word,
         "sort_by": sort_by,
         "place_types": place_types,
         "cuisines": cuisines,
         "features": features,
-        "selected_place_type": place_type_filter,
+        "selected_place_types": place_type_filters,
         "selected_cuisines": cuisine_filters,
-        "min_average_check": min_average_check,
-        "max_average_check": max_average_check,
+        "selected_average_checks": average_check_filters,
         "selected_features": feature_filters,
+        "selected_rating": rating_filter,
         "form": reservation_form,
+        "favorite_places": favorite_places,
     }
     return render(request, "reservations/place_list.html", context)
 
@@ -175,15 +241,28 @@ def handle_reservation(request, place, form_class, redirect_to):
     return form
 
 
+def get_review_word(count):
+    if count % 100 in [11, 12, 13, 14]:
+        return "отзывов"
+    elif count % 10 == 1:
+        return "отзыв"
+    elif 2 <= count % 10 <= 4:
+        return "отзыва"
+    else:
+        return "отзывов"
+
+
 def place_detail(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(Place, slug=place_slug)
     reservation_form = ReservationForm(place=place)
+    schedules = WorkSchedule.get_sorted_schedules(place.id)
+    reviews = place.reviews.filter(is_approved=True)
 
     if request.method == "POST":
-        form = ReservationForm(place, request.POST)
-        if form.is_valid():
-            reservation = form.save(commit=False)
+        reservation_form = ReservationForm(place, request.POST)
+        if reservation_form.is_valid():
+            reservation = reservation_form.save(commit=False)
             reservation.place = place
             reservation.user = request.user
             reservation.save()
@@ -195,13 +274,26 @@ def place_detail(request, city_slug, place_slug):
                 )
             )
 
+    # Проверка, добавлено ли заведение в избранное текущим пользователем
+    is_favorited = False
+    if request.user.is_authenticated:
+        if Favorite.objects.filter(user=request.user, place=place).exists():
+            is_favorited = True
+
+    # Получение корректной формы слова "отзыв"
+    review_word = get_review_word(reviews.count())
+
     return render(
         request,
         "reservations/place_detail.html",
         {
             "place": place,
-            "form": reservation_form,
+            "reservation_form": reservation_form,
             "selected_city": city,
+            "schedules": schedules,
+            "reviews": reviews,
+            "review_word": review_word,
+            "is_favorited": is_favorited,
         },
     )
 
@@ -275,26 +367,30 @@ def reserve_table(request, city_slug, place_slug):
     return render(request, "reservations/place_detail.html", context)
 
 
+@require_POST
 def add_review(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(Place, slug=place_slug, city=city)
+    review = None
 
-    if request.method == "POST":
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.place = place
-            review.user = request.user
-            review.save()
-            messages.success(request, "Отзыв успешно добавлен.")
-            return HttpResponseRedirect(
-                reverse("place_detail", args=[city_slug, place_slug])
-            )
-    else:
-        form = ReviewForm()
-
+    # A comment was posted
+    form = ReviewForm(data=request.POST)
+    if form.is_valid():
+        # Create a Comment object without saving it to the database
+        review = form.save(commit=False)
+        # Assign the post to the comment
+        review.place = place
+        review.user = request.user
+        # Save the comment to the database
+        review.save()
     return render(
         request,
-        "places/add_review.html",
-        {"city": city, "selected_city": city, "place": place, "form": form},
+        "reservations/place_detail.html",
+        {
+            "city": city,
+            "selected_city": city,
+            "place": place,
+            "form": form,
+            "review": review,
+        },
     )

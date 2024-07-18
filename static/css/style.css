@@ -1,31 +1,148 @@
 body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #F5F5F5;
+}
+
+.container {
+    max-width: 1248px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 20px;
+}
+
+header {
+    background: #383838;
+    color: #fff;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header .logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+header nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+header nav ul li {
+    margin-left: 20px;
+}
+
+header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.hero {
+    background: url('{% static 'images/hero-bg.jpg' %}') no-repeat center center/cover;
+    color: #fff;
+    padding: 100px 0;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 36px;
+    margin: 0;
+}
+
+.hero p {
+    font-size: 18px;
+    margin: 10px 0 30px;
+}
+
+.search-form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.search-form input, .search-form button {
+    padding: 10px;
     font-size: 16px;
-    line-height: 24px;
-    font-weight: 400;
-    color: #202020;
-    -webkit-font-smoothing: antialiased;
 }
 
-button[type="submit"] {
-    background: #2db2ff;
-    color: white;
+.search-form button {
+    background: #333;
+    color: #fff;
     border: none;
+    cursor: pointer;
 }
 
-button[type="submit"]:hover {
-    background: #009ef9;
+.popular-restaurants, .upcoming-events, .special-offers, .how-it-works, .reviews {
+    padding: 50px 0;
+    text-align: center;
 }
 
-.filter-box {
-    border: 1px solid #ddd;
-    box-shadow: 0 0 8px #dedede;
-    padding: 28px 20px 37px 20px;
-    border-radius: 4px;
+.popular-restaurants .places-cards {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+h2 {
+    font-size: 28px;
     margin-bottom: 20px;
-    background-color: #fff;
 }
 
-.filter-box h3 {
+.restaurant-cards, .event-cards, .offer-cards, .review-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.restaurant-card, .event-card, .offer-card, .review-card {
+    width: 300px;
+    text-align: left;
+    padding: 20px;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.restaurant-card img, .offer-card img, .review-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.restaurant-card h3, .offer-card h3, .review-card h3 {
+    margin-top: 15px;
+}
+
+.restaurant-card p, .offer-card p, .review-card p {
+    margin-bottom: 15px;
+}
+
+.restaurant-card button, .event-card button, .offer-card button, .review-card button {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.places-listing {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.filter-container {
+    flex: 0 0 240px;
+    padding: 20px;
+}
+
+.filter-container h3 {
     margin: 0 0 26px 0;
     font-size: 18px;
     color: #000;
@@ -33,483 +150,378 @@ button[type="submit"]:hover {
     text-transform: uppercase;
 }
 
-.filter-box button {
-    padding: 7px 15px;
-    border-radius: 6px;
-    text-transform: uppercase;
+.filter-block {
+    padding: .75rem;
+    margin-bottom: 20px;
+    border-radius: 1rem; /* Закругленные углы для каждого блока фильтра */
+    background-color: #fff; /* Белый фон для каждого блока фильтра */
+}
+
+.filter-block .search-field {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    background-color: #F5F5F5;
+    border-radius: 4px;
+}
+
+.filter-block .search-field:focus {
+    outline: none;
+    border-color: #66afe9;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+}
+
+.filter-block label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: .875rem;
+    line-height: 1.25rem;
     font-weight: 600;
-    font-size: 13px;
+}
+
+.filter-form input[type="number"],
+.filter-form .form-select {
     width: 100%;
-}
-
-.filter-box button:hover {
-    background: #009ef9;
-}
-
-.info-sort-bar {
-    font-size: 13px;
-    border-radius: 0px;
-    background: #f8f8f8;
-    padding: 10px 20px;
-    color: #909090;
-}
-
-.info-sort-bar form#sortForm {
-    display: flex;
-    align-items: center;
-}
-
-.info-sort-bar form#sortForm select {
-    font-size: 13px;
-    padding: 0px 33px 0 10px;
-    color: #909090;
-    line-height: 33px;
+    padding: 10px;
+    font-size: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
     border-radius: 4px;
-    border: 1px solid #e5e5e5;
-    background-color: #fff;
 }
 
-.product-layout {
-    margin-bottom: 20px; /* Adjust the value as needed */
-}
-
-.product-item-container {
-    height: 100%;
-    transition: box-shadow .2s ease-in-out, border .2s ease-in-out;
-    background: #fff;
-    border: 1px solid #eaeaea;
-    border-radius: 4px;
-    position: relative;
-}
-
-.product-item-container:hover {
-    border-color: #ddd;
-    box-shadow: 4px 4px 24px rgba(0, 0, 0, .15);
-}
-
-.favorite-container {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-}
-
-.favorite-icon {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out;
-}
-
-.favorite-icon:hover {
-    transform: scale(1.1);
-}
-
-.favorite-toggle {
-    margin-right: 5px;
-    transition: fill 0.2s ease-in-out;
-}
-
-.favorite-count {
-    font-size: 14px;
-    color: #333;
-    font-weight: bold;
-}
-
-.favorite-icon svg {
-    stroke-width: 2px;
-    width: 24px;
-    height: 24px;
-}
-
-.favorite-icon:hover svg {
-    stroke: red;
-}
-
-.favorite-icon:hover svg path {
-    fill: red;
-}
-
-.image {
-    position: relative;
-    overflow: hidden; /* Обрезать любой контент, выходящий за рамки блока */
-}
-
-.image img {
-    width: 100%;
-    height: auto; /* Адаптивная высота */
-    object-fit: cover;
-    transition: transform 0.3s ease; /* Плавное изменение масштаба при наведении */
-}
-
-.image:hover img {
-    transform: scale(1.05); /* Немного увеличиваем при наведении */
-}
-
-.image::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: linear-gradient(0deg, #00000080, #0000);
-    z-index: 1;
-    opacity: 0.6; /* Уменьшаем непрозрачность затемнения */
-}
-
-.feature {
-    position: absolute;
-    top: 10px;
-    left: -5px;
+.filter-form .form-check {
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
-.feature .feature-item {
-    background: #2db2ff;
+.filter-form .form-check-label {
+    display: flex;
+    align-items: center;
+    font-weight: normal; /* Set font weight to normal for checkbox text */
+    margin: 0;
+    font-size: .875rem;
+    line-height: 1.25rem;
+}
+
+.filter-form .form-check-input {
+    margin-right: 10px;
+    margin-left: 0;
+    transform: scale(1.5);
+}
+
+.filter-form button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 18px;
+    background-color: #333;
     color: #fff;
-    font-size: 12px;
-    height: 24px;
-    line-height: 24px;
-    display: inline-block;
-    vertical-align: top;
-    padding-right: 10px;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    cursor: default;
-    border-radius: 4px;
-    padding-left: 15px; /* Добавлено дополнительное пространство для лучшей видимости */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Тень для метки */
-    z-index: 2; /* Увеличиваем z-index для видимости поверх затемнения */
-}
-
-.name {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    z-index: 1;
-    color: white;
-}
-
-.name h3 {
-    line-height: 24px;
-    margin: 0;
-}
-
-.name p {
-    color: #ddd;
-    font-size: 14px;
-    font-weight: 400;
-    margin: 0;
-}
-
-.rating-box {
-    position: absolute;
-    bottom: 15px;
-    right: 10px;
-    z-index: 1;
-    background: none;
-    padding: 0 10px;
-    border-radius: 4px;
-    border: 1px solid #f9a825; /* Золотистая рамка */
-    overflow: hidden; /* Скрыть псевдоэлемент за границами блока */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Тень для затемнения */
-}
-
-.rating-box::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Цвет затемнения */
-    z-index: -1; /* Поместить псевдоэлемент под рамку */
-}
-
-.rating-number {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #f9a825; /* Белый текст */
-}
-
-.item-content {
-    padding: 15px;
-    position: relative;
-    box-sizing: border-box;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-}
-
-.item-content h3 {
-    font-size: 1.2rem;
-    color: #202020;
-    margin-bottom: 10px;
-    display: none; /* Скрываем заголовок под изображением */
-}
-
-.item-content h3 a {
-    color: inherit;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.item-content h3 a:hover {
-    color: #009ef9;
-}
-
-.item-content ul {
-    position: relative;
-    list-style: none;
-    padding: 0;
-}
-
-.item-content ul li {
-    color: #909090;
-    margin-bottom: 10px; /* Add margin between each detail */
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.star-rating {
-    display: flex;
-    justify-content: flex-end;
-    flex-direction: row-reverse;
-    font-size: 2rem;
-    margin-bottom: 1rem;
-}
-.star-rating input[type="radio"] {
-    display: none;
-}
-.star-rating label {
-    color: #ddd;
+    border: none;
+    border-radius: 30px;
     cursor: pointer;
-    transition: color 0.2s;
-    margin-right: 5px;
-}
-.star-rating input[type="radio"]:checked ~ label,
-.star-rating input[type="radio"]:checked ~ label ~ label {
-    color: #f39c12;
-}
-.star-rating label:hover,
-.star-rating label:hover ~ label {
-    color: #f39c12;
+    transition: background 0.3s;
 }
 
-.review-link {
-    display: inline-block;
-    vertical-align: top;
-    color: #909090;
-    text-decoration: none;
-    font-size: 0.9rem;
-    line-height: 18px;
-    padding: 0 3px;
+.filter-form button:hover {
+    background-color: #555;
 }
 
-.review-link:hover {
-    text-decoration: none;
-    color: #909090;
-}
-
-.address {
+.filter-item {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    margin-top: 10px; /* Отступ сверху для разделения от предыдущего элемента */
+    padding-top: .25rem;
+    padding-bottom: .25rem;
 }
 
-.item-content .fa-solid {
-    margin-right: 5px; /* Отступ справа от иконки */
-    color: #2db2ff; /* Цвет иконки */
+.filter-count {
+    margin-left: auto;
+    padding-left: 10px;
+    color: #888;
+    font-size: 14px;
 }
 
-.des {
-    font-size: 0.9rem;
-    color: #505050;
-    margin-bottom: 15px;
-}
-
-.reserve-button {
+.form-select {
     display: block;
     width: 100%;
-    padding: 10px; /* Внутренний отступ для кнопки */
-    background-color: #ededed; /* Цвет фона */
-    color: #191919; /* Цвет текста */
-    font-size: 0.9rem;
-    font-weight: 500;
-    border: none;
-    border-radius: 5px; /* Закругленные углы */
-    text-transform: uppercase;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.3s ease 0s;
+    padding: .375rem 2.25rem .375rem .75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    border: var(--bs-border-width) solid var(--bs-border-color);
 }
 
-.reserve-button:hover {
-    background-color: #2db2ff; /* Цвет фона при наведении */
-    color: #fff;
-    transition: all 0.3s ease 0s;
-    text-decoration: none;
+.places-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: .875rem;
 }
 
-/*============MODULE BREADCRUMB ==================*/
-.breadcrumbs {
+.places-header div {
+    color: #1a1a1a;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+}
+
+.sorting-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sorting-form select {
+    height: 54px;
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: .875rem;
+    line-height: 1.25rem;
+    color: #353535;
+    border-radius: 1rem;
+    border: 1px solid #e5e5e5;
+}
+
+.places-container {
+    flex: 1;
+    margin-top: 20px;
+}
+
+.places-container h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.places-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.place-card {
+    background: #fff;
+    padding: 0 0 20px;
+    border-radius: 1rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.place-card-image {
     position: relative;
-    margin-top: 0;
-    padding: 71px 0 66px;
-    margin-bottom: 60px;
-    color: #fff;
-    text-align: center;
 }
-.breadcrumbs::before {
+
+.place-card-image .place-image {
+    display: block;
+    width: 100%;
+    transition: opacity 0.3s ease;
+}
+
+.place-card-image .place-image::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.4); }
-.breadcrumbs.arh {
-    background: url("../../media/cities/arh.jpg");
-    background-size: cover; /* Заполнение фона по размеру блока */
-    background-position: 50%; /* Центрирование изображения */
-    background-repeat: no-repeat; }
-.breadcrumbs.sev {
-    background: url("../../media/cities/sev.jpg");
-    background-size: cover; /* Заполнение фона по размеру блока */
-    background-position: 50%; /* Центрирование изображения */
-    background-repeat: no-repeat; }
-.breadcrumbs .title-breadcrumb {
-    color: #fff;
-    display: block;
-    font-size: 48px;
-    line-height: 64px;
-    font-weight: 700;
-    max-width: 900px;
-    margin: 20px auto;
-    position: relative;
-    z-index: 1; }
-
-.breadcrumbs .search-form {
-    position: relative;
-    margin-top: 20px; /* Примерный отступ от заголовка */
-    max-width: 600px; /* Примерная максимальная ширина строки поиска */
-    margin: 0 auto; /* Центрирование по горизонтали */
-    height: 54px;
-    padding: 0;
-    background: #f9f9f9;
-    border-radius: 3px;
-    overflow: hidden;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.breadcrumbs .search-form input[type="text"] {
-    width: 100%;
-    background: none;
-    font-size: 16px; /* Размер шрифта */
-    border: none;
-    box-sizing: border-box; /* Учитывать границы и внутренние отступы в размерах элемента */
-    vertical-align: top;
-    color: #00000080;
-    line-height: 54px;
-    padding: 0 120px 0 20px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: color .2s ease;
-    outline: none;
+.place-card-image .image-link:hover .place-image::after {
+    opacity: 1;
 }
 
-.breadcrumbs .search-form button[type="submit"] {
-    height: 54px;
-    width: 110px;
-    background-color: #2db2ff; /* Цвет фона кнопки */
-    color: #fff; /* Цвет текста кнопки */
-    border: none; /* Убираем границу кнопки */
-    padding: 10px 20px; /* Внутренние отступы кнопки */
-    font-size: 16px; /* Размер шрифта кнопки */
-    border-radius: 0; /* Закругление углов кнопки */
-    cursor: pointer; /* Показать указатель при наведении */
-    position: absolute; /* Абсолютное позиционирование относительно родителя */
-    right: 0; /* Прижимаем кнопку к правому краю родительского элемента */
-    top: 0; /* Выравниваем кнопку по верхнему краю родительского элемента */
-    text-transform: uppercase;
-    transition: background-color .15s ease;
-}
-
-.breadcrumbs .search-form button[type="submit"]:hover {
-    background-color: #009ef9; /* Цвет фона кнопки при наведении */
-}
-
-/* Стили для модального окна */
-.modal {
-    display: none; /* Скрыто по умолчанию */
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4); /* Черный с непрозрачностью */
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto; /* 15% сверху и по центру */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Можно изменить для различной ширины */
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.reservation-title {
-    color: #222;
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 21px;
-    margin-left: 8px;
-    -webkit-text-decoration: none;
-    text-decoration: none;
-    transition: .3s linear;
-}
-
-.reservation-info {
-    color: #222;
-    font-size: 16px;
-    line-height: 22px;
-}
-
-.bg-image {
-    width: 100%;
-    height: 100%;
-    z-index: 0;
+.place-features {
     position: absolute;
-    top: 0;
-    left: 0;
-    opacity: .35;
-    background-color: #000;
-    background-position: 50%;
-    background-repeat: no-repeat;
-    background-size: cover;
-    -webkit-backface-visibility: hidden;
-    -o-object-fit: cover;
-    object-fit: cover;
-    transition: opacity .2s ease;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.feature {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.place-details {
+    position: absolute;
+    bottom: 10px; /* Расстояние от нижнего края изображения до блока с деталями */
+    left: 10px; /* Расстояние от левого края изображения до блока с деталями */
+    color: #fff; /* Белый цвет текста */
+}
+
+.place-type {
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 400;
+}
+
+.place-name {
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 24px;
+}
+
+.favorite-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(204, 204, 204, 0.7);
+    border: none;
+    border-radius: .75rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.3s, color 0.3s;
+    padding: 0;
+}
+
+.favorite-button svg {
+    fill: #fff;
+}
+
+.favorite-button.favorited {
+    background: rgb(237, 236, 236, 0.9);
+}
+
+.favorite-button.favorited svg {
+    fill: #ff4d4d;
+}
+
+.favorite-button:hover {
+    background: rgb(237, 236, 236, 0.9);
+}
+
+.place-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 20px 20px 0 0;
+}
+
+.place-card-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0 20px;
+    bottom: 0;
+    flex-grow: 1;
+}
+
+/* .place-card-content .place-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 21px;
+    margin-bottom: 8px;
+    text-decoration: none;
+    color: #333;
+    transition: color 0.3s;
+} */
+
+.place-card-content .place-title:hover {
+    color: #2E8BC0;
+}
+
+.place-card-content h3 {
+    margin-top: 15px;
+    font-size: 20px;
+}
+
+.place-card-content p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #666;
+    display: flex;
+    align-items: center;
+}
+
+.place-address svg, .place-cuisines svg, .place-average-check svg {
+    margin-right: 8px;
+    fill: #2E8BC0;
+}
+
+.place-card-content .btn {
+    bottom: 0;
+    display: block;
+    position: relative;
+    margin-top: auto;
+    background-color: #2E8BC0;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+    text-align: center;
+    line-height: 16px;
+    letter-spacing: .05em;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.place-card-content .btn:hover {
+    background-color: #145DA0;
+}
+
+footer {
+    background: #383838;
+    color: #fff;
+    padding: 20px 0;
+    margin-top: 20px;
+}
+
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+footer .footer-info, .social-media, .contact-info {
+    width: 30%;
+    text-align: left;
+}
+
+footer a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    margin: 5px 0;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+    .places-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .places-listing {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .filter-container {
+        margin-bottom: 20px;
+    }
+
+    .places-cards {
+        grid-template-columns: 1fr;
+    }
 }

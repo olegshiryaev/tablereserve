@@ -1,3 +1,6 @@
-<p>Hi {{ user.name }},</p>
-<p>Thank you for registering. Please click on the link below to activate your account:</p>
-<p><a href="http://{{ domain }}{% url 'activate' uidb64=uid token=token %}">Activate my account</a></p>
+<!-- activation_email.html -->
+Привет {{ user.name }},
+
+Пожалуйста, нажмите на ссылку ниже, чтобы активировать вашу учетную запись:
+
+<a href="{{ protocol }}://{{ domain }}{% url 'users:activate' uidb64=uid token=token %}">Активировать учетную запись</a>

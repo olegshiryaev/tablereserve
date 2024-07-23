@@ -1,7 +1,8 @@
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
-from dashboard.forms import AddPlaceForm, PlaceForm, ReservationForm
+from django.views import View
+from dashboard.forms import PlaceCreationForm, PlaceForm, ReservationForm
 from reservations.models import Cuisine, Feature, Place, PlaceType, Reservation
 from users.models import CustomUser
 from django.utils.text import slugify
@@ -11,21 +12,57 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+)
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
 
 
-@login_required
-def places_list(request):
-    # Если пользователь является администратором, показываем все заведения
-    if request.user.is_staff:
-        places = Place.objects.all()
-    else:
-        # В противном случае показываем только заведения, принадлежащие пользователю
-        places = Place.objects.filter(manager=request.user)
+class PlaceListView(LoginRequiredMixin, ListView):
+    model = Place
+    template_name = "dashboard/places_list.html"
+    context_object_name = "places"
 
-    context = {
-        "places": places,
-    }
-    return render(request, "dashboard/places_list.html", context)
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Place.objects.all()
+        else:
+            return Place.objects.filter(manager=self.request.user)
+
+
+class PlaceDetailView(DetailView):
+    model = Place
+    template_name = "dashboard/place_detail.html"
+    context_object_name = "place"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = PlaceForm(instance=self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = PlaceForm(request.POST, request.FILES, instance=self.object)
+        if form.is_valid():
+            form.save()
+            return redirect("dashboard:place_detail", slug=self.object.slug)
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class PlaceCreateView(LoginRequiredMixin, CreateView):
+    model = Place
+    form_class = PlaceForm
+    template_name = "dashboard/place_form.html"
+    success_url = reverse_lazy("dashboard:place_list")
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
 
 
 @login_required
@@ -117,7 +154,7 @@ def place_detail(request, slug):
 
 def add_place(request):
     if request.method == "POST":
-        form = AddPlaceForm(request.POST)
+        form = PlaceCreationForm(request.POST)
         if form.is_valid():
             place = form.save(commit=False)
             owner_email = form.cleaned_data["owner_email"]
@@ -145,7 +182,7 @@ def add_place(request):
                     "token": default_token_generator.make_token(owner),
                 },
             )
-            send_mail(mail_subject, message, "from@example.com", [owner_email])
+            send_mail(mail_subject, message, "oashiryaev@yandex.ru", [owner_email])
 
             return redirect("dashboard/add_place_success")
     else:

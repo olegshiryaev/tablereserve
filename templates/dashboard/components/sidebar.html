@@ -1,6 +1,6 @@
 <nav id="sidebar" class="sidebar js-sidebar">
     <div class="sidebar-content js-simplebar">
-        <a class="sidebar-brand" href="{% url 'dashboard:places_list' %}">
+        <a class="sidebar-brand" href="{% url 'dashboard:place_list' %}">
             <span class="align-middle">AdminKit</span>
         </a>
 
@@ -9,8 +9,8 @@
                 Меню
             </li>
 
-            <li class="sidebar-item {% if request.resolver_match.url_name == 'places_list' %}active{% endif %}">
-                <a class="sidebar-link" href="{% url 'dashboard:places_list' %}">
+            <li class="sidebar-item {% if request.resolver_match.url_name == 'dashboard:place_list' %}active{% endif %}">
+                <a class="sidebar-link" href="{% url 'dashboard:place_list' %}">
                     <i class="align-middle" data-feather="grid"></i> <span class="align-middle">Заведения</span>
                 </a>
             </li>

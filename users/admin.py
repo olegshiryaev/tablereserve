@@ -1,14 +1,25 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
+
+from reservations.models import Place
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from .models import CustomUser, Favorite
+
+
+class PlaceInline(admin.TabularInline):
+    model = Place.manager.through  # Use the through model of the ManyToManyField
+    extra = 1  # Number of extra forms to display
+    verbose_name = "Представитель заведения"
+    verbose_name_plural = "Представитель заведений"
 
 
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = CustomUser
+    inlines = [PlaceInline]
+
     list_display = (
         "email",
         "name",

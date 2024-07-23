@@ -1,9 +1,19 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Montserrat', sans-serif;
     margin: 0;
     padding: 0;
     color: #333;
     background-color: #F5F5F5;
+}
+
+main {
+    margin-top: 70px;
 }
 
 .container {
@@ -14,68 +24,278 @@ body {
 }
 
 header {
-    background: #383838;
-    color: #fff;
+    background: #fff;
+    color: #000;
     padding: 10px 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 header .logo {
-    font-size: 24px;
+    height: 50px;
+}
+
+.city-selector {
+    margin-right: auto;
+    margin-left: 20px;
+    position: relative;
+}
+
+.city-selector .dropdown-toggle {
+    text-decoration: none;
+    color: #000;
+    border-bottom: 1px dotted grey;
+    transition: border-bottom 0.3s ease;
+}
+
+.city-selector .dropdown-toggle:hover {
+    border-bottom: none;
+}
+
+.navbar-nav {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item {
+    margin: 0 15px;
+    position: relative;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #000;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #007bff; /* Синий цвет при наведении */
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.dropdown-item {
+    padding: 10px 20px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    color: #333;
+    font-weight: 400;
+    white-space: nowrap;
+    transition: background-color 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.hamburger span {
+    width: 25px;
+    height: 3px;
+    background-color: #000;
+    margin: 4px 0;
+}
+
+header.scrolled {
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.user-dropdown {
+    position: relative;
+}
+
+.user-dropdown .dropdown-toggle {
+    text-decoration: none;
+    color: #000;
+    border-bottom: 1px dotted grey;
+    transition: border-bottom 0.3s ease;
+}
+
+.user-dropdown .dropdown-toggle:hover {
+    border-bottom: none;
+}
+
+.user-dropdown .dropdown-menu {
+    left: auto;
+    right: 0;
+    top: 100%;
+}
+
+.popover-content {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px); /* Отступ сверху */
+    right: 0;
+    background-color: #fff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border: 1px solid #ddd; /* Обводка */
+    border-radius: 4px; /* Радиус скругления */
+    z-index: 1000;
+    width: 250px;
+}
+
+.popover-content p {
+    margin: 0 0 10px;
+}
+
+.social-login {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.social-login p {
+    margin: 0 10px 0 0;
+}
+
+.social-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.login-btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.login-btn:hover {
+    background-color: #0056b3;
+}
+
+.login-popover-btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.login-popover-btn:hover {
+    background-color: #0056b3;
+}
+
+header.scrolled {
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
     font-weight: bold;
 }
 
-header nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-}
-
-header nav ul li {
-    margin-left: 20px;
-}
-
-header nav ul li a {
-    color: #fff;
+.close:hover,
+.close:focus {
+    color: black;
     text-decoration: none;
+    cursor: pointer;
 }
 
-.hero {
-    background: url('{% static 'images/hero-bg.jpg' %}') no-repeat center center/cover;
-    color: #fff;
-    padding: 100px 0;
-    text-align: center;
-}
-
-.hero h1 {
-    font-size: 36px;
-    margin: 0;
-}
-
-.hero p {
-    font-size: 18px;
-    margin: 10px 0 30px;
-}
-
-.search-form {
+#loginForm {
     display: flex;
-    justify-content: center;
-    gap: 10px;
+    flex-direction: column;
 }
 
-.search-form input, .search-form button {
+#loginForm h2 {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+#loginForm label {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+#loginForm input {
+    margin-bottom: 15px;
     padding: 10px;
-    font-size: 16px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
-.search-form button {
-    background: #333;
+.login-modal-btn {
+    background-color: #007bff;
     color: #fff;
     border: none;
+    padding: 10px 20px;
     cursor: pointer;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.login-modal-btn:hover {
+    background-color: #0056b3;
 }
 
 .popular-restaurants, .upcoming-events, .special-offers, .how-it-works, .reviews {
@@ -84,7 +304,10 @@ header nav ul li a {
 }
 
 .popular-restaurants .places-cards {
-    grid-template-columns: repeat(4, 1fr);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: stretch;
 }
 
 h2 {
@@ -138,7 +361,7 @@ h2 {
 }
 
 .filter-container {
-    flex: 0 0 240px;
+    flex: 0 0 250px;
     padding: 20px;
 }
 
@@ -203,12 +426,14 @@ h2 {
     margin: 0;
     font-size: .875rem;
     line-height: 1.25rem;
+    cursor: pointer;
 }
 
 .filter-form .form-check-input {
     margin-right: 10px;
     margin-left: 0;
     transform: scale(1.5);
+    cursor: pointer;
 }
 
 .filter-form button {
@@ -259,9 +484,9 @@ h2 {
     padding-bottom: .875rem;
 }
 
-.places-header div {
+.places-header h1 {
     color: #1a1a1a;
-    font-size: 24px;
+    font-size: 34px;
     font-weight: 700;
     line-height: 30px;
 }
@@ -281,6 +506,7 @@ h2 {
     color: #353535;
     border-radius: 1rem;
     border: 1px solid #e5e5e5;
+    cursor: pointer;
 }
 
 .places-container {
@@ -297,6 +523,7 @@ h2 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+    align-items: stretch;
 }
 
 .place-card {
@@ -306,15 +533,22 @@ h2 {
     text-align: left;
     display: flex;
     flex-direction: column;
+    max-height: 408px;
+    min-height: 280px;
 }
 
 .place-card-image {
     position: relative;
+    width: 100%;
+    height: 320px;
+    overflow: hidden;
 }
 
 .place-card-image .place-image {
     display: block;
     width: 100%;
+    height: 100%;
+    object-fit: cover;
     transition: opacity 0.3s ease;
 }
 
@@ -326,12 +560,35 @@ h2 {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
 
-.place-card-image .image-link:hover .place-image::after {
-    opacity: 1;
+.place-rating.image-rating {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    z-index: 2;
+}
+
+.place-rating.green-bright {
+    background: #00cc44; /* ярко-зеленый */
+}
+
+.place-rating.green-light {
+    background: #99cc00; /* светло-зеленый */
+}
+
+.place-rating.orange {
+    background: #ff9900; /* оранжевый */
+}
+
+.place-rating.red {
+    background: #ff0000; /* Красный */
 }
 
 .place-features {
@@ -339,23 +596,25 @@ h2 {
     top: 10px;
     left: 10px;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 5px;
 }
 
-.feature {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 5px;
-    border-radius: 3px;
+.place-features .feature {
+    background-color: #fff;
+    color: #000;
+    padding: 3px 6px;
+    border-radius: 4px;
+    line-height: 17px;
+    font-weight: 600;
     font-size: 12px;
 }
 
 .place-details {
     position: absolute;
-    bottom: 10px; /* Расстояние от нижнего края изображения до блока с деталями */
-    left: 10px; /* Расстояние от левого края изображения до блока с деталями */
-    color: #fff; /* Белый цвет текста */
+    bottom: 10px;
+    left: 10px;
+    color: #fff;
 }
 
 .place-type {
@@ -417,17 +676,8 @@ h2 {
     padding: 0 20px;
     bottom: 0;
     flex-grow: 1;
+    margin-top: 10px;
 }
-
-/* .place-card-content .place-title {
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 21px;
-    margin-bottom: 8px;
-    text-decoration: none;
-    color: #333;
-    transition: color 0.3s;
-} */
 
 .place-card-content .place-title:hover {
     color: #2E8BC0;
@@ -446,7 +696,7 @@ h2 {
     align-items: center;
 }
 
-.place-address svg, .place-cuisines svg, .place-average-check svg {
+.place-address svg, .place-phone svg, .place-cuisines svg, .place-average-check svg {
     margin-right: 8px;
     fill: #2E8BC0;
 }
@@ -455,43 +705,72 @@ h2 {
     bottom: 0;
     display: block;
     position: relative;
-    margin-top: auto;
     background-color: #2E8BC0;
     color: #fff;
     border: none;
     padding: 10px 20px;
     font-size: 14px;
-    border-radius: 12px;
+    border-radius: 4px;
     cursor: pointer;
     transition: background 0.3s;
     text-decoration: none;
     text-align: center;
     line-height: 16px;
-    letter-spacing: .05em;
+    letter-spacing: .25px;
     font-weight: 500;
     text-transform: uppercase;
+    margin-top: auto;
+    align-self: center;
+    outline: none;
+    white-space: nowrap;
 }
 
 .place-card-content .btn:hover {
     background-color: #145DA0;
 }
 
+.show-more-container {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.show-more {
+    display: block;
+    width: 100%;
+    border-radius: 4px;
+    padding: .625rem 1rem;
+    font-size: .875rem;
+    text-transform: uppercase;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.show-more:hover {
+    background-color: #555;
+}
+
 footer {
-    background: #383838;
+    background: #1f2124;
     color: #fff;
     padding: 20px 0;
-    margin-top: 20px;
 }
 
 footer .container {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 0 20px;
+    max-width: 1248px;
+    margin: 0 auto;
 }
 
 footer .footer-info, .social-media, .contact-info {
-    width: 30%;
-    text-align: left;
+    flex: 1;
+    min-width: 200px;
+    margin: 10px;
 }
 
 footer a {
@@ -505,6 +784,19 @@ footer a:hover {
     text-decoration: underline;
 }
 
+@media (min-width: 768px) {
+    .show-more {
+        width: auto;
+        display: inline-block;
+    }
+}
+
+@media (max-width: 1200px) {
+    .popular-restaurants .places-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 1024px) {
     .places-cards {
         grid-template-columns: repeat(2, 1fr);
@@ -512,9 +804,69 @@ footer a:hover {
 }
 
 @media (max-width: 768px) {
+    main {
+        margin-top: 60px;
+    }
+
+    .navbar-nav {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background-color: #383838;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        z-index: 1000;
+    }
+
+    .navbar-nav li {
+        margin: 10px 0;
+    }
+
+    .navbar-nav a {
+        color: #fff;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .hamburger.active + .navbar-nav {
+        display: flex;
+    }
+
+    .popular-restaurants .places-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .place-card {
+        max-height: none;
+    }
+
+    .place-card-image {
+        height: 200px;
+    }
+
+    .place-card-content {
+        padding: 10px;
+    }
+
+    .place-card-content .btn {
+        padding: 8px 16px;
+    }
+
+    .place-card-content h3 {
+        font-size: 18px;
+    }
+
+    .place-card-content p {
+        font-size: 16px;
+        letter-spacing: .15px;
+        line-height: 18px;
+    }
+
     .places-listing {
         flex-direction: column;
-        align-items: center;
     }
 
     .filter-container {
@@ -523,5 +875,459 @@ footer a:hover {
 
     .places-cards {
         grid-template-columns: 1fr;
+    }
+
+    .place-gallery-grid {
+        display: flex;
+        overflow-x: scroll;
+        scroll-snap-type: x mandatory;
+    }
+
+    .place-gallery-grid-item {
+        flex: 0 0 100%;
+        scroll-snap-align: start;
+    }
+
+
+    footer .container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    footer .footer-info, .social-media, .contact-info {
+        margin: 20px 0;
+    }
+}
+
+/* Place detail */
+
+.container.place-detail {
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 1200px;
+}
+
+.place-header {
+    margin-bottom: 20px;
+}
+
+.place-header h1 {
+    font-size: 34px;
+    line-height: 40px;
+    font-weight: 700;
+    color: #1e1e1e;
+    margin-bottom: 10px;
+}
+
+.place-detail-container {
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 1256px;
+}
+
+@media (min-width: 1256px) {
+    .place-detail-gallery {
+        margin-bottom: 64px;
+    }
+}
+
+.place-detail-gallery-wrapper {
+    position: relative;
+}
+
+.place-gallery-grid {
+    display: grid;
+    grid-gap: 4px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Одна фотография */
+.place-gallery-grid[data-count="1"] {
+    grid-template-columns: 1fr;
+}
+
+.place-gallery-grid[data-count="1"] .place-gallery-grid-item {
+    height: 450px;
+}
+
+/* Две фотографии */
+.place-gallery-grid[data-count="2"] {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.place-gallery-grid[data-count="2"] .place-gallery-grid-item {
+    height: 450px;
+}
+
+/* Три фотографии */
+.place-gallery-grid[data-count="3"] {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: repeat(2, 1fr);
+}
+
+.place-gallery-grid[data-count="3"] .place-gallery-grid-item:first-child {
+    grid-row: span 2;
+    height: 100%;
+}
+
+.place-gallery-grid[data-count="3"] .place-gallery-grid-item:nth-child(2),
+.place-gallery-grid[data-count="3"] .place-gallery-grid-item:nth-child(3) {
+    height: calc(450px / 2 - 2px);
+}
+
+/* Четыре фотографии */
+.place-gallery-grid[data-count="4"] {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+.place-gallery-grid[data-count="4"] .place-gallery-grid-item {
+    height: 225px;
+}
+
+/* Пять фотографий */
+.place-gallery-grid[data-count="5"] {
+    grid-template-columns: 2fr repeat(2, 1fr);
+}
+
+.place-gallery-grid[data-count="5"] .place-gallery-grid-item:first-child {
+    grid-row: span 2;
+    height: auto;
+}
+
+.place-gallery-grid[data-count="5"] .place-gallery-grid-item:not(:first-child) {
+    height: 222px;
+}
+
+/* Общие стили для элементов */
+.place-gallery-grid-item {
+    background-color: #eeeef2;
+    position: relative;
+    background-size: cover;
+    background-position: 50%;
+}
+
+.place-gallery-grid-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    display: block;
+    cursor: pointer;
+}
+
+.last-image {
+    background-color: rgba(29, 32, 35, .4);
+}
+
+.image-count {
+    text-align: center;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    display: flex;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.count-number {
+    font-weight: 700;
+    font-size: 3rem;
+    line-height: 2rem;
+}
+
+.count-label {
+    font-size: 1rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+}
+
+/* Swiper стили */
+.swiper-container {
+    width: 100%;
+    height: 100%;
+}
+
+.swiper-slide {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #eeeef2;
+}
+
+.swiper-slide img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.place-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.left-info {
+    display: flex;
+    align-items: center;
+}
+
+.right-info {
+    display: flex;
+    align-items: center;
+}
+
+.left-info .place-address,
+.left-info .place-phone {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+}
+
+.place-info.place-address {
+    flex: 1;
+}
+
+.place-rating-and-reviews {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.review-count {
+    margin-right: 10px;
+}
+
+.place-rating.address-rating {
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+}
+
+.place-detail-main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.booking-popup {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.booking-popup-wrapper-container {
+    padding: 5px;
+}
+
+.booking-popup h3 {
+    font-size: 24px;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+.booking-popup-form .form-control {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+    height: 44px;
+}
+
+.booking-popup-form .form-control::placeholder {
+    color: #aaa;
+}
+
+.booking-popup-form select.form-control {
+    appearance: none;
+    background: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Cpath%20d%3D%22M7%2010l5%205%205-5z%22/%3E%3C/svg%3E') no-repeat right 10px center;
+    background-color: #fff;
+    background-size: 16px 16px;
+    box-sizing: border-box;
+    padding-right: 30px;
+}
+
+.booking-popup-form button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #5cb85c;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.booking-popup-form button[type="submit"]:hover {
+    background-color: #4cae4c;
+}
+
+.booking-popup-form label {
+    font-size: 13px;
+    line-height: 16px;
+    color: #aaafb2;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.form-col {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.form-col:last-child {
+    margin-right: 0;
+}
+
+.place-detail-section {
+    padding: 20px;
+    border-color: #dfdfdf;
+    border-style: solid;
+    border-radius: 16px;
+    border-width: 1px;
+}
+
+.place-detail-inner {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+}
+
+.place-detail-item {
+    border-bottom: 1px solid #dfdfdf;
+    display: flex;
+    flex-direction: column;
+    font-family: "Montserrat", sans-serif;
+    padding-bottom: 10px;
+    row-gap: 10px;
+}
+
+.place-detail-item-label {
+    color: #aaafb2;
+    font-size: 13px;
+    line-height: 16px;
+}
+
+.place-detail-item-value {
+    color: #222;
+    flex: 1 1 auto;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 22px;
+}
+
+@media (max-width: 767px) {
+    .place-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .left-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .right-info {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 10px; /* Отступ сверху для правой колонки */
+    }
+
+    .left-info .place-address,
+    .left-info .place-phone {
+        margin-right: 0;
+        margin-bottom: 10px; /* Отступ между адресом и телефоном */
+    }
+
+    .place-rating-and-reviews {
+        margin-top: 0; /* Убираем отступ сверху */
+    }
+}
+
+@media (max-width: 1023px) {
+    .place-detail-main-container, .place-detail-aside {
+        width: 100%;
+    }
+
+    .place-detail-main {
+        padding: 20px 0;
+    }
+    
+    .booking-popup {
+        margin-top: 20px;
+    }
+
+    .booking-popup h3 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .booking-popup-form .form-control {
+        padding: 8px;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    .booking-popup-form button[type="submit"] {
+        padding: 8px;
+        font-size: 16px;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-col {
+        margin-right: 0;
+    }
+}
+
+@media (min-width: 1024px) {
+    .place-detail-main {
+        flex-direction: row;
+    }
+
+    .place-detail-main-container {
+        flex-grow: 1;
+        min-width: 1px;
+        margin-right: 84px;
+    }
+
+    .place-detail-aside {
+        position: sticky;
+        top: 72px;
+        z-index: 1;
+        width: 350px;
+        padding-bottom: 64px;
+    }
+
+    .place-detail-inner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 18px;
+        row-gap: 20px;
     }
 }

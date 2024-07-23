@@ -7,7 +7,7 @@ from django.db.models.signals import pre_save
 from django.db.models.signals import post_save, post_delete
 from django.db.models import Count, Avg
 from django.forms import ValidationError
-from django.utils.text import slugify
+from pytils.translit import slugify
 from django.dispatch import receiver
 from django.utils import timezone
 from django.conf import settings
@@ -180,7 +180,11 @@ class Place(models.Model):
         ("проезд", "пр-д"),
     ]
     type = models.ForeignKey(
-        PlaceType, on_delete=models.SET_NULL, null=True, verbose_name="Тип заведения"
+        PlaceType,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name="Тип заведения",
     )
     name = models.CharField(
         max_length=100, unique=True, db_index=True, verbose_name="Название заведения"
@@ -192,10 +196,18 @@ class Place(models.Model):
         verbose_name="Город заведения",
     )
     street_type = models.CharField(
-        max_length=50, choices=STREET_TYPES, verbose_name="Тип улицы"
+        max_length=50,
+        choices=STREET_TYPES,
+        blank=True,
+        null=True,
+        verbose_name="Тип улицы",
     )
-    street_name = models.CharField(max_length=255, verbose_name="Название улицы")
-    house_number = models.CharField(max_length=10, verbose_name="Номер дома")
+    street_name = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Название улицы"
+    )
+    house_number = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name="Номер дома"
+    )
     phone = models.CharField(
         max_length=15,
         validators=[
@@ -637,3 +649,146 @@ class Discount(models.Model):
     class Meta:
         verbose_name = "Акция"
         verbose_name_plural = "Акции"
+
+
+class PlaceUpdateRequest(models.Model):
+    STATUS_CHOICES = (
+        ("pending", "Ожидает рассмотрения"),
+        ("approved", "Одобрено"),
+        ("rejected", "Отклонено"),
+    )
+    STREET_TYPES = [
+        ("улица", "ул."),
+        ("проспект", "пр-кт"),
+        ("переулок", "пер."),
+        ("набережная", "наб."),
+        ("бульвар", "б-р"),
+        ("шоссе", "ш."),
+        ("площадь", "пл."),
+        ("аллея", "ал."),
+        ("линия", "лн."),
+        ("проезд", "пр-д"),
+    ]
+    place = models.ForeignKey(
+        Place, on_delete=models.CASCADE, related_name="update_requests"
+    )
+    submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+
+    updated_type = models.ForeignKey(
+        PlaceType,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name="Тип заведения",
+    )
+    updated_name = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="Название заведения"
+    )
+    updated_street_type = models.CharField(
+        max_length=50,
+        choices=STREET_TYPES,
+        blank=True,
+        null=True,
+        verbose_name="Тип улицы",
+    )
+    updated_street_name = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Название улицы"
+    )
+    updated_house_number = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name="Номер дома"
+    )
+    updated_phone = models.CharField(
+        max_length=15, blank=True, null=True, verbose_name="Телефон заведения"
+    )
+    updated_facebook = models.URLField(
+        max_length=255, blank=True, null=True, verbose_name="Facebook"
+    )
+    updated_instagram = models.URLField(
+        max_length=255, blank=True, null=True, verbose_name="Instagram"
+    )
+    updated_telegram = models.URLField(
+        max_length=255, blank=True, null=True, verbose_name="Telegram"
+    )
+    updated_whatsapp = models.CharField(
+        max_length=15, blank=True, null=True, verbose_name="WhatsApp"
+    )
+    updated_vkontakte = models.URLField(
+        max_length=255, blank=True, null=True, verbose_name="ВКонтакте"
+    )
+    updated_website = models.URLField(blank=True, verbose_name="Веб-сайт")
+    updated_description = models.TextField(
+        blank=True, null=True, verbose_name="Описание"
+    )
+    updated_short_description = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Краткое описание"
+    )
+    updated_average_check = models.IntegerField(
+        blank=True, null=True, verbose_name="Средний чек"
+    )
+    updated_has_kids_room = models.BooleanField(
+        default=False, verbose_name="Наличие детской комнаты"
+    )
+    updated_capacity = models.IntegerField(
+        blank=True, null=True, verbose_name="Вместимость"
+    )
+    updated_cover_image = models.ImageField(
+        upload_to="place_images/", null=True, blank=True, verbose_name="Обложка"
+    )
+    updated_features = models.ManyToManyField(
+        Feature,
+        blank=True,
+        related_name="update_requests",
+        verbose_name="Особенности заведения",
+    )
+    updated_tags = models.ManyToManyField(
+        Tag, blank=True, related_name="update_requests", verbose_name="Теги"
+    )
+
+    def get_updated_fields(self):
+        updated_fields = {}
+        if self.updated_type:
+            updated_fields["Тип заведения"] = self.updated_type
+        if self.updated_name:
+            updated_fields["Название заведения"] = self.updated_name
+        if self.updated_street_type:
+            updated_fields["Тип улицы"] = self.updated_street_type
+        if self.updated_street_name:
+            updated_fields["Название улицы"] = self.updated_street_name
+        if self.updated_house_number:
+            updated_fields["Номер дома"] = self.updated_house_number
+        if self.updated_phone:
+            updated_fields["Телефон заведения"] = self.updated_phone
+        if self.updated_facebook:
+            updated_fields["Facebook"] = self.updated_facebook
+        if self.updated_instagram:
+            updated_fields["Instagram"] = self.updated_instagram
+        if self.updated_telegram:
+            updated_fields["Telegram"] = self.updated_telegram
+        if self.updated_whatsapp:
+            updated_fields["WhatsApp"] = self.updated_whatsapp
+        if self.updated_vkontakte:
+            updated_fields["ВКонтакте"] = self.updated_vkontakte
+        if self.updated_website:
+            updated_fields["Веб-сайт"] = self.updated_website
+        if self.updated_description:
+            updated_fields["Описание"] = self.updated_description
+        if self.updated_short_description:
+            updated_fields["Краткое описание"] = self.updated_short_description
+        if self.updated_average_check is not None:
+            updated_fields["Средний чек"] = self.updated_average_check
+        if self.updated_has_kids_room:
+            updated_fields["Наличие детской комнаты"] = self.updated_has_kids_room
+        if self.updated_capacity:
+            updated_fields["Вместимость"] = self.updated_capacity
+        if self.updated_cover_image:
+            updated_fields["Обложка"] = self.updated_cover_image
+        if self.updated_features.exists():
+            updated_fields["Особенности заведения"] = self.updated_features.all()
+        if self.updated_tags.exists():
+            updated_fields["Теги"] = self.updated_tags.all()
+        return updated_fields
+
+    def __str__(self):
+        return f"Запрос на обновление для {self.place.name}"

@@ -1,0 +1,17 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<h1>Детали запроса на обновление</h1>
+<p><strong>ID запроса:</strong> {{ update_request.id }}</p>
+<p><strong>Заведение:</strong> {{ update_request.place.name }}</p>
+<p><strong>Менеджер:</strong> {{ update_request.submitted_by.email }}</p>
+<p><strong>Дата подачи:</strong> {{ update_request.submitted_at }}</p>
+<p><strong>Статус:</strong> {{ update_request.get_status_display }}</p>
+
+<h2>Обновлённые данные</h2>
+{% for field, value in updated_fields.items %}
+    <p><strong>{{ field }}:</strong> {{ value }}</p>
+{% endfor %}
+
+<a href="{% url 'dashboard:update_request_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}

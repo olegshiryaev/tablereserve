@@ -64,12 +64,15 @@ class CustomUser(AbstractUser):
         verbose_name_plural = "Пользователи"
         ordering = ["email"]
 
+    @property
     def is_admin(self):
         return self.role == "admin"
 
+    @property
     def is_owner(self):
         return self.role == "owner"
 
+    @property
     def is_user(self):
         return self.role == "user"
 

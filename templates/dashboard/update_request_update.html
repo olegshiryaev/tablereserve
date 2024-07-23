@@ -1,0 +1,11 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<h1>Изменить статус запроса на обновление</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Сохранить</button>
+</form>
+<a href="{% url 'dashboard:update_request_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}

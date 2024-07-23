@@ -12,6 +12,7 @@ from .models import (
     Menu,
     MenuItem,
     PlaceType,
+    PlaceUpdateRequest,
     Review,
     Reservation,
     ReviewImage,
@@ -257,3 +258,23 @@ class DiscountAdmin(admin.ModelAdmin):
     list_display = ("title", "place", "start_date", "end_date", "discount_percentage")
     list_filter = ("place", "start_date", "end_date")
     search_fields = ("title", "place__name")
+
+
+@admin.register(PlaceUpdateRequest)
+class PlaceUpdateRequestAdmin(admin.ModelAdmin):
+    list_display = ("place", "status", "submitted_by", "submitted_at")
+    list_filter = ("status",)
+    actions = ["approve_requests", "reject_requests"]
+
+    def approve_requests(self, request, queryset):
+        for update_request in queryset:
+            update_request.approve()
+            update_request.status = "approved"
+            update_request.save()
+
+    approve_requests.short_description = "Одобрить выбранные запросы"
+
+    def reject_requests(self, request, queryset):
+        queryset.update(status="rejected")
+
+    reject_requests.short_description = "Отклонить выбранные запросы"

@@ -1,11 +1,31 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator as token_generator
 from django.views.decorators.http import require_POST
+from django.contrib.auth import get_user_model
 
 from reservations.models import Place
 from users.models import CustomUser, Favorite
+
+User = get_user_model()
+
+
+def activate(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return redirect("login")
+    else:
+        return render(request, "users/activation_invalid.html")
 
 
 @login_required

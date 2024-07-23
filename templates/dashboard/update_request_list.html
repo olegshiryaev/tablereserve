@@ -1,0 +1,30 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<h1>Запросы на обновление</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Заведение</th>
+            <th>Статус</th>
+            <th>Дата подачи</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for request in update_requests %}
+        <tr>
+            <td>{{ request.id }}</td>
+            <td>{{ request.place.name }}</td>
+            <td>{{ request.get_status_display }}</td>
+            <td>{{ request.submitted_at }}</td>
+            <td>
+                <a href="{% url 'dashboard:update_request_update' request.id %}" class="btn btn-primary">Изменить статус</a>
+                <a href="{% url 'dashboard:update_request_detail' request.id %}" class="btn btn-secondary">Просмотр</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

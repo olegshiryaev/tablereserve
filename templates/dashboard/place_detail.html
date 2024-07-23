@@ -1,6 +1,7 @@
 {% extends 'dashboard/base.html' %}
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ place.name }}{% endblock %}
 {% load static %}
+{% load custom_filters %}
 
 {% block navbar %}
     {% include 'dashboard/components/navbar.html' %}
@@ -15,10 +16,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid p-0">
-        <!-- Кнопка "Назад" -->
-        <a href="{% url 'dashboard:places_list' %}" class="btn btn-secondary mb-3">Назад</a>
-    <h1 class="h3 mb-3">{{ place.name }}</h1>
+<div class="container-fluid p-4">
+    <!-- Кнопка "Назад" -->
+    <a href="{% url 'dashboard:place_list' %}" class="btn btn-secondary mb-4">Назад</a>
+    <h1 class="h3 mb-4">{{ place.name }}</h1>
 
     <!-- Форма редактирования информации о заведении -->
     <div class="card">
@@ -27,96 +28,115 @@
             <button id="cancelButton" class="btn btn-danger mb-3" style="display:none;">Отменить</button>
             <form id="placeForm" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                
+
                 <div class="row mb-3">
                     <div class="col-md-3">
-                        <label class="form-label">Тип заведения</label>
-                        <select class="form-select" name="type" disabled>
-                            <option value="{{ place.type.id }}" selected>{{ place.type }}</option>
-                        </select>
+                        {{ form.type.label_tag }}
+                        {{ form.type|add_class:"form-select" }}
                     </div>
                     <div class="col-md-9">
-                        <label class="form-label">Название заведения</label>
-                        <input type="text" class="form-control" name="name" value="{{ place.name }}" disabled>
+                        {{ form.name.label_tag }}
+                        {{ form.name|add_class:"form-control" }}
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-3">
-                        <label class="form-label">Город</label>
-                        <input type="text" class="form-control" name="city" value="{{ place.city }}" disabled>
+                        {{ form.city.label_tag }}
+                        {{ form.city|add_class:"form-control" }}
                     </div>
-                    <div class="col-md-9">
-                        <label class="form-label">Адрес</label>
-                        <input type="text" class="form-control" name="address" value="{{ place.address }}" disabled>
+                    <div class="col-md-3">
+                        {{ form.street_type.label_tag }}
+                        {{ form.street_type|add_class:"form-select" }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.street_name.label_tag }}
+                        {{ form.street_name|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.house_number.label_tag }}
+                        {{ form.house_number|add_class:"form-control" }}
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">Телефон</label>
-                        <input type="text" class="form-control" name="phone" value="{{ place.phone }}" disabled>
+                        {{ form.phone.label_tag }}
+                        {{ form.phone|add_class:"form-control" }}
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Веб-сайт</label>
-                        <input type="text" class="form-control" name="website" value="{{ place.website }}" disabled>
+                        {{ form.website.label_tag }}
+                        {{ form.website|add_class:"form-control" }}
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Кухни</label>
-                    {% for cuisine in cuisines %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="id_cuisine_{{ cuisine.id }}" name="cuisines"
-                                   value="{{ cuisine.id }}" {% if cuisine in place.cuisines.all %}checked{% endif %} disabled>
-                            <label class="form-check-label" for="id_cuisine_{{ cuisine.id }}">
-                                {{ cuisine.name }}
-                            </label>
+                    <label class="form-label">Социальные сети</label>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            {{ form.facebook.label_tag }}
+                            {{ form.facebook|add_class:"form-control" }}
                         </div>
-                    {% endfor %}
-                </div>
-
-                <div class="mb-3">
-                    <label for="id_description" class="form-label">Описание</label>
-                    <textarea class="form-control" id="id_description" name="description" disabled>{{ form.description.value }}</textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label for="id_average_check" class="form-label">Средний чек</label>
-                    <input type="number" class="form-control" id="id_average_check" name="average_check" value="{{ form.average_check.value }}" disabled>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Особенности заведения</label>
-                    {% for feature in features %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="id_feature_{{ feature.id }}" name="features"
-                                   value="{{ feature.id }}" {% if feature in place.features.all %}checked{% endif %} disabled>
-                            <label class="form-check-label" for="id_feature_{{ feature.id }}">
-                                {{ feature.name }}
-                            </label>
+                        <div class="col-md-6 mb-2">
+                            {{ form.instagram.label_tag }}
+                            {{ form.instagram|add_class:"form-control" }}
                         </div>
-                    {% endfor %}
+                        <div class="col-md-6 mb-2">
+                            {{ form.telegram.label_tag }}
+                            {{ form.telegram|add_class:"form-control" }}
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            {{ form.whatsapp.label_tag }}
+                            {{ form.whatsapp|add_class:"form-control" }}
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            {{ form.vkontakte.label_tag }}
+                            {{ form.vkontakte|add_class:"form-control" }}
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="id_has_kids_room" class="form-check-label">Наличие детской комнаты</label>
-                    <input type="checkbox" class="form-check-input" id="id_has_kids_room" name="has_kids_room" {% if form.has_kids_room.value %}checked{% endif %} disabled>
+                    {{ form.description.label_tag }}
+                    {{ form.description|add_class:"form-control" }}
                 </div>
 
                 <div class="mb-3">
-                    <label for="id_capacity" class="form-label">Вместимость</label>
-                    <input type="number" class="form-control" id="id_capacity" name="capacity" value="{{ form.capacity.value }}" disabled>
+                    {{ form.short_description.label_tag }}
+                    {{ form.short_description|add_class:"form-control" }}
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        {{ form.average_check.label_tag }}
+                        {{ form.average_check|add_class:"form-control" }}
+                    </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="id_cover_image" class="form-label">Обложка</label>
-                    <input type="file" class="form-control" id="id_cover_image" name="cover_image" disabled>
+                    {{ form.has_kids_room.label_tag }}
+                    {{ form.has_kids_room|add_class:"form-check-input" }}
+                    <label class="form-check-label" for="id_has_kids_room">
+                        Наличие детской комнаты
+                    </label>
                 </div>
 
                 <div class="mb-3">
-                    <label for="id_is_active" class="form-check-label">Активное заведение</label>
-                    <input type="checkbox" class="form-check-input" id="id_is_active" name="is_active" {% if form.is_active.value %}checked{% endif %} disabled>
+                    {{ form.capacity.label_tag }}
+                    {{ form.capacity|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.cover_image.label_tag }}
+                    {{ form.cover_image|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.is_active.label_tag }}
+                    {{ form.is_active|add_class:"form-check-input" }}
+                    <label class="form-check-label" for="id_is_active">
+                        Активное заведение
+                    </label>
                 </div>
 
                 <button type="submit" class="btn btn-success" id="saveButton" style="display:none;">Сохранить изменения</button>
@@ -124,6 +144,7 @@
         </div>
     </div>
 </div>
+
 <script>
     document.getElementById('editButton').addEventListener('click', function() {
         var formElements = document.getElementById('placeForm').elements;
@@ -134,7 +155,7 @@
         document.getElementById('cancelButton').style.display = 'block';
         this.style.display = 'none';
     });
-    
+
     document.getElementById('cancelButton').addEventListener('click', function() {
         var formElements = document.getElementById('placeForm').elements;
         for (var i = 0; i < formElements.length; i++) {
@@ -143,6 +164,13 @@
         document.getElementById('saveButton').style.display = 'none';
         document.getElementById('editButton').style.display = 'block';
         this.style.display = 'none';
+    });
+
+    window.addEventListener('load', function() {
+        var formElements = document.getElementById('placeForm').elements;
+        for (var i = 0; i < formElements.length; i++) {
+            formElements[i].disabled = true;
+        }
     });
 </script>
 {% endblock %}

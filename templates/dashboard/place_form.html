@@ -1,6 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% load static %}
+{% load custom_filters %}
 
 {% block navbar %}
     {% include 'dashboard/components/navbar.html' %}
@@ -14,11 +15,185 @@
     {% include 'dashboard/components/footer.html' %}
 {% endblock %}
 
+
 {% block content %}
-  <h2>{% if form.instance.pk %}Редактировать заведение{% else %}Добавить заведение{% endif %}</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Сохранить</button>
-  </form>
+<div class="container-fluid p-4">
+  <a href="{% url 'dashboard:place_list' %}" class="btn btn-secondary mb-4">Назад</a>
+  <h2 class="my-4">{% if place %}Редактировать заведение{% else %}Добавить заведение{% endif %}</h2>
+  <div class="card">
+    <div class="card-body">
+      {% if place %}
+        <button id="editButton" class="btn btn-primary mb-3">Редактировать</button>
+        <button id="cancelButton" class="btn btn-danger mb-3" style="display:none;">Отменить</button>
+      {% endif %}
+      <form id="placeForm" method="post" enctype="multipart/form-data" class="form-horizontal needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        
+        <div class="row mb-3">
+          <div class="col-md-4">
+            {{ form.type.label_tag }}
+            {{ form.type }}
+          </div>
+          <div class="col-md-4">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+          </div>
+          <div class="col-md-4">
+            {{ form.city.label_tag }}
+            {{ form.city }}
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-4">
+            {{ form.street_type.label_tag }}
+            {{ form.street_type }}
+          </div>
+          <div class="col-md-4">
+            {{ form.street_name.label_tag }}
+            {{ form.street_name }}
+          </div>
+          <div class="col-md-4">
+            {{ form.house_number.label_tag }}
+            {{ form.house_number }}
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-4">
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+          </div>
+          <div class="col-md-4">
+            {{ form.facebook.label_tag }}
+            {{ form.facebook }}
+          </div>
+          <div class="col-md-4">
+            {{ form.instagram.label_tag }}
+            {{ form.instagram }}
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-4">
+            {{ form.telegram.label_tag }}
+            {{ form.telegram }}
+          </div>
+          <div class="col-md-4">
+            {{ form.whatsapp.label_tag }}
+            {{ form.whatsapp }}
+          </div>
+          <div class="col-md-4">
+            {{ form.vkontakte.label_tag }}
+            {{ form.vkontakte }}
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-4">
+            {{ form.website.label_tag }}
+            {{ form.website }}
+          </div>
+          <div class="col-md-4">
+            {{ form.average_check.label_tag }}
+            {{ form.average_check }}
+          </div>
+          <div class="col-md-4">
+            {{ form.capacity.label_tag }}
+            {{ form.capacity }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          {{ form.description.label_tag }}
+          {{ form.description }}
+        </div>
+        
+        <div class="mb-3">
+          {{ form.short_description.label_tag }}
+          {{ form.short_description }}
+        </div>
+
+        <!-- Кухни -->
+        <div class="mb-3">
+          <label for="id_cuisines">Кухни</label>
+          <div class="form-check">
+            {{ form.cuisines }}
+          </div>
+        </div>
+
+        <!-- Особенности -->
+        <div class="mb-3">
+          <label for="id_features">Особенности</label>
+          <div class="form-check">
+            {{ form.features }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          {{ form.tags.label_tag }}
+          {{ form.tags }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.has_kids_room.label_tag }}
+          {{ form.has_kids_room }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.cover_image.label_tag }}
+          {{ form.cover_image }}
+        </div>
+
+        <div class="mb-3">
+          {{ form.is_active.label_tag }}
+          {{ form.is_active }}
+        </div>
+        
+        <button type="submit" class="btn btn-primary" id="saveButton" style="{% if place %}display: none;{% endif %}">Сохранить</button>
+      </form>
+      <h3>Изображения</h3>
+      <a href="{% url 'dashboard:placeimage_add' place_id=place.id %}" class="btn btn-primary mb-3">Добавить изображение</a>
+      <div class="row">
+        {% for image in place.images.all %}
+          <div class="col-md-3">
+            <img src="{{ image.image.url }}" alt="{{ image }}" class="img-thumbnail">
+            <a href="{% url 'dashboard:placeimage_edit' pk=image.pk %}" class="btn btn-secondary btn-sm mt-2">Редактировать</a>
+            <a href="{% url 'dashboard:placeimage_delete' pk=image.pk %}" class="btn btn-danger btn-sm mt-2">Удалить</a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if place %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var formElements = document.getElementById('placeForm').elements;
+    for (var i = 0; i < formElements.length; i++) {
+      formElements[i].disabled = true;
+    }
+
+    document.getElementById('editButton').addEventListener('click', function() {
+      for (var i = 0; i < formElements.length; i++) {
+        formElements[i].disabled = false;
+      }
+      document.getElementById('saveButton').style.display = 'block';
+      document.getElementById('cancelButton').style.display = 'block';
+      this.style.display = 'none';
+    });
+
+    document.getElementById('cancelButton').addEventListener('click', function() {
+      for (var i = 0; i < formElements.length; i++) {
+        formElements[i].disabled = true;
+      }
+      document.getElementById('saveButton').style.display = 'none';
+      document.getElementById('editButton').style.display = 'block';
+      this.style.display = 'none';
+    });
+  });
+</script>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,8 @@
+{% block content %}
+  <h2>{% if object.pk %}Редактировать изображение{% else %}Добавить изображение{% endif %}</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">{% if object.pk %}Сохранить{% else %}Добавить{% endif %}</button>
+  </form>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django import template
+from django.forms.widgets import CheckboxSelectMultiple
 
 register = template.Library()
 
@@ -33,3 +34,8 @@ def review_word(count):
 @register.filter
 def add_class(field, css_class):
     return field.as_widget(attrs={"class": css_class})
+
+
+@register.filter
+def is_checkbox_select_multiple(field):
+    return isinstance(field.field.widget, CheckboxSelectMultiple)

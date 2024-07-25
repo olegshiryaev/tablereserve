@@ -134,10 +134,10 @@ class PlaceImage(models.Model):
             # Сохраняем измененное изображение в том же месте
             img.save(self.image.path)
 
-        # Обновляем обложку заведения, если изображение отмечено как обложка
+        # Проверяем, является ли это изображение обложкой, и обновляем другие изображения
         if self.is_cover:
-            self.place.cover_image = self
-            self.place.save(update_fields=["cover_image"])
+            # Снимаем флаг is_cover со всех других изображений этого заведения
+            self.place.images.exclude(id=self.id).update(is_cover=False)
 
     class Meta:
         verbose_name = "Изображение заведения"
@@ -152,11 +152,7 @@ def delete_image_file(sender, instance, **kwargs):
 
 class PlaceManager(models.Manager):
     def active(self):
-        return (
-            self.filter(is_active=True)
-            .select_related("cover_image")
-            .prefetch_related("cuisines", "images")
-        )
+        return self.filter(is_active=True).prefetch_related("cuisines", "images")
 
     def get_popular_places(self, limit=5):
         return (
@@ -209,11 +205,11 @@ class Place(models.Model):
         max_length=10, blank=True, null=True, verbose_name="Номер дома"
     )
     phone = models.CharField(
-        max_length=15,
+        max_length=12,
         validators=[
             RegexValidator(
                 regex=r"^\+?1?\d{9,15}$",
-                message="Номер телефона должен быть введен в формате: '+999999999'. Допустимо до 15 цифр.",
+                message="Номер телефона должен быть введен в формате: '+79999999999'. Допустимо до 12 цифр.",
             )
         ],
         verbose_name="Телефон заведения",
@@ -242,7 +238,7 @@ class Place(models.Model):
         validators=[URLValidator],
     )
     whatsapp = models.CharField(
-        max_length=15,
+        max_length=12,
         blank=True,
         null=True,
         verbose_name="WhatsApp",
@@ -250,7 +246,7 @@ class Place(models.Model):
             RegexValidator(
                 regex=r"^\+?1?\d{9,15}$",
                 message=(
-                    "Номер телефона должен быть введен в формате: '+999999999'. Допустимо до 15 цифр."
+                    "Номер телефона должен быть введен в формате: '+79999999999'. Допустимо до 12 цифр."
                 ),
             )
         ],
@@ -281,14 +277,6 @@ class Place(models.Model):
         default=False, verbose_name="Наличие детской комнаты"
     )
     capacity = models.IntegerField(default=0, verbose_name="Вместимость", blank=True)
-    cover_image = models.ForeignKey(
-        PlaceImage,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="cover_for",
-        verbose_name="Обложка",
-    )
     rating = models.DecimalField(
         max_digits=3,
         decimal_places=2,
@@ -323,7 +311,7 @@ class Place(models.Model):
         ordering = ["name"]
 
     def save(self, *args, **kwargs):
-        if not self.slug:
+        if not self.slug or self.slug != slugify(self.name):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
@@ -339,19 +327,18 @@ class Place(models.Model):
             self.rating = 0
         self.save(update_fields=["rating"])
 
+    def get_cover_image(self):
+        cover_image = self.images.filter(is_cover=True).first()
+        if cover_image:
+            return cover_image.image.url
+        return settings.STATIC_URL + "images/default_place_image.jpg"
+
     @property
     def favorite_count(self):
         return self.favorited_by.count()
 
     def is_favorited_by(self, user):
         return self.favorited_by.filter(user=user).exists()
-
-    def get_cover_image(self):
-        cover_image = self.images.filter(is_cover=True).first()
-        if cover_image and cover_image.image:
-            return cover_image.image.url
-        else:
-            return settings.STATIC_URL + "images/default_place_image.jpg"
 
     def approved_reviews(self):
         return self.reviews.filter(is_approved=True)
@@ -362,9 +349,9 @@ class Place(models.Model):
 
     @property
     def address(self):
-        return (
-            f"{self.get_street_type_display()} {self.street_name}, {self.house_number}"
-        )
+        if self.street_type and self.street_name and self.house_number:
+            return f"{self.get_street_type_display()} {self.street_name}, {self.house_number}"
+        return None
 
     def __str__(self):
         return self.name
@@ -376,7 +363,7 @@ class Place(models.Model):
 @receiver(pre_save, sender=PlaceType)
 @receiver(pre_save, sender=Place)
 def pre_save_slug(sender, instance, *args, **kwargs):
-    if not instance.slug:
+    if not instance.slug or instance.slug != slugify(instance.name):
         instance.slug = slugify(instance.name)
 
 

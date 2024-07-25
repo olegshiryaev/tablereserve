@@ -1,0 +1,15 @@
+.short-field {
+    width: 100%;
+}
+
+.medium-field {
+    width: 100%;
+}
+
+.form-horizontal .row {
+    margin-bottom: 15px;
+}
+
+.form-horizontal .form-group .form-check {
+    padding-left: 0;
+}

@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from reservations.models import Place, PlaceUpdateRequest, Reservation
+from reservations.models import Place, PlaceImage, PlaceUpdateRequest, Reservation
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -34,15 +34,63 @@ class PlaceForm(forms.ModelForm):
             "short_description",
             "average_check",
             "features",
+            "tags",
             "has_kids_room",
             "capacity",
-            "cover_image",
             "is_active",
+            "manager",
         ]
         widgets = {
-            "cuisines": forms.CheckboxSelectMultiple,
-            "features": forms.CheckboxSelectMultiple,
+            "type": forms.Select(attrs={"class": "form-control"}),
+            "name": forms.TextInput(attrs={"class": "form-control", "maxlength": 100}),
+            "city": forms.Select(attrs={"class": "form-control"}),
+            "street_type": forms.Select(attrs={"class": "form-control"}),
+            "street_name": forms.TextInput(
+                attrs={"class": "form-control", "maxlength": 255}
+            ),
+            "house_number": forms.TextInput(
+                attrs={"class": "form-control", "maxlength": 10}
+            ),
+            "phone": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "+7", "maxlength": 12}
+            ),
+            "facebook": forms.URLInput(attrs={"class": "form-control"}),
+            "instagram": forms.URLInput(attrs={"class": "form-control"}),
+            "telegram": forms.URLInput(attrs={"class": "form-control"}),
+            "whatsapp": forms.TextInput(
+                attrs={"class": "form-control", "maxlength": 12}
+            ),
+            "vkontakte": forms.URLInput(attrs={"class": "form-control"}),
+            "website": forms.URLInput(attrs={"class": "form-control"}),
+            "cuisines": forms.CheckboxSelectMultiple(),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "short_description": forms.TextInput(
+                attrs={"class": "form-control", "maxlength": 255}
+            ),
+            "average_check": forms.NumberInput(
+                attrs={"class": "form-control", "min": 0}
+            ),
+            "features": forms.CheckboxSelectMultiple(),
+            "tags": forms.SelectMultiple(attrs={"class": "form-control"}),
+            "has_kids_room": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "capacity": forms.NumberInput(attrs={"class": "form-control"}),
+            "rating": forms.NumberInput(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "manager": forms.SelectMultiple(attrs={"class": "form-control"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk and not self.initial.get("phone"):
+            self.fields["phone"].initial = (
+                "+7"  # Установка начального значения для нового объекта
+            )
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get("phone", "")
+        if not phone.startswith("+7"):
+            phone = "+7" + phone.lstrip("+7")  # Добавление +7 к номеру, если его нет
+        return phone
 
 
 class PlaceUpdateRequestForm(forms.ModelForm):
@@ -138,3 +186,9 @@ class PlaceCreationForm(forms.ModelForm):
             },
         )
         send_mail(mail_subject, message, "oashiryaev@yandex.ru", [user.email])
+
+
+class PlaceImageForm(forms.ModelForm):
+    class Meta:
+        model = PlaceImage
+        fields = ["image", "is_cover"]

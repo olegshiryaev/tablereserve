@@ -1,0 +1,9 @@
+{% block content %}
+  <h2>Удалить изображение</h2>
+  <form method="post">
+    {% csrf_token %}
+    <p>Вы уверены, что хотите удалить это изображение?</p>
+    <button type="submit" class="btn btn-danger">Удалить</button>
+    <a href="{% url 'dashboard:place_detail' slug=object.place.slug %}" class="btn btn-secondary">Отмена</a>
+  </form>
+{% endblock %}

@@ -2,10 +2,22 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.views import View
-from dashboard.forms import PlaceCreationForm, PlaceForm, ReservationForm
-from reservations.models import Cuisine, Feature, Place, PlaceType, Reservation
+from dashboard.forms import (
+    PlaceCreationForm,
+    PlaceForm,
+    PlaceImageForm,
+    ReservationForm,
+)
+from reservations.models import (
+    Cuisine,
+    Feature,
+    Place,
+    PlaceImage,
+    PlaceType,
+    Reservation,
+)
 from users.models import CustomUser
-from django.utils.text import slugify
+from pytils.translit import slugify
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -35,9 +47,9 @@ class PlaceListView(LoginRequiredMixin, ListView):
             return Place.objects.filter(manager=self.request.user)
 
 
-class PlaceDetailView(DetailView):
+class PlaceDetailView(LoginRequiredMixin, DetailView):
     model = Place
-    template_name = "dashboard/place_detail.html"
+    template_name = "dashboard/place_form.html"
     context_object_name = "place"
 
     def get_context_data(self, **kwargs):
@@ -49,9 +61,14 @@ class PlaceDetailView(DetailView):
         self.object = self.get_object()
         form = PlaceForm(request.POST, request.FILES, instance=self.object)
         if form.is_valid():
-            form.save()
+            place = form.save(commit=False)
+            if place.name != self.object.name:
+                place.slug = slugify(place.name)
+            place.save()
+            form.save_m2m()  # Сохранение полей ManyToMany
             return redirect("dashboard:place_detail", slug=self.object.slug)
-        return self.render_to_response(self.get_context_data(form=form))
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
 
 
 class PlaceCreateView(LoginRequiredMixin, CreateView):
@@ -61,8 +78,22 @@ class PlaceCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("dashboard:place_list")
 
     def form_valid(self, form):
-        form.instance.created_by = self.request.user
+        form.instance.slug = slugify(form.instance.name)
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("dashboard:place_detail", kwargs={"slug": self.object.slug})
+
+
+class PlaceDeleteView(LoginRequiredMixin, DeleteView):
+    model = Place
+    template_name = "dashboard/place_confirm_delete.html"
+    success_url = reverse_lazy("dashboard:place_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["place"] = self.get_object()
+        return context
 
 
 @login_required
@@ -193,3 +224,41 @@ def add_place(request):
 
 def add_place_success(request):
     return render(request, "dashboard/add_place_success.html")
+
+
+class PlaceImageCreateView(CreateView):
+    model = PlaceImage
+    form_class = PlaceImageForm
+    template_name = "dashboard/placeimage_form.html"
+
+    def form_valid(self, form):
+        place_id = self.kwargs.get("place_id")
+        place = get_object_or_404(Place, id=place_id)
+        form.instance.place = place
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
+        )
+
+
+class PlaceImageUpdateView(UpdateView):
+    model = PlaceImage
+    form_class = PlaceImageForm
+    template_name = "dashboard/placeimage_form.html"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
+        )
+
+
+class PlaceImageDeleteView(DeleteView):
+    model = PlaceImage
+    template_name = "dashboard/placeimage_confirm_delete.html"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
+        )

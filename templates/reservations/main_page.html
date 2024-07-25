@@ -21,14 +21,8 @@
             {% for place in popular_places %}
             <div class="place-card">
                 <div class="place-card-image">
-                    <a
-                        href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}"
-                    >
-                        <img
-                            src="{{ place.get_cover_image }}"
-                            alt="{{ place.name }}"
-                            class="place-image"
-                        />
+                    <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}">
+                        <img src="{{ place.get_cover_image }}" alt="{{ place.name }}" class="place-image" />
                         <div class="place-features">
                             {% for feature in place.features.all %}
                             <span class="feature">{{ feature.name }}</span>
@@ -39,9 +33,7 @@
                             <div class="place-name">{{ place.name }}</div>
                         </div>
                         {% if place.rating > 0 %}
-                        <div
-                            class="place-rating {{ place.rating|rating_color }} image-rating"
-                        >
+                        <div class="place-rating {{ place.rating|rating_color }} image-rating">
                             {{ place.rating|formatted_float }}
                         </div>
                         {% endif %}
@@ -50,13 +42,7 @@
                         class="favorite-button {% if place.id in favorite_places %}favorited{% endif %}"
                         data-place-id="{{ place.id }}"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            height="24"
-                            fill="currentColor"
-                        >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                             <path
                                 d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
                             />
@@ -65,13 +51,7 @@
                 </div>
                 <div class="place-card-content">
                     <p class="place-address">
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="bi bi-geo-alt"
-                        >
+                        <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="bi bi-geo-alt">
                             <path
                                 d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"
                             />
@@ -82,12 +62,7 @@
                         {{ place.address }}
                     </p>
                     <p class="place-cuisines">
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 1024 1024"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
+                        <svg width="16" height="16" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                             <path
                                 d="M256 410.304V96a32 32 0 0 1 64 0v314.304a96 96 0 0 0 64-90.56V96a32 32 0 0 1 64 0v223.744a160 160 0 0 1-128 156.8V928a32 32 0 1 1-64 0V476.544a160 160 0 0 1-128-156.8V96a32 32 0 0 1 64 0v223.744a96 96 0 0 0 64 90.56zM672 572.48C581.184 552.128 512 446.848 512 320c0-141.44 85.952-256 192-256s192 114.56 192 256c0 126.848-69.184 232.128-160 252.48V928a32 32 0 1 1-64 0V572.48zM704 512c66.048 0 128-82.56 128-192s-61.952-192-128-192-128 82.56-128 192 61.952 192 128 192z"
                             />
@@ -100,25 +75,17 @@
                                     {% endif %} 
                                 {% endfor %} и ещё
                                 {{cuisines_list|length|add:"-2" }}
-                                    {% else %}
-                                    {% for cuisine in cuisines_list %}
-                                        {{ cuisine.name }}
-                                        {% if not forloop.last %},
-                                        {% endif %}
-                                    {% endfor %}
+                            {% else %}
+                                {% for cuisine in cuisines_list %}
+                                    {{ cuisine.name }}
+                                    {% if not forloop.last %},
+                                    {% endif %}
+                                {% endfor %}
                             {% endif %}
                         {% endwith %}
                     </p>
                     <p class="place-average-check">
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            id="ruble-2"
-                            data-name="Flat Color"
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="icon flat-color"
-                        >
+                        <svg width="16" height="16" viewBox="0 0 24 24" id="ruble-2" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color">
                             <path
                                 id="primary"
                                 d="M14,12A5,5,0,0,0,14,2H9A1,1,0,0,0,8,3v7H6a1,1,0,0,0,0,2H8v2H6a1,1,0,0,0,0,2H8v5a1,1,0,0,0,2,0V16h5a1,1,0,0,0,0-2H10V12ZM10,4h4a3,3,0,0,1,0,6H10Z"
@@ -129,11 +96,7 @@
                     <p class="place-short-description">
                         {{ place.short_description|default_if_none:"" |truncatewords:16 }}
                     </p>
-                    <a
-                        href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}"
-                        class="btn"
-                        >Заказать столик</a
-                    >
+                    <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" class="btn">Заказать столик</a>
                 </div>
             </div>
             {% endfor %}
@@ -217,14 +180,20 @@
 </section>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const favoriteButtons = document.querySelectorAll(".favorite-button")
+        const favoriteButtons = document.querySelectorAll(".favorite-button");
+        const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+        
         favoriteButtons.forEach((button) => {
-            button.addEventListener("click", function () {
-                const placeId = this.getAttribute("data-place-id")
-                const url = "{% url 'users:toggle_favorite' 0 %}".replace(
-                    "/0/",
-                    `/${placeId}/`
-                )
+            button.addEventListener("click", function (event) {
+                if (!isAuthenticated) {
+                    // If user is not authenticated, show the login modal
+                    event.preventDefault();
+                    document.getElementById('loginModal').style.display = 'block';
+                    return;
+                }
+
+                const placeId = this.getAttribute("data-place-id");
+                const url = "{% url 'users:toggle_favorite' 0 %}".replace("/0/", `/${placeId}/`);
 
                 fetch(url, {
                     method: "POST",
@@ -233,33 +202,31 @@
                         "X-CSRFToken": getCookie("csrftoken"),
                     },
                 })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.status === "added") {
-                            this.classList.add("favorited")
-                        } else if (data.status === "removed") {
-                            this.classList.remove("favorited")
-                        }
-                    })
-            })
-        })
-    })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.status === "added") {
+                        this.classList.add("favorited");
+                    } else if (data.status === "removed") {
+                        this.classList.remove("favorited");
+                    }
+                });
+            });
+        });
 
-    function getCookie(name) {
-        let cookieValue = null
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";")
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim()
-                if (cookie.substring(0, name.length + 1) === name + "=") {
-                    cookieValue = decodeURIComponent(
-                        cookie.substring(name.length + 1)
-                    )
-                    break
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
             }
+            return cookieValue;
         }
-        return cookieValue
-    }
+    });
 </script>
 {% endblock %}

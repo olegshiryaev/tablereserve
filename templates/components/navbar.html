@@ -3,17 +3,17 @@
 <header>
     <div class="container">
         <div class="logo">
-            <img src="{% static 'images/logo.png' %}" alt="Logo" />
+            <img src="{% static 'images/logo.png' %}" alt="Логотип" />
         </div>
         <div class="city-selector">
-            <a href="#" class="nav-link dropdown-toggle" id="cityDropdownToggle">
+            <a href="#" class="nav-link dropdown-toggle" id="cityDropdownToggle" aria-expanded="false" aria-haspopup="true">
                 {% if selected_city %}
                     {{ selected_city.name }}
                 {% else %}
                     Выберите город
                 {% endif %}
             </a>
-            <ul class="dropdown-menu" id="cityDropdownMenu">
+            <ul class="dropdown-menu" id="cityDropdownMenu" aria-labelledby="cityDropdownToggle">
                 {% for city in cities %}
                     <li><a class="dropdown-item" href="/{{ city.slug }}/">{{ city.name }}</a></li>
                 {% endfor %}
@@ -27,15 +27,15 @@
                 <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
                 {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdownToggle">{{ user.name }}</a>
-                        <ul class="dropdown-menu" id="userDropdownMenu">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdownToggle" aria-expanded="false" aria-haspopup="true">{{ user.name }}</a>
+                        <ul class="dropdown-menu" id="userDropdownMenu" aria-labelledby="userDropdownToggle">
                             <li><a class="dropdown-item" href="{% url 'users:user_profile' %}">Профиль</a></li>
                             <li><a class="dropdown-item" href="{% url 'account_logout' %}">Выйти</a></li>
                         </ul>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <button id="loginButton" class="login-btn">Войти</button>
+                        <button id="loginButton" class="login-btn" aria-expanded="false" aria-haspopup="true">Войти</button>
                         <div id="loginPopover" class="popover-content">
                             <p>Войдите, чтобы сохранять любимые заведения и оставлять отзывы.</p>
                             <button class="login-popover-btn">Войти или зарегистрироваться</button>
@@ -48,7 +48,7 @@
                     </li>
                 {% endif %}
             </ul>
-            <div class="hamburger">
+            <div class="hamburger" aria-expanded="false" aria-haspopup="true">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -58,12 +58,13 @@
 </header>
 
 <!-- Модальное окно -->
-<div id="loginModal" class="modal">
+<div id="loginModal" class="modal" aria-hidden="true" aria-labelledby="loginModalTitle">
     <div class="modal-content">
-        <span class="close">&times;</span>
+        <span class="close" aria-label="Закрыть">&times;</span>
         <form method="POST" action="{% url 'account_login' %}" id="loginForm">
             {% csrf_token %}
-            <h2>Вход или регистрация</h2>
+            <h2 id="loginModalTitle">Вход или регистрация</h2>
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
             <label for="email">Email</label>
             <input type="email" id="email" name="login" required>
             <label for="password">Пароль</label>

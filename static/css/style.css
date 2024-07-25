@@ -23,6 +23,10 @@ main {
     padding: 0 20px;
 }
 
+.no-underline {
+    text-decoration: none;
+}
+
 header {
     background: #fff;
     color: #000;
@@ -127,8 +131,13 @@ header .logo {
 }
 
 header.scrolled {
-    background-color: #f9f9f9;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+}
+
+header.scrolled .nav-link,
+header.scrolled .login-btn {
+    color: white;
 }
 
 .dropdown-menu.show {
@@ -235,7 +244,7 @@ header.scrolled {
 }
 
 .modal-content {
-    background-color: #fff;
+    background-color: #fefefe;
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;

@@ -69,6 +69,21 @@ class PlaceTypeAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
+@admin.register(PlaceImage)
+class PlaceImageAdmin(admin.ModelAdmin):
+    list_display = ("place", "image", "is_cover")
+    list_filter = ("is_cover",)
+
+
+class PlaceImageInline(admin.TabularInline):
+    model = PlaceImage
+    extra = 1
+    fields = ("image", "is_cover", "video_url", "embed_code", "upload_date")
+    readonly_fields = ("upload_date",)
+    verbose_name = "Медиа заведения"
+    verbose_name_plural = "Медиа заведений"
+
+
 @admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
     list_display = (
@@ -83,10 +98,11 @@ class PlaceAdmin(admin.ModelAdmin):
         "rating",
         "is_active",
         "cover_image_display",
+        "logo_display",
     )
     search_fields = ("name", "city__name", "address", "phone", "tags__name")
     list_filter = ("city", "type", "is_active")
-    inlines = [WorkScheduleInline, FeatureInline]
+    inlines = [WorkScheduleInline, FeatureInline, PlaceImageInline]
     filter_horizontal = (
         "tags",
         "cuisines",
@@ -113,12 +129,16 @@ class PlaceAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "phone",
-                    "website",
-                    "facebook",
-                    "instagram",
-                    "telegram",
                     "whatsapp",
+                    "viber",
+                    "telegram",
                     "vkontakte",
+                    "odnoklassniki",
+                    "instagram",
+                    "facebook",
+                    "contact_email",
+                    "service_email",
+                    "website",
                 )
             },
         ),
@@ -134,7 +154,7 @@ class PlaceAdmin(admin.ModelAdmin):
                     "tags",
                     "has_kids_room",
                     "capacity",
-                    "cover_image",
+                    "logo",
                     "rating",
                 )
             },
@@ -161,11 +181,12 @@ class PlaceAdmin(admin.ModelAdmin):
 
     cover_image_display.short_description = "Обложка"
 
+    def logo_display(self, obj):
+        if obj.logo:
+            return format_html('<img src="{}" width="50" height="50" />', obj.logo.url)
+        return "-"
 
-@admin.register(PlaceImage)
-class PlaceImageAdmin(admin.ModelAdmin):
-    list_display = ("place", "image", "is_cover")
-    list_filter = ("is_cover",)
+    logo_display.short_description = "Логотип"
 
 
 @admin.register(WorkSchedule)

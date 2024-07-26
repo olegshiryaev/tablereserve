@@ -239,49 +239,47 @@
     </div>
 </section>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('.filter-form');
-    
-        form.addEventListener('change', function() {
-            form.submit();
-        });
+    document.addEventListener("DOMContentLoaded", function () {
+        const favoriteButtons = document.querySelectorAll(".favorite-button");
+        const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+        
+        favoriteButtons.forEach((button) => {
+            button.addEventListener("click", function (event) {
+                if (!isAuthenticated) {
+                    // If user is not authenticated, show the login modal
+                    event.preventDefault();
+                    document.getElementById('loginModal').style.display = 'block';
+                    return;
+                }
 
-        const sortSelect = document.querySelector('.sorting-form select');
-        sortSelect.addEventListener('change', function() {
-            document.querySelector('.sorting-form').submit();
-        });
+                const placeId = this.getAttribute("data-place-id");
+                const url = "{% url 'users:toggle_favorite' 0 %}".replace("/0/", `/${placeId}/`);
 
-        const favoriteButtons = document.querySelectorAll('.favorite-button');
-        favoriteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const placeId = this.getAttribute('data-place-id');
-                const url = "{% url 'users:toggle_favorite' 0 %}".replace('/0/', `/${placeId}/`);
-    
                 fetch(url, {
-                    method: 'POST',
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken"),
                     },
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'added') {
-                        this.classList.add('favorited');
-                    } else if (data.status === 'removed') {
-                        this.classList.remove('favorited');
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.status === "added") {
+                        this.classList.add("favorited");
+                    } else if (data.status === "removed") {
+                        this.classList.remove("favorited");
                     }
                 });
             });
         });
-    
+
         function getCookie(name) {
             let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
                 for (let i = 0; i < cookies.length; i++) {
                     const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    if (cookie.substring(0, name.length + 1) === name + "=") {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
                     }

@@ -2,7 +2,12 @@ from datetime import date
 import os
 import random
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.core.validators import (
+    RegexValidator,
+    EmailValidator,
+    MinValueValidator,
+    MaxValueValidator,
+)
 from django.db.models.signals import pre_save
 from django.db.models.signals import post_save, post_delete
 from django.db.models import Count, Avg
@@ -103,6 +108,10 @@ def upload_to_instance_directory(instance, filename):
     return os.path.join("restaurant_images", instance.place.slug, filename)
 
 
+def upload_logo_to(instance, filename):
+    return os.path.join("place_logos", instance.slug, filename)
+
+
 class PlaceImage(models.Model):
     place = models.ForeignKey(
         "Place",
@@ -111,37 +120,46 @@ class PlaceImage(models.Model):
         verbose_name="Заведение",
     )
     image = models.ImageField(
-        upload_to=upload_to_instance_directory, verbose_name="Изображение"
+        upload_to=upload_to_instance_directory,
+        verbose_name="Изображение",
+        blank=True,
+        null=True,
+    )
+    video_url = models.URLField(blank=True, null=True, verbose_name="Ссылка на видео")
+    embed_code = models.TextField(
+        blank=True, null=True, verbose_name="Код для встраивания видео"
     )
     is_cover = models.BooleanField(default=False, verbose_name="Обложка")
     upload_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
 
     def __str__(self):
-        return f"Изображение {self.place.name}"
+        return f"Медиа {self.place.name}"
 
     def save(self, *args, **kwargs):
-        # Сначала сохраняем изображение, чтобы получить его путь
         super().save(*args, **kwargs)
-
-        # Открываем изображение с помощью Pillow
-        img = Image.open(self.image.path)
-
-        # Проверяем размеры изображения и изменяем размер, если нужно
-        max_width, max_height = 1500, 1000
-        if img.width > max_width or img.height > max_height:
-            img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-
-            # Сохраняем измененное изображение в том же месте
-            img.save(self.image.path)
-
-        # Проверяем, является ли это изображение обложкой, и обновляем другие изображения
+        if self.image:
+            img = Image.open(self.image.path)
+            max_width, max_height = 1500, 1000
+            if img.width > max_width or img.height > max_height:
+                img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+                img.save(self.image.path)
         if self.is_cover:
-            # Снимаем флаг is_cover со всех других изображений этого заведения
             self.place.images.exclude(id=self.id).update(is_cover=False)
 
     class Meta:
-        verbose_name = "Изображение заведения"
-        verbose_name_plural = "Изображения заведений"
+        verbose_name = "Медиа заведения"
+        verbose_name_plural = "Медиа заведений"
+
+    def get_media_display(self):
+        if self.embed_code:
+            return mark_safe(self.embed_code)
+        elif self.video_url:
+            return mark_safe(
+                f'<iframe width="560" height="315" src="{self.video_url}" frameborder="0" allowfullscreen></iframe>'
+            )
+        elif self.image:
+            return mark_safe(f'<img src="{self.image.url}" alt="{self.place.name}" />')
+        return "Нет медиа"
 
 
 @receiver(post_delete, sender=PlaceImage)
@@ -212,7 +230,7 @@ class Place(models.Model):
                 message="Номер телефона должен быть введен в формате: '+79999999999'. Допустимо до 12 цифр.",
             )
         ],
-        verbose_name="Телефон заведения",
+        verbose_name="Телефон",
         blank=True,
         null=True,
     )
@@ -251,12 +269,45 @@ class Place(models.Model):
             )
         ],
     )
+    viber = models.CharField(
+        max_length=12,
+        blank=True,
+        null=True,
+        verbose_name="Viber",
+        validators=[
+            RegexValidator(
+                regex=r"^\+?1?\d{9,15}$",
+                message="Номер телефона должен быть введен в формате: '+79999999999'. Допустимо до 12 цифр.",
+            )
+        ],
+    )
     vkontakte = models.URLField(
         max_length=255,
         blank=True,
         null=True,
         verbose_name="ВКонтакте",
         validators=[URLValidator],
+    )
+    odnoklassniki = models.URLField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Одноклассники",
+        validators=[URLValidator],
+    )
+    contact_email = models.EmailField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Эл. почта для связи с пользователями",
+        validators=[EmailValidator],
+    )
+    service_email = models.EmailField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Эл. почта для связи сервиса с рестораном",
+        validators=[EmailValidator],
     )
     website = models.URLField(blank=True, verbose_name="Веб-сайт")
     cuisines = models.ManyToManyField(Cuisine, blank=True, verbose_name="Кухни")
@@ -300,6 +351,9 @@ class Place(models.Model):
         verbose_name="Представитель",
         blank=True,
     )
+    logo = models.ImageField(
+        upload_to=upload_logo_to, verbose_name="Логотип", null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
@@ -314,6 +368,12 @@ class Place(models.Model):
         if not self.slug or self.slug != slugify(self.name):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+        if self.logo:
+            img = Image.open(self.logo.path)
+            if img.width > 100 or img.height > 100:
+                img.thumbnail((100, 100), Image.Resampling.LANCZOS)
+                img.save(self.logo.path)
 
     def get_absolute_url(self):
         return reverse_lazy("place_detail", kwargs={"slug": self.slug})

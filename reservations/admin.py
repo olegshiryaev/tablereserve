@@ -16,6 +16,7 @@ from .models import (
     Review,
     Reservation,
     ReviewImage,
+    Sector,
     Table,
     Tag,
     WorkSchedule,
@@ -64,6 +65,11 @@ class WorkScheduleInline(admin.TabularInline):
     max_num = 7
 
 
+class SectorInline(admin.TabularInline):
+    model = Sector
+    extra = 1  # Количество пустых форм для добавления новых секторов
+
+
 @admin.register(PlaceType)
 class PlaceTypeAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
@@ -71,8 +77,9 @@ class PlaceTypeAdmin(admin.ModelAdmin):
 
 @admin.register(PlaceImage)
 class PlaceImageAdmin(admin.ModelAdmin):
-    list_display = ("place", "image", "is_cover")
-    list_filter = ("is_cover",)
+    list_display = ("place", "sector", "image", "is_cover", "upload_date")
+    search_fields = ("place__name", "sector__name")
+    list_filter = ("place", "sector", "is_cover")
 
 
 class PlaceImageInline(admin.TabularInline):
@@ -102,7 +109,7 @@ class PlaceAdmin(admin.ModelAdmin):
     )
     search_fields = ("name", "city__name", "address", "phone", "tags__name")
     list_filter = ("city", "type", "is_active")
-    inlines = [WorkScheduleInline, FeatureInline, PlaceImageInline]
+    inlines = [WorkScheduleInline, FeatureInline, SectorInline, PlaceImageInline]
     filter_horizontal = (
         "tags",
         "cuisines",
@@ -204,6 +211,13 @@ class WorkScheduleAdmin(admin.ModelAdmin):
 class TableAdmin(admin.ModelAdmin):
     list_display = ("number", "place", "capacity")
     list_filter = ("place",)
+
+
+@admin.register(Sector)
+class SectorAdmin(admin.ModelAdmin):
+    list_display = ("name", "place", "type", "zone")
+    search_fields = ("name", "place__name")
+    list_filter = ("place", "type", "zone")
 
 
 @admin.register(Reservation)

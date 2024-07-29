@@ -67,7 +67,7 @@
                     <div class="place-slider-wrapper">
                         {% for image in place.images.all %}
                         <div class="place-slider-item" style="margin-right: 5px;">
-                            <img src="{{ image.image.url }}" class="place-slider-img" />
+                            <img data-src="{{ image.image.url }}" class="place-slider-img lazy" alt="Image" />
                         </div>
                         {% endfor %}
                     </div>
@@ -266,17 +266,16 @@
         let currentIndex = 0;
     
         function updateButtons() {
-            prevButton.style.display = currentIndex === 0 ? 'none' : 'block';
-            nextButton.style.display = currentIndex >= slides.length - 1 ? 'none' : 'block';
+            prevButton.classList.toggle('hidden', currentIndex === 0);
+            nextButton.classList.toggle('hidden', currentIndex >= slides.length - 1);
         }
     
         function showSlide(index) {
-            const slider = document.querySelector('.place-slider');
-            const totalWidth = Array.from(slides).slice(0, index).reduce((sum, slide) => sum + slide.clientWidth, 0);
-            const gap = index * 5; // расстояние между изображениями
-            const maxShift = sliderWrapper.scrollWidth - slider.clientWidth;
-    
-            sliderWrapper.style.transform = `translateX(-${Math.min(totalWidth + gap, maxShift)}px)`;
+            const slideWidth = slides[0].clientWidth + 5; // ширина слайда плюс расстояние
+            const maxShift = sliderWrapper.scrollWidth - sliderWrapper.clientWidth;
+            const newTransform = Math.min(index * slideWidth, maxShift);
+            
+            sliderWrapper.style.transform = `translateX(-${newTransform}px)`;
     
             currentIndex = index;
             updateButtons();
@@ -295,6 +294,32 @@
         });
     
         showSlide(currentIndex);
+    
+        // Ленивая загрузка изображений
+        const lazyImages = document.querySelectorAll('img.lazy');
+    
+        if ("IntersectionObserver" in window) {
+            const lazyImageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const lazyImage = entry.target;
+                        lazyImage.src = lazyImage.dataset.src;
+                        lazyImage.classList.remove('lazy');
+                        lazyImageObserver.unobserve(lazyImage);
+                    }
+                });
+            });
+    
+            lazyImages.forEach(image => {
+                lazyImageObserver.observe(image);
+            });
+        } else {
+            // Для браузеров, не поддерживающих IntersectionObserver
+            lazyImages.forEach(image => {
+                image.src = image.dataset.src;
+                image.classList.remove('lazy');
+            });
+        }
     
         // Модальное окно
         const modal = document.getElementById("imageModal");
@@ -326,20 +351,23 @@
         }
     
         modalPrev.onclick = function() {
-            let currentIndex = parseInt(modalImg.dataset.index, 10);
-            if (currentIndex > 0) {
-                currentIndex -= 1;
-                showModalImage(currentIndex);
+            let index = parseInt(modalImg.dataset.index, 10);
+            if (index > 0) {
+                showModalImage(index - 1);
             }
         }
     
         modalNext.onclick = function() {
-            let currentIndex = parseInt(modalImg.dataset.index, 10);
-            if (currentIndex < slides.length - 1) {
-                currentIndex += 1;
-                showModalImage(currentIndex);
+            let index = parseInt(modalImg.dataset.index, 10);
+            if (index < slides.length - 1) {
+                showModalImage(index + 1);
             }
         }
+    
+        // Обновление слайдера при изменении размера окна
+        window.addEventListener('resize', function() {
+            showSlide(currentIndex);
+        });
     });
 </script>
 {% endblock %}

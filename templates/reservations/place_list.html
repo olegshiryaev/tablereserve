@@ -239,47 +239,60 @@
     </div>
 </section>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const favoriteButtons = document.querySelectorAll(".favorite-button");
+    document.addEventListener('DOMContentLoaded', function() {
+        // Отправка формы при изменении фильтров
+        const form = document.querySelector('.filter-form');
+        form.addEventListener('change', function() {
+            form.submit();
+        });
+    
+        // Отправка формы при изменении сортировки
+        const sortSelect = document.querySelector('.sorting-form select');
+        sortSelect.addEventListener('change', function() {
+            document.querySelector('.sorting-form').submit();
+        });
+    
+        // Управление кнопками избранного
+        const favoriteButtons = document.querySelectorAll('.favorite-button');
         const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
         
-        favoriteButtons.forEach((button) => {
-            button.addEventListener("click", function (event) {
+        favoriteButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
                 if (!isAuthenticated) {
-                    // If user is not authenticated, show the login modal
+                    // Если пользователь не авторизован, показать модальное окно входа
                     event.preventDefault();
                     document.getElementById('loginModal').style.display = 'block';
                     return;
                 }
-
-                const placeId = this.getAttribute("data-place-id");
-                const url = "{% url 'users:toggle_favorite' 0 %}".replace("/0/", `/${placeId}/`);
-
+    
+                const placeId = this.getAttribute('data-place-id');
+                const url = "{% url 'users:toggle_favorite' 0 %}".replace('/0/', `/${placeId}/`);
+    
                 fetch(url, {
-                    method: "POST",
+                    method: 'POST',
                     headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": getCookie("csrftoken"),
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
                     },
                 })
-                .then((response) => response.json())
-                .then((data) => {
-                    if (data.status === "added") {
-                        this.classList.add("favorited");
-                    } else if (data.status === "removed") {
-                        this.classList.remove("favorited");
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'added') {
+                        this.classList.add('favorited');
+                    } else if (data.status === 'removed') {
+                        this.classList.remove('favorited');
                     }
                 });
             });
         });
-
+    
         function getCookie(name) {
             let cookieValue = null;
-            if (document.cookie && document.cookie !== "") {
-                const cookies = document.cookie.split(";");
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
                 for (let i = 0; i < cookies.length; i++) {
                     const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === name + "=") {
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
                     }

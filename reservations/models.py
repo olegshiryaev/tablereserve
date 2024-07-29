@@ -105,7 +105,7 @@ class PlaceType(models.Model):
 
 
 def upload_to_instance_directory(instance, filename):
-    return os.path.join("restaurant_images", instance.place.slug, filename)
+    return f"place_images/{instance.place.id}/{filename}"
 
 
 def upload_logo_to(instance, filename):
@@ -118,6 +118,14 @@ class PlaceImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
         verbose_name="Заведение",
+    )
+    sector = models.ForeignKey(
+        "Sector",
+        on_delete=models.CASCADE,
+        related_name="images",
+        verbose_name="Сектор",
+        null=True,
+        blank=True,
     )
     image = models.ImageField(
         upload_to=upload_to_instance_directory,
@@ -138,11 +146,28 @@ class PlaceImage(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
+            # Преобразование изображения в формат WebP
             img = Image.open(self.image.path)
             max_width, max_height = 1500, 1000
             if img.width > max_width or img.height > max_height:
                 img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-                img.save(self.image.path)
+
+            # Определение пути для WebP
+            webp_path = self.image.path.rsplit(".", 1)[0] + ".webp"
+
+            # Сохранение изображения в формате WebP, если оно еще не существует
+            if not os.path.exists(webp_path):
+                img.save(webp_path, "webp")
+                self.image.delete(save=False)
+                self.image.name = webp_path.rsplit("/", 1)[
+                    -1
+                ]  # Обновление имени изображения в модели
+
+            super().save(
+                *args, **kwargs
+            )  # Повторное сохранение, чтобы обновить поле `image` с новым именем файла
+
+        # Установка только одного медиа объекта как обложки
         if self.is_cover:
             self.place.images.exclude(id=self.id).update(is_cover=False)
 
@@ -373,7 +398,11 @@ class Place(models.Model):
             img = Image.open(self.logo.path)
             if img.width > 100 or img.height > 100:
                 img.thumbnail((100, 100), Image.Resampling.LANCZOS)
-                img.save(self.logo.path)
+            webp_path = self.logo.path.rsplit(".", 1)[0] + ".webp"
+            img.save(webp_path, "webp")
+            self.logo.delete(save=False)
+            self.logo = webp_path
+            super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse_lazy("place_detail", kwargs={"slug": self.slug})
@@ -425,6 +454,58 @@ class Place(models.Model):
 def pre_save_slug(sender, instance, *args, **kwargs):
     if not instance.slug or instance.slug != slugify(instance.name):
         instance.slug = slugify(instance.name)
+
+
+class Sector(models.Model):
+    SECTOR_TYPE_CHOICES = [
+        ("real", "Реальный"),
+        ("virtual", "Виртуальный"),
+    ]
+
+    ZONE_CHOICES = [
+        ("outdoor", "На улице"),
+        ("panoramic_windows", "Панорамные окна"),
+        ("terrace", "Терраса"),
+        ("main_hall", "Основной зал"),
+        ("small_hall", "Малый зал"),
+        ("vip_hall", "ВИП зал"),
+        ("booth", "Кабинка"),
+    ]
+
+    name = models.CharField(max_length=100, verbose_name="Название сектора")
+    place = models.ForeignKey(
+        Place,
+        on_delete=models.CASCADE,
+        related_name="sectors",
+        verbose_name="Заведение",
+    )
+    type = models.CharField(
+        max_length=10,
+        choices=SECTOR_TYPE_CHOICES,
+        default="real",
+        verbose_name="Тип сектора",
+    )
+    zone = models.CharField(max_length=20, choices=ZONE_CHOICES, verbose_name="Зона")
+    image = models.ImageField(
+        upload_to="sector_images/",
+        null=True,
+        blank=True,
+        verbose_name="Изображение сектора",
+    )
+    description = models.TextField(null=True, blank=True, verbose_name="Описание")
+
+    class Meta:
+        verbose_name = "Сектор"
+        verbose_name_plural = "Сектора"
+        unique_together = (
+            ("place", "name"),
+        )  # Сектора должны быть уникальны в рамках одного заведения
+
+    def __str__(self):
+        return f"{self.name} ({self.get_type_display()} - {self.get_zone_display()})"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 class WorkSchedule(models.Model):

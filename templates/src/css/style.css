@@ -1450,3 +1450,7 @@ footer a:hover {
         row-gap: 20px;
     }
 }
+
+.hidden {
+    display: none;
+}

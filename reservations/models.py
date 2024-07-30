@@ -105,7 +105,7 @@ class PlaceType(models.Model):
 
 
 def upload_to_instance_directory(instance, filename):
-    return f"place_images/{instance.place.id}/{filename}"
+    return os.path.join("restaurant_images", instance.place.slug, filename)
 
 
 def upload_logo_to(instance, filename):
@@ -401,8 +401,8 @@ class Place(models.Model):
             webp_path = self.logo.path.rsplit(".", 1)[0] + ".webp"
             img.save(webp_path, "webp")
             self.logo.delete(save=False)
-            self.logo = webp_path
-            super().save(*args, **kwargs)
+            self.logo.name = os.path.basename(webp_path)
+            super().save(update_fields=["logo"])
 
     def get_absolute_url(self):
         return reverse_lazy("place_detail", kwargs={"slug": self.slug})

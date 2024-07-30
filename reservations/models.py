@@ -105,9 +105,7 @@ class PlaceType(models.Model):
 
 
 def upload_to_instance_directory(instance, filename):
-    return os.path.join(
-        "restaurant_images", instance.place.slug, filename.rsplit(".", 1)[0] + ".webp"
-    )
+    return os.path.join("restaurant_images", instance.place.slug, filename)
 
 
 def upload_logo_to(instance, filename):
@@ -120,14 +118,6 @@ class PlaceImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
         verbose_name="Заведение",
-    )
-    sector = models.ForeignKey(
-        "Sector",
-        on_delete=models.CASCADE,
-        related_name="images",
-        verbose_name="Сектор",
-        null=True,
-        blank=True,
     )
     image = models.ImageField(
         upload_to=upload_to_instance_directory,
@@ -152,12 +142,7 @@ class PlaceImage(models.Model):
             max_width, max_height = 1500, 1000
             if img.width > max_width or img.height > max_height:
                 img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-            webp_path = self.image.path.rsplit(".", 1)[0] + ".webp"
-            img.save(webp_path, "webp")
-            self.image.delete(save=False)
-            self.image = webp_path
-            super().save(*args, **kwargs)
-
+                img.save(self.image.path)
         if self.is_cover:
             self.place.images.exclude(id=self.id).update(is_cover=False)
 
@@ -388,11 +373,7 @@ class Place(models.Model):
             img = Image.open(self.logo.path)
             if img.width > 100 or img.height > 100:
                 img.thumbnail((100, 100), Image.Resampling.LANCZOS)
-            webp_path = self.logo.path.rsplit(".", 1)[0] + ".webp"
-            img.save(webp_path, "webp")
-            self.logo.delete(save=False)
-            self.logo.name = os.path.basename(webp_path)
-            super().save(update_fields=["logo"])
+                img.save(self.logo.path)
 
     def get_absolute_url(self):
         return reverse_lazy("place_detail", kwargs={"slug": self.slug})

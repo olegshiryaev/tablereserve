@@ -77,9 +77,9 @@ class PlaceTypeAdmin(admin.ModelAdmin):
 
 @admin.register(PlaceImage)
 class PlaceImageAdmin(admin.ModelAdmin):
-    list_display = ("place", "sector", "image", "is_cover", "upload_date")
+    list_display = ("place", "image", "is_cover", "upload_date")
     search_fields = ("place__name", "sector__name")
-    list_filter = ("place", "sector", "is_cover")
+    list_filter = ("place", "is_cover")
 
 
 class PlaceImageInline(admin.TabularInline):

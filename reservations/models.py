@@ -105,7 +105,9 @@ class PlaceType(models.Model):
 
 
 def upload_to_instance_directory(instance, filename):
-    return os.path.join("restaurant_images", instance.place.slug, filename)
+    return os.path.join(
+        "restaurant_images", instance.place.slug, filename.rsplit(".", 1)[0] + ".webp"
+    )
 
 
 def upload_logo_to(instance, filename):
@@ -146,28 +148,16 @@ class PlaceImage(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
-            # Преобразование изображения в формат WebP
             img = Image.open(self.image.path)
             max_width, max_height = 1500, 1000
             if img.width > max_width or img.height > max_height:
                 img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-
-            # Определение пути для WebP
             webp_path = self.image.path.rsplit(".", 1)[0] + ".webp"
+            img.save(webp_path, "webp")
+            self.image.delete(save=False)
+            self.image = webp_path
+            super().save(*args, **kwargs)
 
-            # Сохранение изображения в формате WebP, если оно еще не существует
-            if not os.path.exists(webp_path):
-                img.save(webp_path, "webp")
-                self.image.delete(save=False)
-                self.image.name = webp_path.rsplit("/", 1)[
-                    -1
-                ]  # Обновление имени изображения в модели
-
-            super().save(
-                *args, **kwargs
-            )  # Повторное сохранение, чтобы обновить поле `image` с новым именем файла
-
-        # Установка только одного медиа объекта как обложки
         if self.is_cover:
             self.place.images.exclude(id=self.id).update(is_cover=False)
 

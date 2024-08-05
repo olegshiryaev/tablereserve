@@ -1,0 +1,182 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+{% block content %}
+<div class="container-fluid p-0">
+  <h1 class="h3 mb-3">{{ title }}</h1>
+  <div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#cuisineCreateModal">Добавить кухню</button>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th style="width:5%">#</th>
+                        <th style="width:30%">Название</th>
+                        <th style="width:30%">URL</th>
+                        <th style="width:15%">Заведения</th>
+                        <th style="width:20%">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for cuisine in object_list %}
+                            <tr>
+                                <th scope="row">{{ forloop.counter }}</th>
+                                <td><a href="{% url 'dashboard:cuisine_detail' cuisine.pk %}">{{ cuisine.name }}</a></td>
+                                <td>{{ cuisine.slug }}</td>
+                                <td>{{ cuisine.place_count }}</td>
+                                <td>
+                                    <a class="btn btn-info btn-sm" href="{% url 'dashboard:cuisine_detail' cuisine.pk %}">Посмотреть</a>
+                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cuisineDeleteModal" data-cuisine-id="{{ cuisine.id }}" data-cuisine-name="{{ cuisine.name }}">Удалить</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Creating Cuisine -->
+<div class="modal fade" id="cuisineCreateModal" tabindex="-1" aria-labelledby="cuisineCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cuisineCreateModalLabel">Добавить кухню</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="cuisineCreateForm" method="post" action="{% url 'dashboard:cuisine_create' %}">
+              {% csrf_token %}
+              <div id="formErrors" class="alert alert-danger" role="alert" style="display: none;">
+                <div class="alert-message"></div>
+              </div>
+              <div class="mb-3">
+                  {{ cuisine_create_form.name.label_tag }}
+                  {{ cuisine_create_form.name|add_class:"form-control" }}
+              </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-success" id="saveCuisineButton">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Modal for Deleting Cuisine -->
+<div class="modal fade" id="cuisineDeleteModal" tabindex="-1" aria-labelledby="cuisineDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cuisineDeleteModalLabel">Удалить кухню</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Вы уверены, что хотите удалить <strong id="cuisineName"></strong>?</p>
+          <form id="cuisineDeleteForm" method="post" action="">
+              {% csrf_token %}
+              <input type="hidden" id="deleteCuisineId" name="deleteCuisineId">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-danger" id="deleteCuisineButton">Удалить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle cuisine creation form submission
+        document.getElementById('saveCuisineButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            var form = document.getElementById('cuisineCreateForm');
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', form.getAttribute('action'));
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    var errorDiv = document.getElementById('formErrors');
+                    var errorMessageDiv = errorDiv.querySelector('.alert-message');
+
+                    if (response.success) {
+                        // Hide the modal and reload the page on success
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('cuisineCreateModal'));
+                        modal.hide();
+                        window.location.reload();
+                    } else {
+                        // Display form errors
+                        errorMessageDiv.innerHTML = ''; // Clear previous errors
+                        for (var field in response.errors) {
+                            if (response.errors.hasOwnProperty(field)) {
+                                var errorList = response.errors[field];
+                                errorList.forEach(function(error) {
+                                    var errorItem = document.createElement('div');
+                                    errorItem.textContent = error;
+                                    errorMessageDiv.appendChild(errorItem);
+                                });
+                            }
+                        }
+                        errorDiv.style.display = 'block'; // Show the error container
+                    }
+                } else {
+                    // Handle server errors or unexpected responses
+                    console.error('An error occurred while submitting the form.');
+                }
+            };
+            xhr.send(formData);
+        });
+
+        // Handle cuisine deletion form submission
+        document.getElementById('cuisineDeleteModal').addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var cuisineId = button.getAttribute('data-cuisine-id');
+            var cuisineName = button.getAttribute('data-cuisine-name');
+            
+            document.getElementById('cuisineName').textContent = cuisineName;
+            document.getElementById('cuisineDeleteForm').setAttribute('action', '{% url "dashboard:cuisine_delete" 0 %}'.replace('0', cuisineId));
+        });
+
+        document.getElementById('deleteCuisineButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            var form = document.getElementById('cuisineDeleteForm');
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', form.getAttribute('action'));
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('cuisineDeleteModal'));
+                    modal.hide();
+                    window.location.reload();
+                } else {
+                    // Handle server errors or unexpected responses
+                    console.error('An error occurred while deleting the cuisine.');
+                }
+            };
+            xhr.send(formData);
+        });
+    });
+</script>
+{% endblock %}

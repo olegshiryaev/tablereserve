@@ -179,14 +179,14 @@ def place_list(request, city_slug):
     # Получение доступных кухонь для фильтрации
     cuisines = (
         Cuisine.objects.all()
-        .annotate(count=Count("place", filter=Q(place__city=city)))
+        .annotate(count=Count("places", filter=Q(places__city=city)))
         .order_by("-count")
     )
 
     # Получение доступных особенностей для фильтрации
     features = (
         Feature.objects.all()
-        .annotate(count=Count("place", filter=Q(place__city=city)))
+        .annotate(count=Count("places", filter=Q(places__city=city)))
         .order_by("-count")
     )
 

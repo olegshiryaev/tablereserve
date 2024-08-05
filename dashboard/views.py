@@ -1,20 +1,32 @@
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.views import View
 from dashboard.forms import (
+    CityCreateForm,
+    CityForm,
+    CityUpdateForm,
+    CuisineCreateForm,
+    CuisineForm,
+    FeatureCreateForm,
+    FeatureForm,
     PlaceCreationForm,
     PlaceForm,
     PlaceImageForm,
     ReservationForm,
+    TagCreateForm,
+    TagForm,
 )
 from reservations.models import (
+    City,
     Cuisine,
     Feature,
     Place,
     PlaceImage,
     PlaceType,
     Reservation,
+    Tag,
 )
 from users.models import CustomUser
 from pytils.translit import slugify
@@ -33,12 +45,14 @@ from django.views.generic import (
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
+from .mixins import AdminRequiredMixin
 
 
 class PlaceListView(LoginRequiredMixin, ListView):
     model = Place
     template_name = "dashboard/places_list.html"
     context_object_name = "places"
+    paginate_by = 10
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -262,3 +276,347 @@ class PlaceImageDeleteView(DeleteView):
         return reverse_lazy(
             "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
         )
+
+
+# Представление для списка городов
+class CityListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
+    model = City  # Модель, используемая для представления
+    template_name = "dashboard/city_list.html"  # Шаблон для отображения списка городов
+
+    def get_queryset(self):
+        # Получаем все города с подсчетом количества заведений и сортируем по имени
+        return City.objects.annotate(place_count=Count("places")).order_by("name")
+
+    def get_context_data(self, **kwargs):
+        # Добавляем дополнительный контекст в шаблон
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Список городов"  # Заголовок страницы
+        context["city_create_form"] = (
+            CityCreateForm()
+        )  # Форма для создания нового города
+        return context
+
+
+# Представление для деталей города
+class CityDetailView(LoginRequiredMixin, AdminRequiredMixin, DetailView):
+    model = City
+    template_name = "dashboard/city_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = self.object.name
+        context["form"] = CityForm(instance=self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = CityForm(request.POST, instance=self.object)
+        if form.is_valid():
+            form.save()
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"success": True})
+            return redirect("dashboard:city_detail", pk=self.object.pk)
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+        return render(
+            request,
+            self.template_name,
+            {
+                "object": self.object,
+                "form": form,
+                "title": f"City Detail: {self.object.name}",
+            },
+        )
+
+
+# Представление для создания нового города
+class CityCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
+    model = City  # Модель, используемая для представления
+    form_class = CityCreateForm  # Форма для создания нового города
+    template_name = "dashboard/city_form.html"  # Шаблон для формы создания города
+    success_url = reverse_lazy(
+        "dashboard:city_list"
+    )  # URL для перенаправления при успешном создании
+
+    def form_invalid(self, form):
+        # Обрабатываем случай, когда форма невалидна
+        response = super().form_invalid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors})
+        return response
+
+    def form_valid(self, form):
+        # Обрабатываем случай, когда форма валидна
+        response = super().form_valid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return response
+
+
+# Представление для удаления города
+class CityDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
+    model = City  # Модель, используемая для представления
+    template_name = (
+        "dashboard/city_confirm_delete.html"  # Шаблон для подтверждения удаления города
+    )
+    success_url = reverse_lazy(
+        "dashboard:city_list"
+    )  # URL для перенаправления после успешного удаления
+
+    def delete(self, request, *args, **kwargs):
+        # Обрабатываем DELETE-запрос для удаления города
+        self.object = self.get_object()
+        self.object.delete()
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return super().delete(request, *args, **kwargs)
+
+
+class CuisineListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
+    model = Cuisine  # Модель, используемая для представления
+    template_name = (
+        "dashboard/cuisine_list.html"  # Шаблон для отображения списка кухонь
+    )
+
+    def get_queryset(self):
+        # Получаем все кухни с подсчетом количества заведений и сортируем по имени
+        return Cuisine.objects.annotate(place_count=Count("places")).order_by("name")
+
+    def get_context_data(self, **kwargs):
+        # Добавляем дополнительный контекст в шаблон
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Список кухонь"  # Заголовок страницы
+        context["cuisine_create_form"] = CuisineCreateForm()
+        return context
+
+
+class CuisineDetailView(LoginRequiredMixin, AdminRequiredMixin, DetailView):
+    model = Cuisine
+    template_name = "dashboard/cuisine_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = self.object.name
+        context["form"] = CuisineForm(instance=self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = CuisineForm(request.POST, instance=self.object)
+        if form.is_valid():
+            form.save()
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"success": True})
+            return redirect("dashboard:cuisine_detail", pk=self.object.pk)
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+        return render(
+            request,
+            self.template_name,
+            {
+                "object": self.object,
+                "form": form,
+                "title": f"Cuisine Detail: {self.object.name}",
+            },
+        )
+
+
+class CuisineCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
+    model = Cuisine
+    form_class = CuisineCreateForm
+    template_name = "dashboard/cuisine_form.html"
+    success_url = reverse_lazy("dashboard:cuisine_list")
+
+    def form_invalid(self, form):
+        response = super().form_invalid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors})
+        return response
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return response
+
+
+class CuisineDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
+    model = Cuisine
+    template_name = "dashboard/cuisine_confirm_delete.html"
+    success_url = reverse_lazy("dashboard:cuisine_list")
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return super().delete(request, *args, **kwargs)
+
+
+class FeatureListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
+    model = Feature  # Модель, используемая для представления
+    template_name = (
+        "dashboard/feature_list.html"  # Шаблон для отображения списка особенностей
+    )
+
+    def get_queryset(self):
+        # Получаем все особенности и сортируем по имени
+        return Feature.objects.order_by("name")
+
+    def get_context_data(self, **kwargs):
+        # Добавляем дополнительный контекст в шаблон
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Список особенностей"  # Заголовок страницы
+        context["feature_create_form"] = (
+            FeatureCreateForm()
+        )  # Форма для создания новой особенности
+        return context
+
+
+class FeatureDetailView(LoginRequiredMixin, AdminRequiredMixin, DetailView):
+    model = Feature
+    template_name = "dashboard/feature_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = self.object.name
+        context["form"] = FeatureForm(instance=self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = FeatureForm(request.POST, instance=self.object)
+        if form.is_valid():
+            form.save()
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"success": True})
+            return redirect("dashboard:feature_detail", pk=self.object.pk)
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+        return render(
+            request,
+            self.template_name,
+            {
+                "object": self.object,
+                "form": form,
+                "title": f"Feature Detail: {self.object.name}",
+            },
+        )
+
+
+class FeatureCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
+    model = Feature  # Модель, используемая для представления
+    form_class = FeatureCreateForm  # Форма для создания новой особенности
+    template_name = (
+        "dashboard/feature_form.html"  # Шаблон для формы создания особенности
+    )
+    success_url = reverse_lazy(
+        "dashboard:feature_list"
+    )  # URL для перенаправления при успешном создании
+
+    def form_invalid(self, form):
+        # Обрабатываем случай, когда форма невалидна
+        response = super().form_invalid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors})
+        return response
+
+    def form_valid(self, form):
+        # Обрабатываем случай, когда форма валидна
+        response = super().form_valid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return response
+
+
+class FeatureDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
+    model = Feature  # Модель, используемая для представления
+    template_name = "dashboard/feature_confirm_delete.html"  # Шаблон для подтверждения удаления особенности
+    success_url = reverse_lazy(
+        "dashboard:feature_list"
+    )  # URL для перенаправления после успешного удаления
+
+    def delete(self, request, *args, **kwargs):
+        # Обрабатываем DELETE-запрос для удаления особенности
+        self.object = self.get_object()
+        self.object.delete()
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return super().delete(request, *args, **kwargs)
+
+
+class TagListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
+    model = Tag
+    template_name = "dashboard/tag_list.html"
+
+    def get_queryset(self):
+        return Tag.objects.order_by("name")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Список тегов"
+        context["tag_create_form"] = TagCreateForm()
+        return context
+
+
+class TagDetailView(LoginRequiredMixin, AdminRequiredMixin, DetailView):
+    model = Tag
+    template_name = "dashboard/tag_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = self.object.name
+        context["form"] = TagForm(instance=self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = TagForm(request.POST, instance=self.object)
+        if form.is_valid():
+            form.save()
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"success": True})
+            return redirect("dashboard:tag_detail", pk=self.object.pk)
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+        return render(
+            request,
+            self.template_name,
+            {
+                "object": self.object,
+                "form": form,
+                "title": f"Tag Detail: {self.object.name}",
+            },
+        )
+
+
+class TagCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
+    model = Tag
+    form_class = TagCreateForm
+    template_name = "dashboard/tag_form.html"
+    success_url = reverse_lazy("dashboard:tag_list")
+
+    def form_invalid(self, form):
+        response = super().form_invalid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors})
+        return response
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return response
+
+
+class TagDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
+    model = Tag
+    template_name = "dashboard/tag_confirm_delete.html"
+    success_url = reverse_lazy("dashboard:tag_list")
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return super().delete(request, *args, **kwargs)

@@ -26,144 +26,177 @@
         <button id="editButton" class="btn btn-primary mb-3">Редактировать</button>
         <button id="cancelButton" class="btn btn-danger mb-3" style="display:none;">Отменить</button>
       {% endif %}
+      
       <form id="placeForm" method="post" enctype="multipart/form-data" class="form-horizontal needs-validation" novalidate>
         {% csrf_token %}
-        {{ form.non_field_errors }}
         
-        <div class="row mb-3">
-          <div class="col-md-4">
-            {{ form.type.label_tag }}
-            {{ form.type }}
+        <!-- Общие ошибки формы -->
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ form.non_field_errors }}
           </div>
-          <div class="col-md-4">
-            {{ form.name.label_tag }}
-            {{ form.name }}
-          </div>
-          <div class="col-md-4">
-            {{ form.city.label_tag }}
-            {{ form.city }}
-          </div>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-md-4">
-            {{ form.street_type.label_tag }}
-            {{ form.street_type }}
-          </div>
-          <div class="col-md-4">
-            {{ form.street_name.label_tag }}
-            {{ form.street_name }}
-          </div>
-          <div class="col-md-4">
-            {{ form.house_number.label_tag }}
-            {{ form.house_number }}
-          </div>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-md-4">
-            {{ form.phone.label_tag }}
-            {{ form.phone }}
-          </div>
-          <div class="col-md-4">
-            {{ form.facebook.label_tag }}
-            {{ form.facebook }}
-          </div>
-          <div class="col-md-4">
-            {{ form.instagram.label_tag }}
-            {{ form.instagram }}
-          </div>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-md-4">
-            {{ form.telegram.label_tag }}
-            {{ form.telegram }}
-          </div>
-          <div class="col-md-4">
-            {{ form.whatsapp.label_tag }}
-            {{ form.whatsapp }}
-          </div>
-          <div class="col-md-4">
-            {{ form.vkontakte.label_tag }}
-            {{ form.vkontakte }}
-          </div>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-md-4">
-            {{ form.website.label_tag }}
-            {{ form.website }}
-          </div>
-          <div class="col-md-4">
-            {{ form.average_check.label_tag }}
-            {{ form.average_check }}
-          </div>
-          <div class="col-md-4">
-            {{ form.capacity.label_tag }}
-            {{ form.capacity }}
-          </div>
-        </div>
-
-        <div class="mb-3">
-          {{ form.description.label_tag }}
-          {{ form.description }}
-        </div>
+        {% endif %}
         
-        <div class="mb-3">
-          {{ form.short_description.label_tag }}
-          {{ form.short_description }}
-        </div>
+        <!-- Навигация по вкладкам -->
+        <ul class="nav nav-tabs" id="placeFormTabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="basic-info-tab" data-bs-toggle="tab" href="#basic-info" role="tab" aria-controls="basic-info" aria-selected="true">Основная информация</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="contact-info-tab" data-bs-toggle="tab" href="#contact-info" role="tab" aria-controls="contact-info" aria-selected="false">Контактные данные</a>
+          </li>
+          {% if place %}
+          <li class="nav-item">
+            <a class="nav-link" id="images-tab" data-bs-toggle="tab" href="#images" role="tab" aria-controls="images" aria-selected="false">Изображения</a>
+          </li>
+          {% endif %}
+        </ul>
 
-        <!-- Кухни -->
-        <div class="mb-3">
-          <label for="id_cuisines">Кухни</label>
-          <div class="form-check">
-            {{ form.cuisines }}
+        <!-- Содержимое вкладок -->
+        <div class="tab-content" id="placeFormTabsContent">
+          <!-- Основная информация -->
+          <div class="tab-pane fade show active" id="basic-info" role="tabpanel" aria-labelledby="basic-info-tab">
+            <div class="row mb-3 mt-3">
+              <div class="col-md-4">
+                  {{ form.type.label_tag }}
+                  {{ form.type }}
+                  {% if form.type.errors %}
+                      <div class="text-danger">{{ form.type.errors }}</div>
+                  {% endif %}
+              </div>
+              <div class="col-md-4">
+                  {{ form.name.label_tag }}
+                  {{ form.name }}
+                  {% if form.name.errors %}
+                      <div class="text-danger">{{ form.name.errors }}</div>
+                  {% endif %}
+              </div>
+              <div class="col-md-4">
+                  {{ form.city.label_tag }}
+                  {{ form.city }}
+                  {% if form.city.errors %}
+                      <div class="text-danger">{{ form.city.errors }}</div>
+                  {% endif %}
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-4">
+                {{ form.street_type.label_tag }}
+                {{ form.street_type }}
+              </div>
+              <div class="col-md-4">
+                {{ form.street_name.label_tag }}
+                {{ form.street_name }}
+              </div>
+              <div class="col-md-4">
+                {{ form.house_number.label_tag }}
+                {{ form.house_number }}
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-4">
+                {{ form.website.label_tag }}
+                {{ form.website }}
+              </div>
+              <div class="col-md-4">
+                {{ form.average_check.label_tag }}
+                {{ form.average_check }}
+              </div>
+              <div class="col-md-4">
+                {{ form.capacity.label_tag }}
+                {{ form.capacity }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              {{ form.description.label_tag }}
+              {{ form.description }}
+            </div>
+            
+            <div class="mb-3">
+              {{ form.short_description.label_tag }}
+              {{ form.short_description }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.tags.label_tag }}
+              {{ form.tags }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.has_kids_room.label_tag }}
+              {{ form.has_kids_room }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.cover_image.label_tag }}
+              {{ form.cover_image }}
+            </div>
+
+            <div class="mb-3">
+              {{ form.is_active.label_tag }}
+              {{ form.is_active }}
+            </div>
           </div>
-        </div>
+          
+          <!-- Контактные данные -->
+          <div class="tab-pane fade" id="contact-info" role="tabpanel" aria-labelledby="contact-info-tab">
+            <div class="row mb-3 mt-3">
+              <div class="col-md-4">
+                {{ form.phone.label_tag }}
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                  <div class="text-danger">{{ form.phone.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-4">
+                {{ form.facebook.label_tag }}
+                {{ form.facebook }}
+              </div>
+              <div class="col-md-4">
+                {{ form.instagram.label_tag }}
+                {{ form.instagram }}
+              </div>
+            </div>
 
-        <!-- Особенности -->
-        <div class="mb-3">
-          <label for="id_features">Особенности</label>
-          <div class="form-check">
-            {{ form.features }}
+            <div class="row mb-3">
+              <div class="col-md-4">
+                {{ form.telegram.label_tag }}
+                {{ form.telegram }}
+              </div>
+              <div class="col-md-4">
+                {{ form.whatsapp.label_tag }}
+                {{ form.whatsapp }}
+              </div>
+              <div class="col-md-4">
+                {{ form.vkontakte.label_tag }}
+                {{ form.vkontakte }}
+              </div>
+            </div>
           </div>
+
+          <!-- Изображения -->
+          {% if place %}
+          <div class="tab-pane fade" id="images" role="tabpanel" aria-labelledby="images-tab">
+            <h3 class="mt-3">Изображения</h3>
+            <a href="{% url 'dashboard:placeimage_add' place_id=place.id %}" class="btn btn-primary mb-3">Добавить изображение</a>
+            <div class="row">
+              {% for image in place.images.all %}
+              <div class="col-md-3">
+                  <img src="{{ image.image.url }}" alt="{{ image }}" class="img-thumbnail">
+                  <a href="{% url 'dashboard:placeimage_edit' pk=image.pk %}" class="btn btn-secondary btn-sm mt-2">Редактировать</a>
+                  <a href="{% url 'dashboard:placeimage_delete' pk=image.pk %}" class="btn btn-danger btn-sm mt-2">Удалить</a>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
         </div>
 
-        <div class="mb-3">
-          {{ form.tags.label_tag }}
-          {{ form.tags }}
-        </div>
-
-        <div class="mb-3">
-          {{ form.has_kids_room.label_tag }}
-          {{ form.has_kids_room }}
-        </div>
-
-        <div class="mb-3">
-          {{ form.cover_image.label_tag }}
-          {{ form.cover_image }}
-        </div>
-
-        <div class="mb-3">
-          {{ form.is_active.label_tag }}
-          {{ form.is_active }}
-        </div>
-        
         <button type="submit" class="btn btn-primary" id="saveButton" style="{% if place %}display: none;{% endif %}">Сохранить</button>
       </form>
-      <h3>Изображения</h3>
-      <a href="{% url 'dashboard:placeimage_add' place_id=place.id %}" class="btn btn-primary mb-3">Добавить изображение</a>
-      <div class="row">
-        {% for image in place.images.all %}
-          <div class="col-md-3">
-            <img src="{{ image.image.url }}" alt="{{ image }}" class="img-thumbnail">
-            <a href="{% url 'dashboard:placeimage_edit' pk=image.pk %}" class="btn btn-secondary btn-sm mt-2">Редактировать</a>
-            <a href="{% url 'dashboard:placeimage_delete' pk=image.pk %}" class="btn btn-danger btn-sm mt-2">Удалить</a>
-          </div>
-        {% endfor %}
-      </div>
     </div>
   </div>
 </div>
@@ -197,3 +230,4 @@
 </script>
 {% endif %}
 {% endblock %}
+

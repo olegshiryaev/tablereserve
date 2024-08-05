@@ -552,14 +552,15 @@ h2 {
     transition: opacity 0.3s ease;
 }
 
-.place-card-image .place-image::after {
+.place-card-image::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+    z-index: 1; /* чтобы затемнитель был выше изображения, но ниже текста */
 }
 
 .place-rating.image-rating {
@@ -598,6 +599,7 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 5px;
+    z-index: 2;
 }
 
 .place-features .feature {
@@ -615,6 +617,7 @@ h2 {
     bottom: 10px;
     left: 10px;
     color: #fff;
+    z-index: 2;
 }
 
 .place-type {

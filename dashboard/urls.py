@@ -27,7 +27,7 @@ urlpatterns = [
         views.reservations_list,
         name="reservations_list",
     ),
-    path("add_place/", views.PlaceCreateView.as_view(), name="add_place"),
+    path("add_place/", views.add_place, name="add_place"),
     path("add_place_success/", views.add_place_success, name="add_place_success"),
     path(
         "dashboard/places/<int:place_id>/images/add/",
@@ -43,5 +43,56 @@ urlpatterns = [
         "dashboard/places/images/<int:pk>/delete/",
         views.PlaceImageDeleteView.as_view(),
         name="placeimage_delete",
+    ),
+    # City URLs
+    path("dashboard/cities/", views.CityListView.as_view(), name="city_list"),
+    path(
+        "dashboard/cities/<int:pk>/", views.CityDetailView.as_view(), name="city_detail"
+    ),
+    path("dashboard/cities/add/", views.CityCreateView.as_view(), name="city_create"),
+    path(
+        "dashboard/cities/<int:pk>/delete/",
+        views.CityDeleteView.as_view(),
+        name="city_delete",
+    ),
+    path("dashboard/cuisines/", views.CuisineListView.as_view(), name="cuisine_list"),
+    path(
+        "dashboard/cuisines/<int:pk>/",
+        views.CuisineDetailView.as_view(),
+        name="cuisine_detail",
+    ),
+    path(
+        "dashboard/cuisines/create/",
+        views.CuisineCreateView.as_view(),
+        name="cuisine_create",
+    ),
+    path(
+        "dashboard/cuisines/delete/<int:pk>/",
+        views.CuisineDeleteView.as_view(),
+        name="cuisine_delete",
+    ),
+    path("dashboard/features/", views.FeatureListView.as_view(), name="feature_list"),
+    path(
+        "dashboard/features/<int:pk>/",
+        views.FeatureDetailView.as_view(),
+        name="feature_detail",
+    ),
+    path(
+        "dashboard/features/create/",
+        views.FeatureCreateView.as_view(),
+        name="feature_create",
+    ),
+    path(
+        "dashboard/features/<int:pk>/delete/",
+        views.FeatureDeleteView.as_view(),
+        name="feature_delete",
+    ),
+    path("dashboard/tags/", views.TagListView.as_view(), name="tag_list"),
+    path("dashboard/tags/<int:pk>/", views.TagDetailView.as_view(), name="tag_detail"),
+    path("dashboard/tags/create/", views.TagCreateView.as_view(), name="tag_create"),
+    path(
+        "dashboard/tags/<int:pk>/delete/",
+        views.TagDeleteView.as_view(),
+        name="tag_delete",
     ),
 ]

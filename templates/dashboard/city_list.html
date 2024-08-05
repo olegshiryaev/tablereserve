@@ -1,0 +1,183 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+{% block content %}
+<div class="container-fluid p-0">
+  <h1 class="h3 mb-3">{{ title }}</h1>
+  <div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#cityCreateModal">Добавить город</button>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th style="width:5%">#</th>
+                        <th style="width:30%">Название</th>
+                        <th style="width:30%">URL</th>
+                        <th style="width:15%">Заведения</th>
+                        <th style="width:20%">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for city in object_list %}
+                            <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td><a href="{% url 'dashboard:city_detail' city.pk %}">{{ city.name }}</a></td>
+                            <td>{{ city.slug }}</td>
+                            <td>{{ city.place_count }}</td>
+                            <td>
+                                <a class="btn btn-info btn-sm" href="{% url 'dashboard:city_detail' city.pk %}">Посмотреть</a>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cityDeleteModal" data-city-id="{{ city.id }}" data-city-name="{{ city.name }}">Удалить</button>
+                            </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Creating City -->
+<div class="modal fade" id="cityCreateModal" tabindex="-1" aria-labelledby="cityCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cityCreateModalLabel">Добавить город</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="cityCreateForm" method="post" action="{% url 'dashboard:city_create' %}">
+              {% csrf_token %}
+              <div id="formErrors" class="alert alert-danger" role="alert" style="display: none;">
+                <div class="alert-message"></div>
+              </div>
+              <div class="mb-3">
+                  {{ city_create_form.name.label_tag }}
+                  {{ city_create_form.name|add_class:"form-control" }}
+              </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-success" id="saveCityButton">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<!-- Modal for Deleting City -->
+<div class="modal fade" id="cityDeleteModal" tabindex="-1" aria-labelledby="cityDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cityDeleteModalLabel">Удалить город</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Вы уверены, что хотите удалить <strong id="cityName"></strong>?</p>
+          <form id="cityDeleteForm" method="post" action="">
+              {% csrf_token %}
+              <input type="hidden" id="deleteCityId" name="deleteCityId">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-danger" id="deleteCityButton">Удалить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle city creation form submission
+        document.getElementById('saveCityButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            var form = document.getElementById('cityCreateForm');
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', form.getAttribute('action'));
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    var errorDiv = document.getElementById('formErrors');
+                    var errorMessageDiv = errorDiv.querySelector('.alert-message');
+
+                    if (response.success) {
+                        // Hide the modal and reload the page on success
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('cityCreateModal'));
+                        modal.hide();
+                        window.location.reload();
+                    } else {
+                        // Display form errors
+                        errorMessageDiv.innerHTML = ''; // Clear previous errors
+                        for (var field in response.errors) {
+                            if (response.errors.hasOwnProperty(field)) {
+                                var errorList = response.errors[field];
+                                errorList.forEach(function(error) {
+                                    var errorItem = document.createElement('div');
+                                    errorItem.textContent = error;
+                                    errorMessageDiv.appendChild(errorItem);
+                                });
+                            }
+                        }
+                        errorDiv.style.display = 'block'; // Show the error container
+                    }
+                } else {
+                    // Handle server errors or unexpected responses
+                    console.error('An error occurred while submitting the form.');
+                }
+            };
+            xhr.send(formData);
+        });
+
+        // Handle city deletion form submission
+        document.getElementById('cityDeleteModal').addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var cityId = button.getAttribute('data-city-id');
+            var cityName = button.getAttribute('data-city-name');
+            
+            document.getElementById('cityName').textContent = cityName;
+            document.getElementById('cityDeleteForm').setAttribute('action', '{% url "dashboard:city_delete" 0 %}'.replace('0', cityId));
+        });
+
+        document.getElementById('deleteCityButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            var form = document.getElementById('cityDeleteForm');
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', form.getAttribute('action'));
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('cityDeleteModal'));
+                    modal.hide();
+                    window.location.reload();
+                } else {
+                    // Handle server errors or unexpected responses
+                    console.error('An error occurred while deleting the city.');
+                }
+            };
+            xhr.send(formData);
+        });
+    });
+</script>
+{% endblock %}

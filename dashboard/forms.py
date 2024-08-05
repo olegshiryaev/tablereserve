@@ -1,6 +1,15 @@
 # forms.py
 from django import forms
-from reservations.models import Place, PlaceImage, PlaceUpdateRequest, Reservation
+from reservations.models import (
+    City,
+    Cuisine,
+    Feature,
+    Place,
+    PlaceImage,
+    PlaceUpdateRequest,
+    Reservation,
+    Tag,
+)
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -87,9 +96,13 @@ class PlaceForm(forms.ModelForm):
             )
 
     def clean_phone(self):
-        phone = self.cleaned_data.get("phone", "")
-        if not phone.startswith("+7"):
-            phone = "+7" + phone.lstrip("+7")  # Добавление +7 к номеру, если его нет
+        phone = self.cleaned_data.get("phone", "").strip()
+        if phone and not phone.startswith("+7"):
+            phone = "+7" + phone.lstrip("+7")
+        if len(phone) < 12:
+            raise forms.ValidationError(
+                "Номер телефона должен быть не менее 12 символов."
+            )
         return phone
 
 
@@ -192,3 +205,73 @@ class PlaceImageForm(forms.ModelForm):
     class Meta:
         model = PlaceImage
         fields = ["image", "is_cover"]
+
+
+class CityCreateForm(forms.ModelForm):
+    class Meta:
+        model = City
+        fields = ["name"]
+
+
+class CityUpdateForm(forms.ModelForm):
+    class Meta:
+        model = City
+        fields = ["name", "slug"]
+
+
+class CityForm(forms.ModelForm):
+    class Meta:
+        model = City
+        fields = ["name", "slug"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "slug": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+
+class CuisineCreateForm(forms.ModelForm):
+    class Meta:
+        model = Cuisine
+        fields = ["name"]
+
+
+class CuisineForm(forms.ModelForm):
+    class Meta:
+        model = Cuisine
+        fields = ["name", "slug"]
+
+
+class FeatureCreateForm(forms.ModelForm):
+    class Meta:
+        model = Feature
+        fields = ["name"]  # Поля, которые будут отображаться в форме
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+        }
+        labels = {
+            "name": "Название особенности",
+        }
+
+
+class FeatureForm(forms.ModelForm):
+    class Meta:
+        model = Feature
+        fields = ["name", "slug"]
+
+
+class TagCreateForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ["name"]  # Поля, которые будут отображаться в форме
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+        }
+        labels = {
+            "name": "Название особенности",
+        }
+
+
+class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ["name", "slug"]

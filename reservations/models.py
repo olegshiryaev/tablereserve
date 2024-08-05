@@ -30,12 +30,6 @@ def upload_to_city_image(instance, filename):
 
 class City(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Город")
-    image = models.ImageField(
-        upload_to=upload_to_city_image,
-        verbose_name="Изображение",
-        null=True,
-        blank=True,
-    )
     slug = models.SlugField(
         max_length=100, unique=True, blank=True, verbose_name="Уникальный идентификатор"
     )
@@ -67,6 +61,9 @@ class Cuisine(models.Model):
 
 class Feature(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Особенность")
+    slug = models.SlugField(
+        max_length=100, blank=True, verbose_name="Уникальный идентификатор"
+    )
 
     def __str__(self):
         return self.name
@@ -310,7 +307,9 @@ class Place(models.Model):
         validators=[EmailValidator],
     )
     website = models.URLField(blank=True, verbose_name="Веб-сайт")
-    cuisines = models.ManyToManyField(Cuisine, blank=True, verbose_name="Кухни")
+    cuisines = models.ManyToManyField(
+        Cuisine, related_name="places", blank=True, verbose_name="Кухни"
+    )
     description = models.TextField(null=True, blank=True, verbose_name="Описание")
     short_description = models.CharField(
         max_length=255, null=True, blank=True, verbose_name="Краткое описание"
@@ -319,7 +318,7 @@ class Place(models.Model):
         default=0, null=True, blank=True, verbose_name="Средний чек"
     )
     features = models.ManyToManyField(
-        Feature, blank=True, verbose_name="Особенности заведения"
+        Feature, related_name="places", blank=True, verbose_name="Особенности заведения"
     )
     tags = models.ManyToManyField(
         Tag, blank=True, related_name="places", verbose_name="Теги"
@@ -419,6 +418,7 @@ class Place(models.Model):
 
 @receiver(pre_save, sender=City)
 @receiver(pre_save, sender=Cuisine)
+@receiver(pre_save, sender=Feature)
 @receiver(pre_save, sender=Tag)
 @receiver(pre_save, sender=PlaceType)
 @receiver(pre_save, sender=Place)

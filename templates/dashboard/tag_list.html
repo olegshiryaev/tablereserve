@@ -1,0 +1,180 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+{% block content %}
+<div class="container-fluid p-0">
+  <h1 class="h3 mb-3">{{ title }}</h1>
+  <div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#tagCreateModal">Добавить тег</button>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th style="width:5%">#</th>
+                        <th style="width:30%">Название</th>
+                        <th style="width:30%">URL</th>
+                        <th style="width:20%">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for tag in object_list %}
+                            <tr>
+                                <th scope="row">{{ forloop.counter }}</th>
+                                <td><a href="{% url 'dashboard:tag_detail' tag.pk %}">{{ tag.name }}</a></td>
+                                <td>{{ tag.slug }}</td>
+                                <td>
+                                    <a class="btn btn-info btn-sm" href="{% url 'dashboard:tag_detail' tag.pk %}">Посмотреть</a>
+                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#tagDeleteModal" data-tag-id="{{ tag.id }}" data-tag-name="{{ tag.name }}">Удалить</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Creating Tag -->
+<div class="modal fade" id="tagCreateModal" tabindex="-1" aria-labelledby="tagCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tagCreateModalLabel">Добавить тег</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="tagCreateForm" method="post" action="{% url 'dashboard:tag_create' %}">
+              {% csrf_token %}
+              <div id="formErrors" class="alert alert-danger" role="alert" style="display: none;">
+                <div class="alert-message"></div>
+              </div>
+              <div class="mb-3">
+                  {{ tag_create_form.name.label_tag }}
+                  {{ tag_create_form.name|add_class:"form-control" }}
+              </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-success" id="saveTagButton">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Modal for Deleting Tag -->
+<div class="modal fade" id="tagDeleteModal" tabindex="-1" aria-labelledby="tagDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tagDeleteModalLabel">Удалить тег</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Вы уверены, что хотите удалить <strong id="tagName"></strong>?</p>
+          <form id="tagDeleteForm" method="post" action="">
+              {% csrf_token %}
+              <input type="hidden" id="deleteTagId" name="deleteTagId">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-danger" id="deleteTagButton">Удалить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle tag creation form submission
+        document.getElementById('saveTagButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            var form = document.getElementById('tagCreateForm');
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', form.getAttribute('action'));
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    var errorDiv = document.getElementById('formErrors');
+                    var errorMessageDiv = errorDiv.querySelector('.alert-message');
+
+                    if (response.success) {
+                        // Hide the modal and reload the page on success
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('tagCreateModal'));
+                        modal.hide();
+                        window.location.reload();
+                    } else {
+                        // Display form errors
+                        errorMessageDiv.innerHTML = ''; // Clear previous errors
+                        for (var field in response.errors) {
+                            if (response.errors.hasOwnProperty(field)) {
+                                var errorList = response.errors[field];
+                                errorList.forEach(function(error) {
+                                    var errorItem = document.createElement('div');
+                                    errorItem.textContent = error;
+                                    errorMessageDiv.appendChild(errorItem);
+                                });
+                            }
+                        }
+                        errorDiv.style.display = 'block'; // Show the error container
+                    }
+                } else {
+                    // Handle server errors or unexpected responses
+                    console.error('An error occurred while submitting the form.');
+                }
+            };
+            xhr.send(formData);
+        });
+
+        // Handle tag deletion form submission
+        document.getElementById('tagDeleteModal').addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var tagId = button.getAttribute('data-tag-id');
+            var tagName = button.getAttribute('data-tag-name');
+            
+            document.getElementById('tagName').textContent = tagName;
+            document.getElementById('tagDeleteForm').setAttribute('action', '{% url "dashboard:tag_delete" 0 %}'.replace('0', tagId));
+        });
+
+        document.getElementById('deleteTagButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            var form = document.getElementById('tagDeleteForm');
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', form.getAttribute('action'));
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('tagDeleteModal'));
+                    modal.hide();
+                    window.location.reload();
+                } else {
+                    // Handle server errors or unexpected responses
+                    console.error('An error occurred while deleting the tag.');
+                }
+            };
+            xhr.send(formData);
+        });
+    });
+</script>
+{% endblock %}

@@ -116,6 +116,14 @@ class PlaceImage(models.Model):
         related_name="images",
         verbose_name="Заведение",
     )
+    hall = models.ForeignKey(
+        "Hall",
+        on_delete=models.SET_NULL,
+        related_name="images",
+        verbose_name="Зал",
+        null=True,
+        blank=True,
+    )
     image = models.ImageField(
         upload_to=upload_to_instance_directory,
         verbose_name="Изображение",
@@ -127,6 +135,7 @@ class PlaceImage(models.Model):
         blank=True, null=True, verbose_name="Код для встраивания видео"
     )
     is_cover = models.BooleanField(default=False, verbose_name="Обложка")
+    description = models.TextField(blank=True, null=True, verbose_name="Описание")
     upload_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
 
     def __str__(self):
@@ -152,7 +161,7 @@ class PlaceImage(models.Model):
             return mark_safe(self.embed_code)
         elif self.video_url:
             return mark_safe(
-                f'<iframe width="560" height="315" src="{self.video_url}" frameborder="0" allowfullscreen></iframe>'
+                f'<iframe width="840" height="560" src="{self.video_url}" frameborder="0" allowfullscreen></iframe>'
             )
         elif self.image:
             return mark_safe(f'<img src="{self.image.url}" alt="{self.place.name}" />')
@@ -427,13 +436,13 @@ def pre_save_slug(sender, instance, *args, **kwargs):
         instance.slug = slugify(instance.name)
 
 
-class Sector(models.Model):
-    SECTOR_TYPE_CHOICES = [
+class Hall(models.Model):
+    HALL_KIND_CHOICES = [
         ("real", "Реальный"),
         ("virtual", "Виртуальный"),
     ]
 
-    ZONE_CHOICES = [
+    HALL_TYPE_CHOICES = [
         ("outdoor", "На улице"),
         ("panoramic_windows", "Панорамные окна"),
         ("terrace", "Терраса"),
@@ -443,37 +452,45 @@ class Sector(models.Model):
         ("booth", "Кабинка"),
     ]
 
-    name = models.CharField(max_length=100, verbose_name="Название сектора")
+    name = models.CharField(max_length=100, verbose_name="Название зала")
     place = models.ForeignKey(
         Place,
         on_delete=models.CASCADE,
         related_name="sectors",
         verbose_name="Заведение",
     )
-    type = models.CharField(
+    kind = models.CharField(
         max_length=10,
-        choices=SECTOR_TYPE_CHOICES,
+        choices=HALL_KIND_CHOICES,
         default="real",
-        verbose_name="Тип сектора",
+        verbose_name="Вид",
     )
-    zone = models.CharField(max_length=20, choices=ZONE_CHOICES, verbose_name="Зона")
-    image = models.ImageField(
-        upload_to="sector_images/",
-        null=True,
-        blank=True,
-        verbose_name="Изображение сектора",
+    hall_type = models.CharField(
+        max_length=20, choices=HALL_TYPE_CHOICES, verbose_name="Тип зала"
     )
     description = models.TextField(null=True, blank=True, verbose_name="Описание")
+    number_of_seats = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Количество посадочных мест"
+    )
+    area = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Площадь (м²)",
+    )
 
     class Meta:
-        verbose_name = "Сектор"
-        verbose_name_plural = "Сектора"
+        verbose_name = "Зал"
+        verbose_name_plural = "Залы"
         unique_together = (
             ("place", "name"),
         )  # Сектора должны быть уникальны в рамках одного заведения
 
     def __str__(self):
-        return f"{self.name} ({self.get_type_display()} - {self.get_zone_display()})"
+        return (
+            f"{self.name} ({self.get_kind_display()} - {self.get_hall_type_display()})"
+        )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

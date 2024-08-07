@@ -16,7 +16,7 @@ from .models import (
     Review,
     Reservation,
     ReviewImage,
-    Sector,
+    Hall,
     Table,
     Tag,
     WorkSchedule,
@@ -65,8 +65,8 @@ class WorkScheduleInline(admin.TabularInline):
     max_num = 7
 
 
-class SectorInline(admin.TabularInline):
-    model = Sector
+class HallInline(admin.TabularInline):
+    model = Hall
     extra = 1  # Количество пустых форм для добавления новых секторов
 
 
@@ -109,7 +109,7 @@ class PlaceAdmin(admin.ModelAdmin):
     )
     search_fields = ("name", "city__name", "address", "phone", "tags__name")
     list_filter = ("city", "type", "is_active")
-    inlines = [WorkScheduleInline, FeatureInline, SectorInline, PlaceImageInline]
+    inlines = [WorkScheduleInline, FeatureInline, HallInline, PlaceImageInline]
     filter_horizontal = (
         "tags",
         "cuisines",
@@ -213,11 +213,28 @@ class TableAdmin(admin.ModelAdmin):
     list_filter = ("place",)
 
 
-@admin.register(Sector)
-class SectorAdmin(admin.ModelAdmin):
-    list_display = ("name", "place", "type", "zone")
+@admin.register(Hall)
+class HallAdmin(admin.ModelAdmin):
+    list_display = ("name", "place", "kind", "hall_type", "number_of_seats", "area")
     search_fields = ("name", "place__name")
-    list_filter = ("place", "type", "zone")
+    list_filter = ("place", "kind", "hall_type")
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "place",
+                    "kind",
+                    "hall_type",
+                    "number_of_seats",
+                    "area",
+                    "description",
+                )
+            },
+        ),
+    )
 
 
 @admin.register(Reservation)

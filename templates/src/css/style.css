@@ -115,15 +115,33 @@ header .logo {
 
 .hamburger {
     display: none;
-    flex-direction: column;
     cursor: pointer;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 21px;
+    z-index: 1001;
 }
 
 .hamburger span {
-    width: 25px;
+    display: block;
+    width: 100%;
     height: 3px;
-    background-color: #000;
-    margin: 4px 0;
+    background-color: #333;
+    transition: 0.4s;
+}
+
+/* Анимация для открытия и закрытия гамбургер-меню */
+.hamburger.active span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
 }
 
 header.scrolled {
@@ -235,7 +253,7 @@ header.scrolled {
 }
 
 .modal-content {
-    background-color: #fff;
+    background-color: #fefefe;
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
@@ -243,6 +261,7 @@ header.scrolled {
     max-width: 500px;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
 }
 
 .close {
@@ -259,43 +278,63 @@ header.scrolled {
     cursor: pointer;
 }
 
-#loginForm {
+/* Стили для заголовка модального окна */
+.modal h2 {
+    margin-top: 0; /* Убираем отступ сверху */
+    font-size: 24px; /* Размер шрифта */
+}
+
+/* Стили для форм внутри модального окна */
+.modal form {
     display: flex;
     flex-direction: column;
 }
 
-#loginForm h2 {
-    margin-bottom: 15px;
-    font-size: 1.5rem;
+/* Стили для меток (label) */
+.modal label {
+    margin-top: 10px;
+    margin-bottom: 5px;
     font-weight: bold;
 }
 
-#loginForm label {
-    margin-bottom: 5px;
-    font-weight: 600;
+/* Стили для полей ввода */
+.modal input[type="text"],
+.modal input[type="email"],
+.modal input[type="password"] {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc; /* Цвет границы */
+    border-radius: 4px; /* Скругление углов */
+    width: 100%; /* Полная ширина */
+    box-sizing: border-box; /* Включаем padding и border в общую ширину */
 }
 
-#loginForm input {
-    margin-bottom: 15px;
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+/* Стили для кнопок */
+.modal button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    border: none; /* Убираем границы */
+    border-radius: 4px; /* Скругление углов */
+    cursor: pointer; /* Курсор в виде руки */
+    font-size: 1rem; /* Размер шрифта */
 }
 
 .login-modal-btn {
     background-color: #007bff;
     color: #fff;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
 }
 
 .login-modal-btn:hover {
     background-color: #0056b3;
+}
+
+.register-modal-btn {
+    background-color: #008CBA; /* Синий цвет фона */
+    color: white; /* Белый цвет текста */
+}
+
+.register-modal-btn:hover {
+    background-color: #007bb5; /* Темнее при наведении */
 }
 
 .popular-restaurants, .upcoming-events, .special-offers, .how-it-works, .reviews {
@@ -811,31 +850,36 @@ footer a:hover {
         margin-top: 60px;
     }
 
-    .navbar-nav {
-        display: none;
-        flex-direction: column;
-        width: 100%;
-        background-color: #383838;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        z-index: 1000;
-    }
-
-    .navbar-nav li {
-        margin: 10px 0;
-    }
-
-    .navbar-nav a {
-        color: #fff;
-    }
-
     .hamburger {
         display: flex;
     }
 
-    .hamburger.active + .navbar-nav {
+    nav {
+        position: fixed;
+        top: 70px; /* Положение под навбаром, измените значение в зависимости от высоты навбара */
+        right: -250px; /* Начальное положение за пределами экрана */
+        width: 250px;
+        height: calc(100% - 70px); /* Высота экрана минус высота навбара */
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        transition: right 0.3s ease;
+        z-index: 1000; /* Убедитесь, что меню всегда сверху */
+    }
+
+    nav.active {
+        right: 0; /* Положение, когда меню открыто */
+    }
+
+    .navbar-nav {
         display: flex;
+        flex-direction: column;
+        width: 100%;
+        text-align: left;
+        padding: 20px;
+    }
+
+    .navbar-nav .nav-item {
+        margin: 10px 0;
     }
 
     .popular-restaurants .places-cards {

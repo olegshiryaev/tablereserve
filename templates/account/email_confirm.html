@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block navbar %}
+    {% include 'components/navbar.html' %}
+{% endblock %}
+{% block footer %}
+    {% include 'components/footer.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h2>{% trans "Подтверждение адреса электронной почты" %}</h2>
+<p>{% blocktrans %}Пожалуйста, подтвердите ваш адрес электронной почты, перейдя по ссылке, отправленной вам на почту.{% endblocktrans %}</p>
+<p>{% blocktrans %}Ваш адрес электронной почты: {{ email }}{% endblocktrans %}</p>
+<a href="{% url 'account_confirm_email' key=confirmation_key %}">{% trans "Подтвердить" %}</a>
+{% endblock %}

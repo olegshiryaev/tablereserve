@@ -1,0 +1,16 @@
+<form method="post" action="{% url 'account_signup' %}">
+    {% csrf_token %}
+    <div>
+        <label for="id_name">Имя:</label>
+        {{ form.name }}
+    </div>
+    <div>
+        <label for="id_email">Email:</label>
+        {{ form.email }}
+    </div>
+    <div>
+        <label for="id_password1">Пароль:</label>
+        {{ form.password1 }}
+    </div>
+    <button type="submit">Регистрация</button>
+</form>

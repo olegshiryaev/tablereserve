@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 import os
 import random
 from django.db import models
@@ -456,7 +456,7 @@ class Hall(models.Model):
     place = models.ForeignKey(
         Place,
         on_delete=models.CASCADE,
-        related_name="sectors",
+        related_name="halls",
         verbose_name="Заведение",
     )
     kind = models.CharField(
@@ -553,12 +553,41 @@ class WorkSchedule(models.Model):
 
 
 class Table(models.Model):
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name="tables")
-    number = models.CharField(max_length=60, verbose_name="Тип столика")
-    capacity = models.IntegerField(default=4, verbose_name="Вместимость")
+    BOOKING_PAYMENT_CHOICES = [
+        ("advance", "Аванс"),
+        ("no_advance", "Без аванса"),
+    ]
+    hall = models.ForeignKey(
+        Hall, on_delete=models.CASCADE, related_name="tables", verbose_name="Зал"
+    )
+    name = models.CharField(max_length=100, verbose_name="Наименование столика")
+    seats = models.PositiveIntegerField(default=4, verbose_name="Количество мест")
+    photo = models.ImageField(
+        upload_to="table_photos/", verbose_name="Фото столика", null=True, blank=True
+    )
+    min_booking_seats = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        default=2,
+        verbose_name="Минимальное количество мест для бронирования",
+    )  # Значение по умолчанию: 2 места
+    min_booking_period = models.DurationField(
+        default=timedelta(hours=1), verbose_name="Минимальный период бронирования"
+    )
+    max_booking_period = models.DurationField(
+        default=timedelta(hours=3), verbose_name="Максимальный период бронирования"
+    )
+    booking_payment = models.CharField(
+        max_length=10,
+        choices=BOOKING_PAYMENT_CHOICES,
+        default="no_advance",
+        verbose_name="Оплата бронирования",
+    )
+    booking_interval = models.DurationField(
+        default=timedelta(minutes=30), verbose_name="Период между бронированиями"
+    )  # Значение по умолчанию: 30 минут
 
     def __str__(self):
-        return f"Table {self.number} - {self.place.name}"
+        return f"{self.name} ({self.hall.name})"
 
     class Meta:
         verbose_name = "Столик"
@@ -574,20 +603,31 @@ class Reservation(models.Model):
     number = models.CharField(
         max_length=6, unique=True, editable=False, verbose_name="Номер заказа"
     )
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, verbose_name="Заведение")
+    place = models.ForeignKey(
+        Place,
+        on_delete=models.CASCADE,
+        related_name="reservations",
+        verbose_name="Заведение",
+    )
     table = models.ForeignKey(
-        Table, null=True, blank=True, on_delete=models.SET_NULL, verbose_name="Столик"
+        Table,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="reservations",
+        verbose_name="Столик",
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        related_name="reservations",
         blank=True,
         null=True,
         verbose_name="Пользователь",
     )
     date = models.DateField(null=True, blank=True, verbose_name="Дата бронирования")
     time = models.TimeField(null=True, blank=True, verbose_name="Время бронирования")
-    guests = models.IntegerField(
+    guests = models.PositiveIntegerField(
         validators=[MinValueValidator(1)], verbose_name="Количество гостей"
     )
     wishes = models.TextField(blank=True, verbose_name="Пожелания")

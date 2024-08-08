@@ -39,68 +39,100 @@
             const userDropdownMenu = document.getElementById('userDropdownMenu');
             const loginButton = document.getElementById('loginButton');
             const loginPopover = document.getElementById('loginPopover');
-        
-            const modal = document.getElementById('loginModal');
-            const modalClose = document.querySelector('.modal .close');
+            
+            const loginModal = document.getElementById('loginModal');
+            const registerModal = document.getElementById('registerModal');
+            const modalCloseButtons = document.querySelectorAll('.modal .close');
             const loginPopoverBtn = document.querySelector('.login-popover-btn');
-        
-            if (cityDropdownToggle) {
+            const emailInput = document.getElementById('email');
+            const regNameInput = document.getElementById('regName');
+            const registerButton = document.getElementById('registerButton');
+            
+            // Обработчик для раскрывающегося меню города
+            if (cityDropdownToggle && cityDropdownMenu) {
                 cityDropdownToggle.addEventListener('click', function(event) {
                     event.preventDefault();
                     cityDropdownMenu.classList.toggle('show');
                 });
             }
         
-            if (userDropdownToggle) {
+            // Обработчик для раскрывающегося меню пользователя
+            if (userDropdownToggle && userDropdownMenu) {
                 userDropdownToggle.addEventListener('click', function(event) {
                     event.preventDefault();
                     userDropdownMenu.classList.toggle('show');
                 });
             }
         
+            // Обработчик для кнопки входа
             if (loginButton && loginPopover) {
                 loginButton.addEventListener('click', function(event) {
-                    event.stopPropagation(); // Остановка распространения события клика
-                    if (loginPopover.style.display === 'block') {
-                        loginPopover.style.display = 'none'; // Скрываем popover, если он уже отображается
-                    } else {
-                        loginPopover.style.display = 'block'; // Показываем popover, если он скрыт
-                    }
+                    event.stopPropagation();
+                    loginPopover.style.display = (loginPopover.style.display === 'block') ? 'none' : 'block';
                 });
         
                 document.addEventListener('click', function(event) {
-                    if (!cityDropdownToggle.contains(event.target) && !cityDropdownMenu.contains(event.target)) {
+                    if (cityDropdownToggle && cityDropdownMenu &&
+                        !cityDropdownToggle.contains(event.target) && !cityDropdownMenu.contains(event.target)) {
                         cityDropdownMenu.classList.remove('show');
                     }
-                    if (!userDropdownToggle.contains(event.target) && !userDropdownMenu.contains(event.target)) {
+                    if (userDropdownToggle && userDropdownMenu &&
+                        !userDropdownToggle.contains(event.target) && !userDropdownMenu.contains(event.target)) {
                         userDropdownMenu.classList.remove('show');
                     }
                     if (!loginButton.contains(event.target) && !loginPopover.contains(event.target)) {
-                        loginPopover.style.display = 'none'; // Скрываем popover при клике вне его
+                        loginPopover.style.display = 'none';
                     }
                 });
             }
         
-            // Обработчик для кнопки в popover, чтобы открыть модальное окно
+            // Обработчик для кнопки в popover, чтобы открыть модальное окно входа
             if (loginPopoverBtn) {
                 loginPopoverBtn.addEventListener('click', function(event) {
                     event.preventDefault();
-                    loginPopover.style.display = 'none'; // Скрываем popover
-                    modal.style.display = 'block'; // Открываем модальное окно
+                    loginPopover.style.display = 'none';
+                    loginModal.style.display = 'block';
+                    if (emailInput) {
+                        emailInput.focus();
+                    }
                 });
             }
         
-            // Обработчик для закрытия модального окна
-            if (modalClose) {
-                modalClose.addEventListener('click', function() {
-                    modal.style.display = 'none';
+            // Обработчик для кнопки "Зарегистрироваться" в окне входа
+            if (registerButton) {
+                registerButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    loginModal.style.display = 'none';
+                    registerModal.style.display = 'block';
+                    if (regNameInput) {
+                        regNameInput.focus();
+                    }
                 });
             }
         
-            // Закрытие модального окна при клике вне его
+            // Обработчики для закрытия модальных окон
+            modalCloseButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    loginModal.style.display = 'none';
+                    registerModal.style.display = 'none';
+                });
+            });
+        
+            // Закрытие модальных окон при клике вне их
             window.addEventListener('click', function(event) {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
+                if (event.target === loginModal) {
+                    loginModal.style.display = 'none';
+                }
+                if (event.target === registerModal) {
+                    registerModal.style.display = 'none';
+                }
+            });
+        
+            // Закрытие модальных окон по нажатию клавиши Esc
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    loginModal.style.display = 'none';
+                    registerModal.style.display = 'none';
                 }
             });
         });
@@ -108,19 +140,20 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.querySelector('.hamburger');
-            const menu = document.querySelector('.menu');
-        
+            var hamburger = document.querySelector('.hamburger');
+            var nav = document.querySelector('nav');
+    
             hamburger.addEventListener('click', function() {
-                menu.classList.toggle('active');
+                hamburger.classList.toggle('active');
+                nav.classList.toggle('active');
+                hamburger.setAttribute('aria-expanded', nav.classList.contains('active'));
             });
-        
-            window.addEventListener('scroll', function() {
-                const header = document.querySelector('header');
-                if (window.scrollY > 0) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
+    
+            document.addEventListener('click', function(event) {
+                if (!nav.contains(event.target) && !hamburger.contains(event.target)) {
+                    nav.classList.remove('active');
+                    hamburger.classList.remove('active');
+                    hamburger.setAttribute('aria-expanded', false);
                 }
             });
         });

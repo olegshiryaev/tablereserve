@@ -223,7 +223,7 @@ def handle_reservation(request, place, form_class, redirect_to):
         if form.is_valid():
             reservation = form.save(commit=False)
             reservation.place = place
-            reservation.user = request.user
+            reservation.user = request.user if request.user.is_authenticated else None
             reservation.save()
             messages.success(request, "Столик успешно забронирован!")
 
@@ -264,7 +264,7 @@ def place_detail(request, city_slug, place_slug):
         if reservation_form.is_valid():
             reservation = reservation_form.save(commit=False)
             reservation.place = place
-            reservation.user = request.user
+            reservation.user = request.user if request.user.is_authenticated else None
             reservation.save()
             request.session["reservation_successful"] = True
             return HttpResponseRedirect(

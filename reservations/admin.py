@@ -65,6 +65,11 @@ class WorkScheduleInline(admin.TabularInline):
     max_num = 7
 
 
+class TableInline(admin.TabularInline):
+    model = Table
+    extra = 0
+
+
 class HallInline(admin.TabularInline):
     model = Hall
     extra = 1  # Количество пустых форм для добавления новых секторов
@@ -207,17 +212,12 @@ class WorkScheduleAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related("place")
 
 
-@admin.register(Table)
-class TableAdmin(admin.ModelAdmin):
-    list_display = ("number", "place", "capacity")
-    list_filter = ("place",)
-
-
 @admin.register(Hall)
 class HallAdmin(admin.ModelAdmin):
     list_display = ("name", "place", "kind", "hall_type", "number_of_seats", "area")
     search_fields = ("name", "place__name")
     list_filter = ("place", "kind", "hall_type")
+    inlines = [TableInline]
 
     fieldsets = (
         (
@@ -237,6 +237,13 @@ class HallAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(Table)
+class TableAdmin(admin.ModelAdmin):
+    list_display = ("name", "hall", "seats", "min_booking_seats", "booking_payment")
+    search_fields = ("name", "hall__name", "hall__place__name")
+    list_filter = ("hall", "booking_payment")
+
+
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
     list_display = (
@@ -251,7 +258,7 @@ class ReservationAdmin(admin.ModelAdmin):
         "updated_at",
     )
     list_filter = ("place", "date")
-    search_fields = ("number", "user__username", "place__name", "table__number")
+    search_fields = ("number", "user__username", "place__name")
 
 
 @admin.register(Menu)

@@ -19,6 +19,11 @@
                 {% endfor %}
             </ul>
         </div>
+        <div class="hamburger" aria-expanded="false" aria-haspopup="true">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         <nav>
             <ul class="navbar-nav">
                 <li class="nav-item"><a class="nav-link" href="{% if selected_city %}{% url 'place_list' selected_city.slug %}{% else %}#{% endif %}">Места</a></li>
@@ -48,28 +53,42 @@
                     </li>
                 {% endif %}
             </ul>
-            <div class="hamburger" aria-expanded="false" aria-haspopup="true">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
         </nav>
     </div>
 </header>
 
-<!-- Модальное окно -->
+<!-- Модальное окно входа -->
 <div id="loginModal" class="modal" aria-hidden="true" aria-labelledby="loginModalTitle">
     <div class="modal-content">
         <span class="close" aria-label="Закрыть">&times;</span>
         <form method="POST" action="{% url 'account_login' %}" id="loginForm">
             {% csrf_token %}
-            <h2 id="loginModalTitle">Вход или регистрация</h2>
+            <h2 id="loginModalTitle">Вход</h2>
             <input type="hidden" name="next" value="{{ request.GET.next }}">
             <label for="email">Email</label>
             <input type="email" id="email" name="login" required>
             <label for="password">Пароль</label>
             <input type="password" id="password" name="password" required>
             <button type="submit" class="login-modal-btn">Войти</button>
+            <button type="button" id="registerButton" class="register-modal-btn">Зарегистрироваться</button>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно регистрации -->
+<div id="registerModal" class="modal" aria-hidden="true" aria-labelledby="registerModalTitle" style="display: none;">
+    <div class="modal-content">
+        <span class="close" aria-label="Закрыть">&times;</span>
+        <form method="POST" action="{% url 'account_signup' %}" id="registerForm">
+            {% csrf_token %}
+            <h2 id="registerModalTitle">Регистрация</h2>
+            <label for="regName">Имя</label>
+            <input type="text" id="regName" name="name" required>
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" name="email" required>
+            <label for="regPassword">Пароль</label>
+            <input type="password" id="regPassword" name="password1" required>
+            <button type="submit" class="register-modal-btn">Зарегистрироваться</button>
         </form>
     </div>
 </div>

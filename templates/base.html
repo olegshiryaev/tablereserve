@@ -47,7 +47,7 @@
             const emailInput = document.getElementById('email');
             const regNameInput = document.getElementById('regName');
             const registerButton = document.getElementById('registerButton');
-            
+        
             // Обработчик для раскрывающегося меню города
             if (cityDropdownToggle && cityDropdownMenu) {
                 cityDropdownToggle.addEventListener('click', function(event) {
@@ -64,27 +64,33 @@
                 });
             }
         
-            // Обработчик для кнопки входа
+            // Обработчик для кнопки входа и popover
             if (loginButton && loginPopover) {
                 loginButton.addEventListener('click', function(event) {
-                    event.stopPropagation();
-                    loginPopover.style.display = (loginPopover.style.display === 'block') ? 'none' : 'block';
+                    event.stopPropagation();  // Останавливаем всплытие события
+                    loginPopover.style.display = loginPopover.style.display === 'block' ? 'none' : 'block';
                 });
         
+                // Закрытие popover при клике вне его области
                 document.addEventListener('click', function(event) {
-                    if (cityDropdownToggle && cityDropdownMenu &&
-                        !cityDropdownToggle.contains(event.target) && !cityDropdownMenu.contains(event.target)) {
-                        cityDropdownMenu.classList.remove('show');
-                    }
-                    if (userDropdownToggle && userDropdownMenu &&
-                        !userDropdownToggle.contains(event.target) && !userDropdownMenu.contains(event.target)) {
-                        userDropdownMenu.classList.remove('show');
-                    }
-                    if (!loginButton.contains(event.target) && !loginPopover.contains(event.target)) {
+                    if (!loginPopover.contains(event.target) && !loginButton.contains(event.target)) {
                         loginPopover.style.display = 'none';
                     }
                 });
             }
+        
+            // Закрытие других выпадающих меню при клике вне их области
+            document.addEventListener('click', function(event) {
+                if (cityDropdownMenu && cityDropdownMenu.classList.contains('show') &&
+                    !cityDropdownToggle.contains(event.target) && !cityDropdownMenu.contains(event.target)) {
+                    cityDropdownMenu.classList.remove('show');
+                }
+        
+                if (userDropdownMenu && userDropdownMenu.classList.contains('show') &&
+                    !userDropdownToggle.contains(event.target) && !userDropdownMenu.contains(event.target)) {
+                    userDropdownMenu.classList.remove('show');
+                }
+            });
         
             // Обработчик для кнопки в popover, чтобы открыть модальное окно входа
             if (loginPopoverBtn) {

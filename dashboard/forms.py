@@ -37,6 +37,9 @@ class PlaceForm(forms.ModelForm):
             "telegram",
             "whatsapp",
             "vkontakte",
+            "odnoklassniki",
+            "contact_email",
+            "service_email",
             "website",
             "cuisines",
             "description",
@@ -50,50 +53,53 @@ class PlaceForm(forms.ModelForm):
             "manager",
         ]
         widgets = {
-            "type": forms.Select(attrs={"class": "form-control"}),
-            "name": forms.TextInput(attrs={"class": "form-control", "maxlength": 100}),
-            "city": forms.Select(attrs={"class": "form-control"}),
-            "street_type": forms.Select(attrs={"class": "form-control"}),
-            "street_name": forms.TextInput(
-                attrs={"class": "form-control", "maxlength": 255}
-            ),
-            "house_number": forms.TextInput(
-                attrs={"class": "form-control", "maxlength": 10}
-            ),
-            "phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "+7", "maxlength": 12}
-            ),
-            "facebook": forms.URLInput(attrs={"class": "form-control"}),
-            "instagram": forms.URLInput(attrs={"class": "form-control"}),
-            "telegram": forms.URLInput(attrs={"class": "form-control"}),
-            "whatsapp": forms.TextInput(
-                attrs={"class": "form-control", "maxlength": 12}
-            ),
-            "vkontakte": forms.URLInput(attrs={"class": "form-control"}),
-            "website": forms.URLInput(attrs={"class": "form-control"}),
+            "type": forms.Select(),
+            "name": forms.TextInput(attrs={"maxlength": 100}),
+            "city": forms.Select(),
+            "street_type": forms.Select(),
+            "street_name": forms.TextInput(attrs={"maxlength": 255}),
+            "house_number": forms.TextInput(attrs={"maxlength": 10}),
+            "phone": forms.TextInput(attrs={"placeholder": "+7", "maxlength": 12}),
+            "facebook": forms.URLInput(),
+            "instagram": forms.URLInput(),
+            "telegram": forms.URLInput(),
+            "whatsapp": forms.TextInput(attrs={"maxlength": 12}),
+            "vkontakte": forms.URLInput(),
+            "odnoklassniki": forms.URLInput(),
+            "contact_email": forms.EmailInput(),
+            "service_email": forms.EmailInput(),
+            "website": forms.URLInput(),
             "cuisines": forms.CheckboxSelectMultiple(),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "short_description": forms.TextInput(
-                attrs={"class": "form-control", "maxlength": 255}
-            ),
-            "average_check": forms.NumberInput(
-                attrs={"class": "form-control", "min": 0}
-            ),
+            "description": forms.Textarea(attrs={"rows": 3}),
+            "short_description": forms.TextInput(attrs={"maxlength": 255}),
+            "average_check": forms.NumberInput(attrs={"min": 0}),
             "features": forms.CheckboxSelectMultiple(),
-            "tags": forms.SelectMultiple(attrs={"class": "form-control"}),
-            "has_kids_room": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "capacity": forms.NumberInput(attrs={"class": "form-control"}),
-            "rating": forms.NumberInput(attrs={"class": "form-control"}),
-            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "manager": forms.SelectMultiple(attrs={"class": "form-control"}),
+            "tags": forms.SelectMultiple(),
+            "has_kids_room": forms.CheckboxInput(),
+            "capacity": forms.NumberInput(),
+            "is_active": forms.CheckboxInput(),
+            "manager": forms.SelectMultiple(),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Добавление общих классов к виджетам полей формы
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs["class"] = "form-check-input"
+            elif isinstance(field.widget, forms.SelectMultiple):
+                field.widget.attrs["class"] = "form-control"
+            elif not isinstance(field.widget, forms.CheckboxSelectMultiple):
+                field.widget.attrs["class"] = "form-control"
+
+        # Добавление класса 'is-invalid' к полям с ошибками
+        if self.errors.get(field_name):
+            field.widget.attrs["class"] += " is-invalid"
+
+        # Установка начального значения для нового объекта
         if not self.instance.pk and not self.initial.get("phone"):
-            self.fields["phone"].initial = (
-                "+7"  # Установка начального значения для нового объекта
-            )
+            self.fields["phone"].initial = "+7"
 
     def clean_phone(self):
         phone = self.cleaned_data.get("phone", "").strip()

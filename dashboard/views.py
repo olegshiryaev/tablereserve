@@ -68,7 +68,7 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = PlaceForm(instance=self.object)
+        context["form"] = kwargs.get("form", PlaceForm(instance=self.object))
         return context
 
     def post(self, request, *args, **kwargs):
@@ -82,7 +82,8 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
             form.save_m2m()  # Сохранение полей ManyToMany
             return redirect("dashboard:place_detail", slug=self.object.slug)
         else:
-            return self.render_to_response(self.get_context_data(form=form))
+            context = self.get_context_data(form=form)
+            return self.render_to_response(context)
 
 
 class PlaceCreateView(LoginRequiredMixin, CreateView):

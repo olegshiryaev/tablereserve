@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from django.utils.safestring import mark_safe
 import os
 import random
 from django.db import models
@@ -204,16 +205,16 @@ class Place(models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        verbose_name="Тип заведения",
+        verbose_name="Тип",
     )
     name = models.CharField(
-        max_length=100, unique=True, db_index=True, verbose_name="Название заведения"
+        max_length=100, unique=True, db_index=True, verbose_name="Название"
     )
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
         related_name="places",
-        verbose_name="Город заведения",
+        verbose_name="Город",
     )
     street_type = models.CharField(
         max_length=50,

@@ -39,3 +39,15 @@ def add_class(field, css_class):
 @register.filter
 def is_checkbox_select_multiple(field):
     return isinstance(field.field.widget, CheckboxSelectMultiple)
+
+
+@register.filter
+def split_list(value, chunk_size):
+    # Преобразуем значение в список, если оно не является списком
+    if hasattr(value, "__iter__") and not isinstance(value, list):
+        value = list(value)
+    if not isinstance(value, list):
+        raise ValueError("split_list filter expects a list.")
+
+    chunk_size = int(chunk_size)
+    return [value[i : i + chunk_size] for i in range(0, len(value), chunk_size)]

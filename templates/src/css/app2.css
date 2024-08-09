@@ -18,3 +18,23 @@
     background-color: #007bff;
     color: white;
 }
+
+.is-invalid {
+    border-color: #dc3545; /* Красная рамка */
+}
+
+.text-danger {
+    margin-top: 5px;
+    font-size: 0.875em; /* Меньший размер текста */
+    color: #dc3545; /* Красный цвет */
+}
+
+.form-check-input {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.form-check-label {
+    font-weight: 500;
+}

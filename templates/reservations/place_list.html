@@ -196,8 +196,10 @@
                     <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}">
                         <img src="{{ place.get_cover_image }}" alt="{{ place.name }}" class="place-image">
                         <div class="place-features">
-                            {% for feature in place.features.all %}
-                            <span class="feature">{{ feature.name }}</span>
+                            {% for feature in top_features %}
+                                {% if feature in place.features.all %}
+                                    <span class="feature">{{ feature.name }}</span>
+                                {% endif %}
                             {% endfor %}
                         </div>
                         <div class="place-details">

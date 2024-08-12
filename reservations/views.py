@@ -195,12 +195,15 @@ def place_list(request, city_slug):
         .order_by("-count")
     )
 
+    top_features = features[:2]
+
     # Получение корректной формы слова "место"
     place_word = get_place_word(shown_places)
 
     title = f"Рестораны, кафе и бары {city.name}а"
 
     context = {
+        "top_features": top_features,
         "places": places,
         "selected_city": city,
         "title": title,

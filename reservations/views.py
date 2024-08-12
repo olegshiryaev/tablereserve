@@ -173,22 +173,25 @@ def place_list(request, city_slug):
 
     # Получение доступных типов заведений для фильтрации
     place_types = (
-        PlaceType.objects.all()
+        PlaceType.objects.filter(places__city=city)
         .annotate(count=Count("places", filter=Q(places__city=city)))
+        .filter(count__gt=0)  # Исключаем типы заведений с 0 заведениями
         .order_by("-count")
     )
 
     # Получение доступных кухонь для фильтрации
     cuisines = (
-        Cuisine.objects.all()
+        Cuisine.objects.filter(places__city=city)
         .annotate(count=Count("places", filter=Q(places__city=city)))
+        .filter(count__gt=0)  # Исключаем кухни с 0 заведениями
         .order_by("-count")
     )
 
     # Получение доступных особенностей для фильтрации
     features = (
-        Feature.objects.all()
+        Feature.objects.filter(places__city=city)
         .annotate(count=Count("places", filter=Q(places__city=city)))
+        .filter(count__gt=0)  # Исключаем особенности с 0 заведениями
         .order_by("-count")
     )
 

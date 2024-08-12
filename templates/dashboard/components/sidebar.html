@@ -9,7 +9,7 @@
                 Меню
             </li>
 
-            <li class="sidebar-item {% if request.resolver_match.url_name == 'dashboard:place_list' %}active{% endif %}">
+            <li class="sidebar-item {% if request.resolver_match.url_name == 'place_list' %}active{% endif %}">
                 <a class="sidebar-link" href="{% url 'dashboard:place_list' %}">
                     <i class="align-middle" data-feather="grid"></i> <span class="align-middle">Заведения</span>
                 </a>
@@ -20,6 +20,39 @@
                     <i class="align-middle" data-feather="book"></i> <span class="align-middle">Бронирования</span>
                 </a>
             </li>
+
+            {% if user.is_superuser %}
+            <li class="sidebar-item {% if request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'cuisine_list' or request.resolver_match.url_name == 'feature_list' or request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'placetype_list' %}active{% endif %}">
+                <a data-bs-target="#directories" data-bs-toggle="collapse" class="sidebar-link {% if request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'cuisine_list' or request.resolver_match.url_name == 'feature_list' or request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'placetype_list' %}collapsed{% endif %}" aria-expanded="{% if request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'cuisine_list' or request.resolver_match.url_name == 'feature_list' %}true{% else %}false{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list align-middle">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg> 
+                    <span class="align-middle">Справочники</span>
+                </a>
+                <ul id="directories" class="sidebar-dropdown list-unstyled collapse {% if request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'cuisine_list' or request.resolver_match.url_name == 'feature_list' or request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'placetype_list' %}show{% endif %}" data-bs-parent="#sidebar">
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'city_list' %}active{% endif %}">
+                        <a class="sidebar-link" href="{% url 'dashboard:city_list' %}">Города</a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'cuisine_list' %}active{% endif %}">
+                        <a class="sidebar-link" href="{% url 'dashboard:cuisine_list' %}">Кухни</a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'feature_list' %}active{% endif %}">
+                        <a class="sidebar-link" href="{% url 'dashboard:feature_list' %}">Особенности</a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'tag_list' %}active{% endif %}">
+                        <a class="sidebar-link" href="{% url 'dashboard:tag_list' %}">Тэги</a>
+                    </li>
+                    <li class="sidebar-item {% if request.resolver_match.url_name == 'placetype_list' %}active{% endif %}">
+                        <a class="sidebar-link" href="{% url 'dashboard:placetype_list' %}">Типы заведений</a>
+                    </li>
+                </ul>
+            </li>
+            {% endif %}
         </ul>
     </div>
 </nav>

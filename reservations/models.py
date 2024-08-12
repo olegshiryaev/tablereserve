@@ -203,6 +203,7 @@ class Place(models.Model):
     type = models.ForeignKey(
         PlaceType,
         on_delete=models.SET_NULL,
+        related_name="places",
         blank=True,
         null=True,
         verbose_name="Тип",

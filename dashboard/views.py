@@ -14,6 +14,8 @@ from dashboard.forms import (
     PlaceCreationForm,
     PlaceForm,
     PlaceImageForm,
+    PlaceTypeCreateForm,
+    PlaceTypeForm,
     ReservationForm,
     TagCreateForm,
     TagForm,
@@ -551,7 +553,7 @@ class TagListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
     template_name = "dashboard/tag_list.html"
 
     def get_queryset(self):
-        return Tag.objects.order_by("name")
+        return Tag.objects.annotate(place_count=Count("places")).order_by("name")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -616,6 +618,100 @@ class TagDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
     success_url = reverse_lazy("dashboard:tag_list")
 
     def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return super().delete(request, *args, **kwargs)
+
+
+# Представление для списка городов
+class PlaceTypeListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
+    model = PlaceType  # Модель, используемая для представления
+    template_name = (
+        "dashboard/placetype_list.html"  # Шаблон для отображения списка городов
+    )
+
+    def get_queryset(self):
+        # Получаем все города с подсчетом количества заведений и сортируем по имени
+        return PlaceType.objects.annotate(place_count=Count("places")).order_by("name")
+
+    def get_context_data(self, **kwargs):
+        # Добавляем дополнительный контекст в шаблон
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Типы заведений"  # Заголовок страницы
+        context["placetype_create_form"] = (
+            PlaceTypeCreateForm()
+        )  # Форма для создания нового города
+        return context
+
+
+# Представление для деталей города
+class PlaceTypeDetailView(LoginRequiredMixin, AdminRequiredMixin, DetailView):
+    model = PlaceType
+    template_name = "dashboard/placetype_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = self.object.name
+        context["form"] = PlaceTypeForm(instance=self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = CityForm(request.POST, instance=self.object)
+        if form.is_valid():
+            form.save()
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"success": True})
+            return redirect("dashboard:placetype_detail", pk=self.object.pk)
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+        return render(
+            request,
+            self.template_name,
+            {
+                "object": self.object,
+                "form": form,
+                "title": f"City Detail: {self.object.name}",
+            },
+        )
+
+
+# Представление для создания нового города
+class PlaceTypeCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
+    model = PlaceType  # Модель, используемая для представления
+    form_class = PlaceTypeCreateForm  # Форма для создания нового города
+    template_name = "dashboard/placetype_form.html"  # Шаблон для формы создания города
+    success_url = reverse_lazy(
+        "dashboard:placetype_list"
+    )  # URL для перенаправления при успешном создании
+
+    def form_invalid(self, form):
+        # Обрабатываем случай, когда форма невалидна
+        response = super().form_invalid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": False, "errors": form.errors})
+        return response
+
+    def form_valid(self, form):
+        # Обрабатываем случай, когда форма валидна
+        response = super().form_valid(form)
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True})
+        return response
+
+
+# Представление для удаления города
+class PlaceTypeDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
+    model = PlaceType  # Модель, используемая для представления
+    template_name = "dashboard/placetype_confirm_delete.html"  # Шаблон для подтверждения удаления города
+    success_url = reverse_lazy(
+        "dashboard:placetype_list"
+    )  # URL для перенаправления после успешного удаления
+
+    def delete(self, request, *args, **kwargs):
+        # Обрабатываем DELETE-запрос для удаления города
         self.object = self.get_object()
         self.object.delete()
         if self.request.headers.get("x-requested-with") == "XMLHttpRequest":

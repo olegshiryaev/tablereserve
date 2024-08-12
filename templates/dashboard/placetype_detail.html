@@ -1,0 +1,74 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid p-0">
+    <div class="mb-3">
+      <h1 id="page-title" class="h3 d-inline align-middle">{{ title }}</h1>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <div id="view-mode" class="card mb-3">
+          <div class="card-body">
+            <p><strong>Название:</strong> {{ object.name }}</p>
+            <p><strong>URL:</strong> {{ object.slug }}</p>
+            <button id="edit-button" class="btn btn-warning">Изменить</button>
+          </div>
+        </div>
+
+        <div id="edit-mode" class="card mb-3" style="display:none;">
+          <div class="card-body">
+            <form id="edit-form" method="post" action="{% url 'dashboard:placetype_detail' object.pk %}">
+                {% csrf_token %}
+                <div id="formErrors" class="alert alert-danger" role="alert" style="display: none;">
+                    <div class="alert-message"></div>
+                </div>
+                <div class="row">
+                    <div class="mb-3 col-md-6">
+                        <div class="form-group">
+                            {{ form.name.label_tag }}
+                            {{ form.name|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    <div class="mb-3 col-md-6">
+                        <div class="form-group">
+                            {{ form.slug.label_tag }}
+                            {{ form.slug|add_class:"form-control" }}
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Сохранить</button>
+                <button id="cancel-button" type="button" class="btn btn-secondary">Отмена</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <a class="btn btn-secondary mb-3" href="{% url 'dashboard:placetype_list' %}">Назад</a>
+  </div>
+
+  <script>
+    document.getElementById('edit-button').addEventListener('click', function() {
+      document.getElementById('view-mode').style.display = 'none';
+      document.getElementById('edit-mode').style.display = 'block';
+    });
+    document.getElementById('cancel-button').addEventListener('click', function() {
+      document.getElementById('view-mode').style.display = 'block';
+      document.getElementById('edit-mode').style.display = 'none';
+    });
+  </script>
+{% endblock %}

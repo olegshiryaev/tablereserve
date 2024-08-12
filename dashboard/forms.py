@@ -6,6 +6,7 @@ from reservations.models import (
     Feature,
     Place,
     PlaceImage,
+    PlaceType,
     PlaceUpdateRequest,
     Reservation,
     Tag,
@@ -273,11 +274,29 @@ class TagCreateForm(forms.ModelForm):
             "name": forms.TextInput(attrs={"class": "form-control"}),
         }
         labels = {
-            "name": "Название особенности",
+            "name": "Тег",
         }
 
 
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
+        fields = ["name", "slug"]
+
+
+class PlaceTypeCreateForm(forms.ModelForm):
+    class Meta:
+        model = PlaceType
+        fields = ["name"]  # Поля, которые будут отображаться в форме
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+        }
+        labels = {
+            "name": "Тип заведения",
+        }
+
+
+class PlaceTypeForm(forms.ModelForm):
+    class Meta:
+        model = PlaceType
         fields = ["name", "slug"]

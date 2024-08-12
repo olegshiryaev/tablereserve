@@ -95,4 +95,24 @@ urlpatterns = [
         views.TagDeleteView.as_view(),
         name="tag_delete",
     ),
+    path(
+        "dashboard/placetypes/",
+        views.PlaceTypeListView.as_view(),
+        name="placetype_list",
+    ),
+    path(
+        "dashboard/placetypes/<int:pk>/",
+        views.PlaceTypeDetailView.as_view(),
+        name="placetype_detail",
+    ),
+    path(
+        "dashboard/placetypes/create/",
+        views.PlaceTypeCreateView.as_view(),
+        name="placetype_create",
+    ),
+    path(
+        "dashboard/placetypes/<int:pk>/delete/",
+        views.PlaceTypeDeleteView.as_view(),
+        name="placetype_delete",
+    ),
 ]

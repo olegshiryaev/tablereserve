@@ -54,141 +54,139 @@
 
         <!-- Содержимое вкладок -->
         <div class="tab-content" id="placeFormTabsContent">
-          <!-- Основная информация -->
-          <div class="tab-pane fade show active" id="basic-info" role="tabpanel" aria-labelledby="basic-info-tab">
-            <div class="row mb-3 mt-3">
-              <div class="col-xl-2">
-                  {{ form.type.label_tag }}
-                  {{ form.type }}
-                {% if form.type.errors %}
-                    <div class="text-danger mt-1">
-                    {{ form.type.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-xl-3">
-                {{ form.name.label_tag }}
-                {{ form.name }}
-                {% if form.name.errors %}
-                <div class="text-danger mt-1">
-                  {{ form.name.errors|join:" " }}
-                  </div>
-              {% endif %}
-            </div>
-              <div class="col-xl-3">
-                  {{ form.city.label_tag }}
-                  {{ form.city }}
-                  {% if form.city.errors %}
-                  <div class="text-danger mt-1">
-                    {{ form.city.errors|join:" " }}
-                    </div>
-                    {% endif %}
-              </div>
-              <div class="col-xl-2">
-                {{ form.average_check.label_tag }}
-                {{ form.average_check }}
-                {% if form.average_check.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.average_check.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-xl-2">
-                {{ form.capacity.label_tag }}
-                {{ form.capacity }}
-                {% if form.capacity.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.capacity.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="row mb-3 mt-3">
-              <div class="col-xl-2">
-                {{ form.street_type.label_tag }}
-                {{ form.street_type }}
-                {% if form.street_type.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.street_type.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-xl-3">
-                {{ form.street_name.label_tag }}
-                {{ form.street_name }}
-                {% if form.street_name.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.street_name.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-xl-2">
-                {{ form.house_number.label_tag }}
-                {{ form.house_number }}
-                {% if form.house_number.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.house_number.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-xl-2">
-                {{ form.phone.label_tag }}
-                {{ form.phone }}
-                {% if form.phone.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.phone.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-xl-3">
-                {{ form.website.label_tag }}
-                {{ form.website }}
-                {% if form.website.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.website.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="mb-3">
-                {{ form.description.label_tag }}
-                {{ form.description }}
-                {% if form.description.errors %}
-                <div class="text-danger mt-1">
-                          {{ form.description.errors|join:" " }}
-                      </div>
-                  {% endif %}
-              </div>
-              
-              <div class="mb-3">
-                {{ form.short_description.label_tag }}
-                {{ form.short_description }}
-                {% if form.short_description.errors %}
-                <div class="text-danger mt-1">
-                          {{ form.short_description.errors|join:" " }}
-                      </div>
-                  {% endif %}
-              </div>
-            </div>
-
-              <div class="row">
-                <div class="col-md-12">
-                    <label for="id_cuisines" class="form-label">Особенности:</label>
-                </div>
-                {% for group in form.features.field.choices|split_list:8 %}
-                    <div class="col-md-4">
-                        {% for option in group %}
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input type="checkbox" name="{{ form.features.name }}" value="{{ option.0 }}" {% if option.0 in form.features.value %}checked{% endif %}>
-                                    {{ option.1 }}
-                                </label>
+            <!-- Основная информация -->
+            <div class="tab-pane fade show active" id="basic-info" role="tabpanel" aria-labelledby="basic-info-tab">
+                <div class="row mb-3 mt-3">
+                    <div class="col-xl-2">
+                        {{ form.type.label_tag }}
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.type.errors|join:" " }}
                             </div>
-                        {% endfor %}
+                        {% endif %}
                     </div>
-                {% endfor %}
+                    <div class="col-xl-3">
+                        {{ form.name.label_tag }}
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.name.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-3">
+                        {{ form.city.label_tag }}
+                        {{ form.city }}
+                        {% if form.city.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.city.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-2">
+                        {{ form.average_check.label_tag }}
+                        {{ form.average_check }}
+                        {% if form.average_check.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.average_check.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-2">
+                        {{ form.capacity.label_tag }}
+                        {{ form.capacity }}
+                        {% if form.capacity.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.capacity.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-3 mt-3">
+                    <div class="col-xl-2">
+                        {{ form.street_type.label_tag }}
+                        {{ form.street_type }}
+                        {% if form.street_type.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.street_type.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-3">
+                        {{ form.street_name.label_tag }}
+                        {{ form.street_name }}
+                        {% if form.street_name.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.street_name.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-2">
+                        {{ form.house_number.label_tag }}
+                        {{ form.house_number }}
+                        {% if form.house_number.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.house_number.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-2">
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.phone.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-3">
+                        {{ form.website.label_tag }}
+                        {{ form.website }}
+                        {% if form.website.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.website.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.description.label_tag }}
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.description.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.short_description.label_tag }}
+                    {{ form.short_description }}
+                    {% if form.short_description.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.short_description.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="id_cuisines" class="form-label">Особенности:</label>
+                    </div>
+                    {% for group in form.features.field.choices|split_list:8 %}
+                        <div class="col-md-4">
+                            {% for option in group %}
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" name="{{ form.features.name }}" value="{{ option.0 }}" {% if option.0 in form.features.value %}checked{% endif %}>
+                                        {{ option.1 }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
                 </div>
                 <div class="row">
                     <div class="col-md-12">
@@ -209,144 +207,142 @@
                 </div>
                 <div class="row">
                     <div class="col-md-4">
-                    {{ form.manager.label_tag }}
-                    {{ form.manager }}
-                    {% if form.manager.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.manager.errors|join:" " }}
-                        </div>
-                    {% endif %}
-                    </div>
-                </div>
-
-                {% if user.is_superuser %}
-                <div class="row">
-                    <div class="mb-3">
-                    {{ form.tags.label_tag }}
-                    {{ form.tags }}
-                    {% if form.tags.errors %}
-                    <div class="text-danger mt-1">
-                                {{ form.tags.errors|join:" " }}
+                        {{ form.manager.label_tag }}
+                        {{ form.manager }}
+                        {% if form.manager.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.manager.errors|join:" " }}
                             </div>
                         {% endif %}
                     </div>
                 </div>
-                {% endif %}
 
-            <div class="mb-3">
-              {{ form.has_kids_room.label_tag }}
-              {{ form.has_kids_room }}
-              {% if form.has_kids_room.errors %}
-              <div class="text-danger mt-1">
-                        {{ form.has_kids_room.errors|join:" " }}
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                {{ form.logo.label_tag }}
-                {{ form.logo }}
-                {% if form.logo.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.logo.errors|join:" " }}
-                    </div>
-                {% endif %}
-            </div>
-
-            {% if user.is_superuser %}
-            <div class="mb-3">
-              {{ form.is_active.label_tag }}
-              {{ form.is_active }}
-              {% if form.is_active.errors %}
-              <div class="text-danger mt-1">
-                        {{ form.is_active.errors|join:" " }}
-                    </div>
-                {% endif %}
-            </div>
-            {% endif %}
-          
-          <!-- Контактные данные -->
-          <div class="tab-pane fade" id="contact-info" role="tabpanel" aria-labelledby="contact-info-tab">
-            <div class="row mb-3 mt-3">
-              <div class="col-md-4">
-                {{ form.facebook.label_tag }}
-                {{ form.facebook }}
-                {% if form.facebook.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.facebook.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-md-4">
-                {{ form.instagram.label_tag }}
-                {{ form.instagram }}
-                {% if form.instagram.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.instagram.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-md-4">
-                {{ form.telegram.label_tag }}
-                {{ form.telegram }}
-                {% if form.telegram.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.telegram.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-md-4">
-                {{ form.whatsapp.label_tag }}
-                {{ form.whatsapp }}
-                {% if form.whatsapp.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.whatsapp.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-              <div class="col-md-4">
-                {{ form.vkontakte.label_tag }}
-                {{ form.vkontakte }}
-                {% if form.vkontakte.errors %}
-                <div class="text-danger mt-1">
-                        {{ form.vkontakte.errors|join:" " }}
-                    </div>
-                {% endif %}
-              </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-4">
-                  {{ form.contact_email.label_tag }}
-                  {{ form.contact_email }}
-                  {% if form.contact_email.errors %}
-                  <div class="text-danger mt-1">
-                        {{ form.contact_email.errors|join:" " }}
-                    </div>
-                {% endif %}
+                {% if user.is_superuser %}
+                <div class="mb-3">
+                    {{ form.tags.label_tag }}
+                    {{ form.tags }}
+                    {% if form.tags.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.tags.errors|join:" " }}
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="col-md-4">
-                  {{ form.service_email.label_tag }}
-                  {{ form.service_email }}
-                  {% if form.service_email.errors %}
-                  <div class="text-danger mt-1">
-                        {{ form.service_email.errors|join:" " }}
-                    </div>
                 {% endif %}
+
+                <div class="mb-3">
+                    {{ form.has_kids_room.label_tag }}
+                    {{ form.has_kids_room }}
+                    {% if form.has_kids_room.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.has_kids_room.errors|join:" " }}
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="col-md-4">
-                    {{ form.odnoklassniki.label_tag }}
-                    {{ form.odnoklassniki }}
-                    {% if form.odnoklassniki.errors %}
+
+                <div class="mb-3">
+                    {{ form.logo.label_tag }}
+                    {{ form.logo }}
+                    {% if form.logo.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.logo.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if user.is_superuser %}
+                <div class="mb-3">
+                    {{ form.is_active.label_tag }}
+                    {{ form.is_active }}
+                    {% if form.is_active.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.is_active.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>          
+            <!-- Контактные данные -->
+            <div class="tab-pane fade" id="contact-info" role="tabpanel" aria-labelledby="contact-info-tab">
+                <div class="row mb-3 mt-3">
+                    <div class="col-md-4">
+                        {{ form.facebook.label_tag }}
+                        {{ form.facebook }}
+                        {% if form.facebook.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.facebook.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.instagram.label_tag }}
+                        {{ form.instagram }}
+                        {% if form.instagram.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.instagram.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        {{ form.telegram.label_tag }}
+                        {{ form.telegram }}
+                        {% if form.telegram.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.telegram.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.whatsapp.label_tag }}
+                        {{ form.whatsapp }}
+                        {% if form.whatsapp.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.whatsapp.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.vkontakte.label_tag }}
+                        {{ form.vkontakte }}
+                        {% if form.vkontakte.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.vkontakte.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                    {{ form.contact_email.label_tag }}
+                    {{ form.contact_email }}
+                    {% if form.contact_email.errors %}
                     <div class="text-danger mt-1">
-                        {{ form.odnoklassniki.error|join:" " }}
+                            {{ form.contact_email.errors|join:" " }}
+                        </div>
+                    {% endif %}
                     </div>
-                {% endif %}
+                    <div class="col-md-4">
+                    {{ form.service_email.label_tag }}
+                    {{ form.service_email }}
+                    {% if form.service_email.errors %}
+                    <div class="text-danger mt-1">
+                            {{ form.service_email.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.odnoklassniki.label_tag }}
+                        {{ form.odnoklassniki }}
+                        {% if form.odnoklassniki.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.odnoklassniki.errors|join:" " }}
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-              </div>
-          </div>
+            </div>
 
           <!-- Изображения -->
           {% if place %}
@@ -383,45 +379,46 @@
 {% if place %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-      var formElements = document.getElementById('placeForm').elements;
-      var hasErrors = {{ form.errors|yesno:"true,false" }};
-      
-      if (!hasErrors) {
-          for (var i = 0; i < formElements.length; i++) {
-              formElements[i].disabled = true;
-          }
-      }
-  
-      document.getElementById('editButton').addEventListener('click', function() {
-        for (var i = 0; i < formElements.length; i++) {
-          formElements[i].disabled = false;
+        var formElements = document.getElementById('placeForm').elements;
+        var hasErrors = {{ form.errors|yesno:"true,false" }};
+        
+        if (!hasErrors) {
+            for (var i = 0; i < formElements.length; i++) {
+                formElements[i].disabled = true;
+            }
+            document.getElementById('saveButton').style.display = 'none';
         }
-        document.getElementById('saveButton').style.display = 'block';
-        document.getElementById('cancelButton').style.display = 'block';
-        this.style.display = 'none';
-      });
-  
-      document.getElementById('cancelButton').addEventListener('click', function() {
-        for (var i = 0; i < formElements.length; i++) {
-          formElements[i].disabled = true;
+
+        document.getElementById('editButton').addEventListener('click', function() {
+            for (var i = 0; i < formElements.length; i++) {
+                formElements[i].disabled = false;
+            }
+            document.getElementById('saveButton').style.display = 'block';
+            document.getElementById('cancelButton').style.display = 'block';
+            this.style.display = 'none';
+        });
+
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            for (var i = 0; i < formElements.length; i++) {
+                formElements[i].disabled = true;
+            }
+            document.getElementById('saveButton').style.display = 'none';
+            document.getElementById('editButton').style.display = 'block';
+            this.style.display = 'none';
+        });
+
+        // Добавляем красную обводку полям с ошибками
+        if (hasErrors) {
+            for (var i = 0; i < formElements.length; i++) {
+                var field = formElements[i];
+                if (field.closest('.form-group') && field.closest('.form-group').querySelector('.text-danger')) {
+                    field.classList.add('is-invalid');
+                    formElements[i].disabled = false;  // Оставляем редактируемыми поля с ошибками
+                }
+            }
         }
-        document.getElementById('saveButton').style.display = 'none';
-        document.getElementById('editButton').style.display = 'block';
-        this.style.display = 'none';
-      });
-  
-      // Добавляем красную обводку полям с ошибками
-      if (hasErrors) {
-        for (var i = 0; i < formElements.length; i++) {
-          var field = formElements[i];
-          if (field.closest('.form-group') && field.closest('.form-group').querySelector('.text-danger')) {
-            field.classList.add('is-invalid');
-            formElements[i].disabled = false;  // Оставляем редактируемыми поля с ошибками
-          }
-        }
-      }
     });
-  </script>
+</script>
 {% endif %}
 {% endblock %}
 

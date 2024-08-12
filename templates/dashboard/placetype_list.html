@@ -21,7 +21,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#tagCreateModal">Добавить тег</button>
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#placetypeCreateModal">Добавить тип заведения</button>
                 <table class="table">
                     <thead>
                     <tr>
@@ -33,16 +33,16 @@
                     </tr>
                     </thead>
                     <tbody>
-                        {% for tag in object_list %}
+                        {% for placetype in object_list %}
                             <tr>
-                                <th scope="row">{{ forloop.counter }}</th>
-                                <td><a href="{% url 'dashboard:tag_detail' tag.pk %}">{{ tag.name }}</a></td>
-                                <td>{{ tag.slug }}</td>
-                                <td>{{ tag.place_count }}</td>
-                                <td>
-                                    <a class="btn btn-info btn-sm" href="{% url 'dashboard:tag_detail' tag.pk %}">Посмотреть</a>
-                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#tagDeleteModal" data-tag-id="{{ tag.id }}" data-tag-name="{{ tag.name }}">Удалить</button>
-                                </td>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td><a href="{% url 'dashboard:placetype_detail' placetype.pk %}">{{ placetype.name }}</a></td>
+                            <td>{{ placetype.slug }}</td>
+                            <td>{{ placetype.place_count }}</td>
+                            <td>
+                                <a class="btn btn-info btn-sm" href="{% url 'dashboard:placetype_detail' placetype.pk %}">Посмотреть</a>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#placetypeDeleteModal" data-placetype-id="{{ placetype.id }}" data-placetype-name="{{ placetype.name }}">Удалить</button>
+                            </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -53,63 +53,64 @@
   </div>
 </div>
 
-<!-- Modal for Creating Tag -->
-<div class="modal fade" id="tagCreateModal" tabindex="-1" aria-labelledby="tagCreateModalLabel" aria-hidden="true">
+<!-- Modal for Creating PlaceType -->
+<div class="modal fade" id="placetypeCreateModal" tabindex="-1" aria-labelledby="placetypeCreateModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="tagCreateModalLabel">Добавить тег</h5>
+          <h5 class="modal-title" id="placetypeCreateModalLabel">Добавить тип заведения</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <form id="tagCreateForm" method="post" action="{% url 'dashboard:tag_create' %}">
+            <form id="placetypeCreateForm" method="post" action="{% url 'dashboard:placetype_create' %}">
               {% csrf_token %}
               <div id="formErrors" class="alert alert-danger" role="alert" style="display: none;">
                 <div class="alert-message"></div>
               </div>
               <div class="mb-3">
-                  {{ tag_create_form.name.label_tag }}
-                  {{ tag_create_form.name|add_class:"form-control" }}
+                  {{ placetype_create_form.name.label_tag }}
+                  {{ placetype_create_form.name|add_class:"form-control" }}
               </div>
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-          <button type="submit" class="btn btn-success" id="saveTagButton">Сохранить</button>
+          <button type="submit" class="btn btn-success" id="savePlaceTypeButton">Сохранить</button>
         </div>
       </div>
     </div>
   </div>
 
-<!-- Modal for Deleting Tag -->
-<div class="modal fade" id="tagDeleteModal" tabindex="-1" aria-labelledby="tagDeleteModalLabel" aria-hidden="true">
+
+<!-- Modal for Deleting PlaceType -->
+<div class="modal fade" id="placetypeDeleteModal" tabindex="-1" aria-labelledby="placetypeDeleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="tagDeleteModalLabel">Удалить тег</h5>
+          <h5 class="modal-title" id="placetypeDeleteModalLabel">Удалить ти заведения</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>Вы уверены, что хотите удалить <strong id="tagName"></strong>?</p>
-          <form id="tagDeleteForm" method="post" action="">
+          <p>Вы уверены, что хотите удалить <strong id="placetypeName"></strong>?</p>
+          <form id="placetypeDeleteForm" method="post" action="">
               {% csrf_token %}
-              <input type="hidden" id="deleteTagId" name="deleteTagId">
+              <input type="hidden" id="deletePlaceTypeId" name="deletePlaceTypeId">
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-          <button type="submit" class="btn btn-danger" id="deleteTagButton">Удалить</button>
+          <button type="submit" class="btn btn-danger" id="deletePlaceTypeButton">Удалить</button>
         </div>
       </div>
     </div>
   </div>
 
-<script>
+  <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle tag creation form submission
-        document.getElementById('saveTagButton').addEventListener('click', function(event) {
+        // Handle placetype creation form submission
+        document.getElementById('savePlaceTypeButton').addEventListener('click', function(event) {
             event.preventDefault();
-            var form = document.getElementById('tagCreateForm');
+            var form = document.getElementById('placetypeCreateForm');
             var formData = new FormData(form);
             var xhr = new XMLHttpRequest();
             xhr.open('POST', form.getAttribute('action'));
@@ -122,7 +123,7 @@
 
                     if (response.success) {
                         // Hide the modal and reload the page on success
-                        var modal = bootstrap.Modal.getInstance(document.getElementById('tagCreateModal'));
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('placetypeCreateModal'));
                         modal.hide();
                         window.location.reload();
                     } else {
@@ -148,31 +149,31 @@
             xhr.send(formData);
         });
 
-        // Handle tag deletion form submission
-        document.getElementById('tagDeleteModal').addEventListener('show.bs.modal', function (event) {
+        // Handle placetype deletion form submission
+        document.getElementById('placetypeDeleteModal').addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
-            var tagId = button.getAttribute('data-tag-id');
-            var tagName = button.getAttribute('data-tag-name');
+            var placetypeId = button.getAttribute('data-placetype-id');
+            var placetypeName = button.getAttribute('data-placetype-name');
             
-            document.getElementById('tagName').textContent = tagName;
-            document.getElementById('tagDeleteForm').setAttribute('action', '{% url "dashboard:tag_delete" 0 %}'.replace('0', tagId));
+            document.getElementById('placetypeName').textContent = placetypeName;
+            document.getElementById('placetypeDeleteForm').setAttribute('action', '{% url "dashboard:placetype_delete" 0 %}'.replace('0', placetypeId));
         });
 
-        document.getElementById('deleteTagButton').addEventListener('click', function(event) {
+        document.getElementById('deletePlaceTypeButton').addEventListener('click', function(event) {
             event.preventDefault();
-            var form = document.getElementById('tagDeleteForm');
+            var form = document.getElementById('placetypeDeleteForm');
             var formData = new FormData(form);
             var xhr = new XMLHttpRequest();
             xhr.open('POST', form.getAttribute('action'));
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.onload = function() {
                 if (xhr.status === 200) {
-                    var modal = bootstrap.Modal.getInstance(document.getElementById('tagDeleteModal'));
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('placetypeDeleteModal'));
                     modal.hide();
                     window.location.reload();
                 } else {
                     // Handle server errors or unexpected responses
-                    console.error('An error occurred while deleting the tag.');
+                    console.error('An error occurred while deleting the placetype.');
                 }
             };
             xhr.send(formData);

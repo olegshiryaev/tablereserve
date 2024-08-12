@@ -172,9 +172,11 @@ def place_list(request, city_slug):
     shown_places = places.count()
 
     # Получение доступных типов заведений для фильтрации
-    place_types = PlaceType.objects.annotate(
-        count=Count("place", filter=Q(place__city=city))
-    ).order_by("-count")
+    place_types = (
+        PlaceType.objects.all()
+        .annotate(count=Count("places", filter=Q(places__city=city)))
+        .order_by("-count")
+    )
 
     # Получение доступных кухонь для фильтрации
     cuisines = (

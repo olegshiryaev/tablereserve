@@ -1501,3 +1501,16 @@ footer a:hover {
 .hidden {
     display: none;
 }
+
+.custom-hidden-item {
+    display: none;
+}
+
+.toggle-more {
+    display: flex;
+    color: #007bff;
+    cursor: pointer;
+    font-size: .875rem;
+    line-height: 1.25rem;
+    margin-top: .5rem;
+}

@@ -99,30 +99,133 @@
 
         <div class="place-detail-main">
             <div class="place-detail-main-container">
-                <div class="place-detail-section">
-                    <div class="place-detail-inner">
-                        <div class="place-detail-item">
-                            <div class="place-detail-item-label">
-                                Кухня
+                <!-- Меню по странице -->
+                <div class="page-navigation-menu">
+                    <ul class="page-navigation-list">
+                        <li><a href="#place-type">О заведении</a></li>
+                        <li><a href="#menu-prices">Меню и цены</a></li>
+                        <li><a href="#reviews">Отзывы</a></li>
+                        <li><a href="#similar-places">Похожие заведения</a></li>
+                    </ul>
+                </div>
+                <div id="place-type" class="place-type-section">
+                    <div class="place-detail-section">
+                        <div class="place-detail-inner">
+                            <div class="place-detail-item">
+                                <div class="place-detail-item-label">
+                                    Кухня
+                                </div>
+                                <div class="place-detail-item-body">
+                                    <div class="place-detail-item-value">
+                                        {% for cuisine in place.cuisines.all %}
+                                        {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
-                            <div class="place-detail-item-body">
-                                <div class="place-detail-item-value">
-                                    {% for cuisine in place.cuisines.all %}
-                                    {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
+                            <div class="place-detail-item">
+                                <div class="place-detail-item-label">
+                                    Средний чек
+                                </div>
+                                <div class="place-detail-item-body">
+                                    <div class="place-detail-item-value">
+                                        {{ place.average_check }} руб.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="menu-prices" class="menu-prices-section">
+                    <!-- Content about the menu and prices -->
+        
+                    <div class="place-menu-section">
+                        <div class="place-menu-inner">
+                            <h2>Меню</h2>
+        
+                            <!-- Блоки для меню -->
+                            <div class="place-menu-category">
+                                <h3>Закуски</h3>
+                                <ul class="menu-items">
+                                    {% for item in place.menu.snacks %}
+                                    <li class="menu-item">
+                                        <span class="menu-item-name">{{ item.name }}</span>
+                                        <span class="menu-item-price">{{ item.price }} руб.</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+        
+                            <div class="place-menu-category">
+                                <h3>Основные блюда</h3>
+                                <ul class="menu-items">
+                                    {% for item in place.menu.main_courses %}
+                                    <li class="menu-item">
+                                        <span class="menu-item-name">{{ item.name }}</span>
+                                        <span class="menu-item-price">{{ item.price }} руб.</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+        
+                            <div class="place-menu-category">
+                                <h3>Напитки</h3>
+                                <ul class="menu-items">
+                                    {% for item in place.menu.drinks %}
+                                    <li class="menu-item">
+                                        <span class="menu-item-name">{{ item.name }}</span>
+                                        <span class="menu-item-price">{{ item.price }} руб.</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+        
+                            <!-- Add more categories as needed -->
+                        </div>
+                    </div>
+                </div>
+        
+                <div id="reviews" class="reviews-section">
+                    <h2>
+                        Отзывы ({{ review_count }})
+                        <span class="rating-display">
+                            {% if place.rating > 1 %}
+                            <div class="place-rating {{ place.rating|rating_color }} address-rating">
+                                {{ place.rating|formatted_float }}
+                            </div>
+                            {% endif %}
+                        </span>
+                    </h2>
+                    <div class="reviews-container">
+                        {% for review in reviews %}
+                        <div class="review-item">
+                            <div class="review-author">
+                                <strong>{{ review.user.name|default:"Anonymous" }}</strong>
+                                <span class="review-date">{{ review.created_at|date:"d M Y" }}</span>
+                            </div>
+                            <div class="review-rating">
+                                <span class="rating-label">Рейтинг:</span>
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                    {% if i <= review.rating|stringformat:"d" %}
+                                    <svg class="star-icon filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                        <path d="M12 17.27l6.18 3.73-1.64-7.03 5.46-4.73-7.1-.61L12 2 9.1 8.63l-7.1.61 5.46 4.73-1.64 7.03z"/>
+                                    </svg>
+                                    {% else %}
+                                    <svg class="star-icon empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
+                                        <path d="M12 17.27l6.18 3.73-1.64-7.03 5.46-4.73-7.1-.61L12 2 9.1 8.63l-7.1.61 5.46 4.73-1.64 7.03z"/>
+                                    </svg>
+                                    {% endif %}
                                     {% endfor %}
                                 </div>
                             </div>
-                        </div>
-                        <div class="place-detail-item">
-                            <div class="place-detail-item-label">
-                                Средний чек
-                            </div>
-                            <div class="place-detail-item-body">
-                                <div class="place-detail-item-value">
-                                    {{ place.average_check }} руб.
-                                </div>
+                            <div class="review-text">
+                                {{ review.text }}
                             </div>
                         </div>
+                        {% empty %}
+                        <p>Нет отзывов.</p>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -170,6 +273,42 @@
                     </div>
                 </div>
             </aside>
+            <!-- Модальное окно -->
+            <div id="reservationModal" class="reservation-modal" style="display: {% if reservation_successful %} block {% else %} none {% endif %};">
+                <div class="reservation-modal-content">
+                    <span class="reservation-modal-close">&times;</span>
+                    {% if reservation_data %}
+                        <div class="reservation-modal-header">Здравствуйте, {{ reservation_data.name }}!</div>
+                        <div class="reservation-modal-body">
+                            <p>Мы получили ваш резерв на</p>
+                            <p><strong>{{ reservation_message }}</strong></p>
+                            <p>Ожидайте подтверждение по СМС на номер <strong>{{ reservation_data.phone }}</strong>.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div id="similar-places" class="similar-places-section">
+            <h2>Похожие заведения</h2>
+            <div class="similar-places-container">
+                <!-- Проверяем, есть ли похожие заведения -->
+                {% if similar_places %}
+                {% for similar_place in similar_places %}
+                <div class="similar-place-item">
+                    <img src="{{ similar_place.get_cover_image }}" alt="Image of {{ similar_place.name }}" class="similar-place-image"/>
+                    <div class="similar-place-info">
+                        <div class="similar-place-name">{{ similar_place.name }}</div>
+                        <div class="similar-place-type">{{ similar_place.type }}</div>
+                        <a href="{% url 'place_detail' city_slug=similar_place.city.slug place_slug=similar_place.slug %}" class="similar-place-link">Подробнее</a>
+                    </div>
+                </div>
+                {% empty %}
+                <p>Похожие заведения не найдены.</p>
+                {% endfor %}
+                {% else %}
+                <p>Похожие заведения не найдены.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 </section>
@@ -380,6 +519,24 @@
         // Обновление слайдера при изменении размера окна
         window.addEventListener('resize', function() {
             showSlide(currentIndex);
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const modal = document.getElementById('reservationModal');
+        const closeModal = document.querySelector('.reservation-modal-close');
+        
+        if (closeModal) {
+            closeModal.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        }
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
         });
     });
 </script>

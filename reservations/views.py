@@ -225,28 +225,32 @@ def place_list(request, city_slug):
     return render(request, "reservations/place_list.html", context)
 
 
-def handle_reservation(request, place, form_class, redirect_to):
-    if request.method == "POST":
-        form = form_class(place, request.POST)  # Pass 'place' as the first argument
-        if form.is_valid():
-            reservation = form.save(commit=False)
-            reservation.place = place
-            reservation.user = request.user if request.user.is_authenticated else None
-            reservation.save()
-            messages.success(request, "Столик успешно забронирован!")
+def handle_reservation(request, place, form_class):
+    form = form_class(place, request.POST or None)
+    user_name = None
+    reservation_data = None
 
-            # Set session flag to indicate reservation success
-            request.session["reservation_successful"] = True
+    if request.method == "POST" and form.is_valid():
+        reservation = form.save(commit=False)
+        reservation.place = place
+        reservation.user = request.user if request.user.is_authenticated else None
+        reservation.save()
 
-            return reservation
-    else:
-        form = form_class(place)
+        # Подготовка данных для модального окна
+        user_name = (
+            request.user.get_full_name() if request.user.is_authenticated else "Гость"
+        )
+        reservation_data = {
+            "date": reservation.date.strftime("%d-%m-%Y"),
+            "time": reservation.time.strftime("%H:%M"),
+            "guests": reservation.guests,
+            "phone": reservation.customer_phone,
+        }
 
-    # Сбрасываем сессионный флаг, если он был установлен
-    if "reservation_successful" in request.session:
-        del request.session["reservation_successful"]
+    print("User Name:", user_name)  # Debugging line
+    print("Reservation Data:", reservation_data)  # Debugging line
 
-    return form
+    return form, user_name, reservation_data
 
 
 def get_review_word(count):
@@ -260,27 +264,66 @@ def get_review_word(count):
         return "отзывов"
 
 
+def get_guest_word(count):
+    if count % 10 == 1 and count % 100 != 11:
+        return "гостя"
+    elif count % 10 in [2, 3, 4] and not count % 100 in [12, 13, 14]:
+        return "гостя"
+    else:
+        return "гостей"
+
+
 def place_detail(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(Place, slug=place_slug)
-    reservation_form = ReservationForm(place=place)
+    user = request.user
+
+    reservation_form = ReservationForm(place=place, user=user)
     schedules = WorkSchedule.get_sorted_schedules(place.id)
     reviews = place.reviews.filter(is_approved=True)
+    review_count = reviews.count()
+    average_rating = place.rating
+
+    # Инициализация переменных для модального окна
+    reservation_successful = False
+    reservation_data = None
+    reservation_message = None
 
     if request.method == "POST":
-        reservation_form = ReservationForm(place, request.POST)
+        reservation_form = ReservationForm(place, request.POST, user=user)
         if reservation_form.is_valid():
             reservation = reservation_form.save(commit=False)
             reservation.place = place
-            reservation.user = request.user if request.user.is_authenticated else None
+            reservation.user = user if user.is_authenticated else None
             reservation.save()
-            request.session["reservation_successful"] = True
-            return HttpResponseRedirect(
-                reverse(
-                    "place_detail",
-                    kwargs={"city_slug": city_slug, "place_slug": place_slug},
+            reservation_successful = True
+
+            # Форматирование даты
+            today = date.today()
+            tomorrow = today + timedelta(days=1)
+            reservation_date = reservation.date
+            formatted_time = reservation.time.strftime("%H:%M")
+            guests_count = reservation.guests
+            guest_word = get_guest_word(guests_count)
+
+            if reservation_date == today:
+                reservation_message = (
+                    f"сегодня в {formatted_time} на {guests_count} {guest_word}."
                 )
-            )
+            elif reservation_date == tomorrow:
+                reservation_message = (
+                    f"завтра в {formatted_time} на {guests_count} {guest_word}."
+                )
+            else:
+                reservation_message = f"{format(reservation_date, 'd.m.Y')} в {formatted_time} на {guests_count} {guest_word}."
+
+            reservation_data = {
+                "name": reservation.customer_name,
+                "date": reservation.date,
+                "time": reservation.time,
+                "guests": guests_count,
+                "phone": reservation.customer_phone,
+            }
 
     # Проверка, добавлено ли заведение в избранное текущим пользователем
     is_favorited = False
@@ -291,6 +334,9 @@ def place_detail(request, city_slug, place_slug):
     # Получение корректной формы слова "отзыв"
     review_word = get_review_word(reviews.count())
 
+    # Получаем похожие заведения
+    similar_places = place.get_similar_places()
+
     return render(
         request,
         "reservations/place_detail.html",
@@ -299,9 +345,15 @@ def place_detail(request, city_slug, place_slug):
             "reservation_form": reservation_form,
             "selected_city": city,
             "schedules": schedules,
+            "average_rating": average_rating,
             "reviews": reviews,
+            "review_count": review_count,
             "review_word": review_word,
             "is_favorited": is_favorited,
+            "similar_places": similar_places,
+            "reservation_successful": reservation_successful,
+            "reservation_data": reservation_data,
+            "reservation_message": reservation_message,
         },
     )
 
@@ -364,12 +416,17 @@ def update_time_choices(request, place_id, date):
 def reserve_table(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(Place, slug=place_slug, city=city)
-    form = handle_reservation(request, place, ReservationForm, "place_detail")
+
+    form, user_name, reservation_data = handle_reservation(
+        request, place, ReservationForm
+    )
 
     context = {
         "place": place,
         "form": form,
         "selected_city": city,
+        "user_name": user_name,
+        "reservation_data": reservation_data,
     }
 
     return render(request, "reservations/place_detail.html", context)

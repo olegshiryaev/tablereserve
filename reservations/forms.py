@@ -74,8 +74,15 @@ class ReservationForm(forms.ModelForm):
         }
 
     def __init__(self, place, *args, **kwargs):
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         self.place = place
+
+        # Установка данных пользователя, если он авторизован
+        if user and user.is_authenticated:
+            self.fields["customer_name"].initial = user.name or user.username
+            self.fields["customer_phone"].initial = user.phone_number or ""
+            self.fields["customer_email"].initial = user.email
 
         # Настройка меток полей
         self.fields["date"].label = "Дата"

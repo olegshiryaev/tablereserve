@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h2>Новое бронирование!</h2>
+    <p>Пользователь {{ user_name }} забронировал столик.</p>
+    <p>Дата бронирования: <strong>{{ reservation_data.date }}</strong></p>
+    <p>Время: <strong>{{ reservation_data.time }}</strong></p>
+    <p>Количество гостей: <strong>{{ reservation_data.guests }}</strong></p>
+    <p>Контактный телефон: <strong>{{ reservation_data.phone }}</strong></p>
+    <p>Пожелания: {{ reservation_data.wishes }}</p>
+</body>
+</html>

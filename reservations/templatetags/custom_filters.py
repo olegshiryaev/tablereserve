@@ -51,3 +51,9 @@ def split_list(value, chunk_size):
 
     chunk_size = int(chunk_size)
     return [value[i : i + chunk_size] for i in range(0, len(value), chunk_size)]
+
+
+@register.filter
+def range(value, arg):
+    """Returns a list containing range made from `value` to `arg`"""
+    return range(value, arg)

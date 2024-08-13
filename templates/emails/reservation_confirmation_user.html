@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h2>Здравствуйте, {{ user_name }}!</h2>
+    <p>Ваше бронирование было успешно создано.</p>
+    <p>Мы получили ваш резерв на {{ reservation_data.date }} в {{ reservation_data.time }} на <strong>{{ reservation_data.guests }}</strong> гостей.</p>
+    <p>Ожидайте подтверждение по СМС на номер <strong>{{ reservation_data.phone }}</strong>.</p>
+</body>
+</html>

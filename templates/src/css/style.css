@@ -1027,7 +1027,7 @@ footer a:hover {
 .gallery-prev-slide,
 .gallery-next-slide {
     position: absolute;
-    z-index: 10;
+    z-index: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1513,4 +1513,289 @@ footer a:hover {
     font-size: .875rem;
     line-height: 1.25rem;
     margin-top: .5rem;
+}
+
+/* Стили для меню по странице */
+.page-navigation-menu {
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.page-navigation-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-around;
+}
+
+.page-navigation-list li {
+    margin: 0;
+}
+
+.page-navigation-list a {
+    text-decoration: none;
+    color: #1f1f1f;
+    font-weight: bold;
+    padding: 10px 20px;
+    display: block;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.page-navigation-list a:hover {
+    color: #007aff;
+}
+
+/* Menu section styles */
+.place-menu-section {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.place-menu-inner h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.place-menu-category {
+    margin-bottom: 20px;
+}
+
+.place-menu-category h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #007BFF;
+}
+
+.menu-items {
+    list-style-type: none;
+    padding: 0;
+}
+
+.menu-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.menu-item-name {
+    font-size: 16px;
+    color: #333;
+}
+
+.menu-item-price {
+    font-size: 16px;
+    color: #666;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+/* Reviews section styles */
+.reviews-section {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.reviews-section h2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.rating-display {
+    font-size: 16px;
+    color: #ff9900; /* Adjust color as needed */
+}
+
+.reviews-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.review-item {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.review-author {
+    font-size: 16px;
+    line-height: 24px;
+    color: #333;
+    margin-bottom: 5px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.review-date {
+    font-size: 14px;
+    line-height: 20px;
+    color: #999;
+    margin-left: 10px;
+}
+
+.review-rating {
+    display: flex;
+    align-items: flex-end; /* Align items to the bottom */
+}
+
+.rating-label {
+    margin-right: 8px; /* Adjust spacing between label and stars */
+    line-height: 16px; /* Ensure the line height matches the star height */
+}
+
+.review-text {
+    margin-top: 12px;
+    line-height: 24px;
+    font-size: 16px;
+    color: #555;
+}
+
+.rating-stars {
+    display: flex;
+    align-items: center; /* Align stars in the center of the flex container */
+}
+
+
+.star-icon {
+    margin-right: 2px;
+}
+
+.star-icon.filled {
+    fill: #ff9900;
+}
+
+.star-icon.empty {
+    fill: none;
+    stroke: #ff9900;
+}
+
+/* Similar places section styles */
+.similar-places-section {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.similar-places-section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.similar-places-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.similar-place-item {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+    width: calc(33% - 20px); /* Adjust width as needed */
+}
+
+.similar-place-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-bottom: 1px solid #ddd;
+}
+
+.similar-place-info {
+    padding: 15px;
+}
+
+.similar-place-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.similar-place-type {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.similar-place-link {
+    text-decoration: none;
+    color: #007BFF;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.similar-place-link:hover {
+    color: #0056b3;
+}
+
+/* Стили для модального окна */
+.reservation-modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.4); 
+}
+
+.reservation-modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 24px;
+    width: 80%;
+    max-width: 500px; /* Максимальная ширина модального окна */
+    text-align: center; /* Выравнивание текста по центру */
+}
+
+.reservation-modal-header {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 28px;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.reservation-modal-body p {
+    font-size: 18px;
+    line-height: 28px;
+    text-align: center;
+}
+
+.reservation-modal-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.reservation-modal-close:hover,
+.reservation-modal-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
 }

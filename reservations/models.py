@@ -403,6 +403,19 @@ class Place(models.Model):
             return cover_image.image.url
         return settings.STATIC_URL + "images/default_place_image.jpg"
 
+    def get_similar_places(self):
+        # Поиск похожих заведений по типу и городу
+        similar_places = Place.objects.filter(type=self.type, city=self.city).exclude(
+            id=self.id
+        )  # Исключаем текущее заведение
+
+        # Получение всех похожих заведений
+        all_similar_places = list(similar_places)
+
+        # Перемешивание и ограничение до 3 заведений
+        random.shuffle(all_similar_places)
+        return all_similar_places[:3]
+
     @property
     def favorite_count(self):
         return self.favorited_by.count()

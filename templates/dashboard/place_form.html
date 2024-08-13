@@ -175,16 +175,14 @@
                     <div class="col-md-12">
                         <label for="id_cuisines" class="form-label">Особенности:</label>
                     </div>
-                    {% for group in form.features.field.choices|split_list:8 %}
+                    {% for option in form.features.field.choices %}
                         <div class="col-md-4">
-                            {% for option in group %}
-                                <div class="form-check">
-                                    <label class="form-check-label">
-                                        <input type="checkbox" name="{{ form.features.name }}" value="{{ option.0 }}" {% if option.0 in form.features.value %}checked{% endif %}>
-                                        {{ option.1 }}
-                                    </label>
-                                </div>
-                            {% endfor %}
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="{{ form.features.name }}" value="{{ option.0 }}" {% if option.0 in form.features.value %}checked{% endif %}>
+                                    {{ option.1 }}
+                                </label>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -192,16 +190,14 @@
                     <div class="col-md-12">
                         <label for="id_cuisines" class="form-label">Кухни:</label>
                     </div>
-                    {% for group in form.cuisines.field.choices|split_list:8 %}
+                    {% for option in form.cuisines.field.choices %}
                         <div class="col-md-4">
-                            {% for option in group %}
-                                <div class="form-check">
-                                    <label class="form-check-label">
-                                        <input type="checkbox" name="{{ form.cuisines.name }}" value="{{ option.0 }}" {% if option.0 in form.cuisines.value %}checked{% endif %}>
-                                        {{ option.1 }}
-                                    </label>
-                                </div>
-                            {% endfor %}
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="{{ form.cuisines.name }}" value="{{ option.0 }}" {% if option.0 in form.cuisines.value %}checked{% endif %}>
+                                    {{ option.1 }}
+                                </label>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>

@@ -1027,7 +1027,7 @@ footer a:hover {
 .gallery-prev-slide,
 .gallery-next-slide {
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1752,7 +1752,7 @@ footer a:hover {
 .reservation-modal {
     display: none; 
     position: fixed; 
-    z-index: 1; 
+    z-index: 1000; 
     left: 0;
     top: 0;
     width: 100%; 

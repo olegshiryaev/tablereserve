@@ -16,6 +16,11 @@ main {
     margin-top: 70px;
 }
 
+h3 {
+    font-size: 24px;
+    line-height: 26px;
+}
+
 .container {
     max-width: 1248px;
     margin-left: auto;
@@ -793,6 +798,64 @@ h2 {
     background-color: #555;
 }
 
+/* Описание заведения */
+.place-description-section {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.place-description-inner {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+}
+
+.place-description-inner h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.place-description-text {
+    font-size: 16px;
+    line-height: 22px;
+    color: #666;
+}
+
+.features-container {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.features-title {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.features-list {
+    list-style-type: none;
+    align-items: center;
+    column-gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+
+.feature-element {
+    background-color: #dfdfdf;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 20px;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
 footer {
     background: #1f2124;
     color: #fff;
@@ -824,6 +887,26 @@ footer a {
 
 footer a:hover {
     text-decoration: underline;
+}
+
+.footer-button {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.footer-button .btn {
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: inline-block;
+    font-size: 16px;
+}
+
+.footer-button .btn:hover {
+    background-color: #0056b3;
+    text-decoration: none;
 }
 
 @media (min-width: 768px) {
@@ -935,6 +1018,15 @@ footer a:hover {
         scroll-snap-align: start;
     }
 
+    .page-navigation-list {
+        flex-direction: column; /* Вертикальное расположение на мобильных */
+        align-items: center;
+        gap: 10px; /* Меньшее расстояние между элементами */
+    }
+
+    .page-navigation-list a {
+        font-size: 18px; /* Чуть больший шрифт для удобства на мобильных */
+    }
 
     footer .container {
         flex-direction: column;
@@ -975,7 +1067,7 @@ footer a:hover {
 
 @media (min-width: 1256px) {
     .place-detail-gallery {
-        margin-bottom: 64px;
+        margin-bottom: 24px;
     }
 }
 
@@ -1370,10 +1462,8 @@ footer a:hover {
 
 .place-detail-section {
     padding: 20px;
-    border-color: #dfdfdf;
-    border-style: solid;
     border-radius: 16px;
-    border-width: 1px;
+    background-color: #f9f9f9;
 }
 
 .place-detail-inner {
@@ -1392,9 +1482,9 @@ footer a:hover {
 }
 
 .place-detail-item-label {
-    color: #aaafb2;
-    font-size: 13px;
-    line-height: 16px;
+    color: #999;
+    font-size: 14px;
+    line-height: 20px;
 }
 
 .place-detail-item-value {
@@ -1479,15 +1569,16 @@ footer a:hover {
     .place-detail-main-container {
         flex-grow: 1;
         min-width: 1px;
-        margin-right: 84px;
+        margin-right: 64px;
     }
 
     .place-detail-aside {
         position: sticky;
-        top: 72px;
+        top: 82px;
         z-index: 1;
         width: 350px;
         padding-bottom: 64px;
+        min-width: 340px;
     }
 
     .place-detail-inner {
@@ -1495,6 +1586,12 @@ footer a:hover {
         grid-template-columns: 1fr 1fr;
         column-gap: 18px;
         row-gap: 20px;
+    }
+
+    .page-navigation-menu {
+        position: sticky; /* Меню будет фиксированным при прокрутке */
+        top: 82px;
+        z-index: 1;
     }
 }
 
@@ -1518,28 +1615,34 @@ footer a:hover {
 /* Стили для меню по странице */
 .page-navigation-menu {
     padding: 10px 0;
-    border-bottom: 1px solid #ddd;
+    background-color: #fff; /* Белый фон */
+    border-bottom: 1px solid #ddd; /* Нижняя граница для разделения */
+    border-radius: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    min-height: 44px;
 }
 
 .page-navigation-list {
-    list-style-type: none;
-    margin: 0;
+    list-style: none;
     padding: 0;
+    margin: 0;
     display: flex;
-    justify-content: space-around;
+    justify-content: center; /* Центрирование элементов */
+    gap: 20px; /* Пространство между элементами */
 }
 
 .page-navigation-list li {
-    margin: 0;
+    flex: none;
+    text-align: center;
 }
 
 .page-navigation-list a {
+    color: #333;
     text-decoration: none;
-    color: #1f1f1f;
-    font-weight: bold;
-    padding: 10px 20px;
-    display: block;
-    transition: background-color 0.3s, color 0.3s;
+    font-weight: normal;
+    font-size: 16px;
+    transition: color 0.3s ease;
 }
 
 .page-navigation-list a:hover {

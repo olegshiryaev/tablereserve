@@ -38,3 +38,28 @@
 .form-check-label {
     font-weight: 500;
 }
+
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-height: 200px;
+}
+
+.image-fit {
+    max-height: 200px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.col-md-3 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.mt-2 {
+    margin-top: 10px;
+}

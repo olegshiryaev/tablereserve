@@ -6,6 +6,11 @@ from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator as token_generator
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
+from allauth.account.models import EmailAddress
+from django.shortcuts import redirect, HttpResponse
+from django.conf import settings
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 from reservations.models import Place
 from users.models import CustomUser, Favorite
@@ -68,3 +73,22 @@ def activate_account(request, email, token):
     else:
         # Обработка неудачной активации
         return redirect("activation_failed")
+
+
+def custom_email_verification(request, key):
+    """
+    Представление для автоматического подтверждения email.
+    """
+    try:
+        email_address = EmailAddress.objects.get(key=key)
+        if email_address.verified:
+            return HttpResponse("Email уже подтвержден.")
+
+        # Подтверждаем email
+        email_address.verified = True
+        email_address.save()
+
+        # Перенаправляем пользователя на нужную страницу после подтверждения
+        return redirect(settings.ACCOUNT_EMAIL_CONFIRMATION_REDIRECT_URL)
+    except EmailAddress.DoesNotExist:
+        return HttpResponse("Неверный ключ подтверждения.")

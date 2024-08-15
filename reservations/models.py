@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from django.utils.safestring import mark_safe
 import os
+from PIL import Image, ImageOps
 import random
 from django.db import models
 from django.core.validators import (
@@ -21,6 +22,7 @@ from django.urls import reverse, reverse_lazy
 from PIL import Image
 from django.core.validators import URLValidator
 from django.db.models import Case, When, IntegerField, Value
+from tempfile import NamedTemporaryFile
 
 
 def upload_to_city_image(instance, filename):
@@ -142,14 +144,33 @@ class PlaceImage(models.Model):
     def __str__(self):
         return f"Медиа {self.place.name}"
 
+    def clean(self):
+        if self.image:
+            img = Image.open(self.image)
+            min_width, min_height = 1200, 800
+            if img.width < min_width or img.height < min_height:
+                raise ValidationError(
+                    f"Размер изображения должен быть не менее {min_width}x{min_height} пикселей."
+                )
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
             img = Image.open(self.image.path)
-            max_width, max_height = 1500, 1000
+            max_width, max_height = 1200, 800
+
+            # Изменение размера изображения, если оно превышает заданные параметры
             if img.width > max_width or img.height > max_height:
                 img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-                img.save(self.image.path)
+
+            # Сжатие изображения
+            img = ImageOps.exif_transpose(
+                img
+            )  # Учитываем EXIF-данные для правильной ориентации
+            img.save(
+                self.image.path, quality=85, optimize=True
+            )  # Качество 85%, включаем оптимизацию
+
         if self.is_cover:
             self.place.images.exclude(id=self.id).update(is_cover=False)
 
@@ -172,7 +193,8 @@ class PlaceImage(models.Model):
 @receiver(post_delete, sender=PlaceImage)
 def delete_image_file(sender, instance, **kwargs):
     if instance.image:
-        instance.image.delete(False)
+        if os.path.exists(instance.image.path):
+            os.remove(instance.image.path)
 
 
 class PlaceManager(models.Manager):
@@ -329,13 +351,10 @@ class Place(models.Model):
         default=0, null=True, blank=True, verbose_name="Средний чек"
     )
     features = models.ManyToManyField(
-        Feature, related_name="places", blank=True, verbose_name="Особенности заведения"
+        Feature, related_name="places", blank=True, verbose_name="Особенности"
     )
     tags = models.ManyToManyField(
         Tag, blank=True, related_name="places", verbose_name="Теги"
-    )
-    has_kids_room = models.BooleanField(
-        default=False, verbose_name="Наличие детской комнаты"
     )
     capacity = models.IntegerField(default=0, verbose_name="Вместимость", blank=True)
     rating = models.DecimalField(
@@ -898,9 +917,6 @@ class PlaceUpdateRequest(models.Model):
     updated_average_check = models.IntegerField(
         blank=True, null=True, verbose_name="Средний чек"
     )
-    updated_has_kids_room = models.BooleanField(
-        default=False, verbose_name="Наличие детской комнаты"
-    )
     updated_capacity = models.IntegerField(
         blank=True, null=True, verbose_name="Вместимость"
     )
@@ -949,8 +965,6 @@ class PlaceUpdateRequest(models.Model):
             updated_fields["Краткое описание"] = self.updated_short_description
         if self.updated_average_check is not None:
             updated_fields["Средний чек"] = self.updated_average_check
-        if self.updated_has_kids_room:
-            updated_fields["Наличие детской комнаты"] = self.updated_has_kids_room
         if self.updated_capacity:
             updated_fields["Вместимость"] = self.updated_capacity
         if self.updated_cover_image:

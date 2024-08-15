@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение email адреса</title>
+</head>
+<body>
+    <p>Здравствуйте, {{ user.name }}!</p>
+    <p>Спасибо за регистрацию на нашем сайте. Пожалуйста, подтвердите свой адрес электронной почты, перейдя по ссылке ниже:</p>
+    <p>
+        <a href="http://{{ domain }}{% url 'users:activate' uidb64=uid token=token %}">
+            Подтвердить email
+        </a>
+    </p>
+    <p>С уважением,<br>Команда сайта</p>
+</body>
+</html>

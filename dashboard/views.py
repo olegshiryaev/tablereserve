@@ -1,9 +1,10 @@
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.views import View
 from dashboard.forms import (
+    AddPlaceForm,
     CityCreateForm,
     CityForm,
     CityUpdateForm,
@@ -46,8 +47,11 @@ from django.views.generic import (
     DeleteView,
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from .mixins import AdminRequiredMixin
+from django.contrib.auth import authenticate, login
+from allauth.account.utils import send_email_confirmation
+from allauth.account.models import EmailAddress
 
 
 class PlaceListView(LoginRequiredMixin, ListView):
@@ -68,21 +72,35 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
     template_name = "dashboard/place_form.html"
     context_object_name = "place"
 
+    def dispatch(self, request, *args, **kwargs):
+        place = self.get_object()
+
+        # Check if the user is an admin or the owner of the establishment
+        if not request.user.is_admin and request.user not in place.manager.all():
+            return HttpResponseForbidden("У вас нет прав на просмотр этой страницы.")
+
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = kwargs.get("form", PlaceForm(instance=self.object))
+        context["form"] = kwargs.get(
+            "form", PlaceForm(instance=self.object, user=self.request.user)
+        )
+        context["created"] = self.request.GET.get("created", False)
         return context
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = PlaceForm(request.POST, request.FILES, instance=self.object)
+        form = PlaceForm(
+            request.POST, request.FILES, instance=self.object, user=request.user
+        )
         if form.is_valid():
             place = form.save(commit=False)
             if place.name != self.object.name:
                 place.slug = slugify(place.name)
             place.save()
             form.save_m2m()  # Сохранение полей ManyToMany
-            return redirect("dashboard:place_detail", slug=self.object.slug)
+            return redirect("dashboard:place_detail", slug=place.slug)
         else:
             context = self.get_context_data(form=form)
             return self.render_to_response(context)
@@ -93,6 +111,14 @@ class PlaceCreateView(LoginRequiredMixin, CreateView):
     form_class = PlaceForm
     template_name = "dashboard/place_form.html"
     success_url = reverse_lazy("dashboard:place_list")
+
+    def dispatch(self, request, *args, **kwargs):
+        # Проверяем, что текущий пользователь является администратором
+        if not request.user.is_admin:
+            return HttpResponseForbidden(
+                "У вас нет прав на добавление нового заведения."
+            )
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.slug = slugify(form.instance.name)
@@ -107,6 +133,12 @@ class PlaceDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "dashboard/place_confirm_delete.html"
     success_url = reverse_lazy("dashboard:place_list")
 
+    def dispatch(self, request, *args, **kwargs):
+        # Проверяем, что текущий пользователь является администратором
+        if not request.user.is_admin:
+            return HttpResponseForbidden("У вас нет прав на удаление этого заведения.")
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["place"] = self.get_object()
@@ -118,8 +150,8 @@ def reservations_list(request, place_id):
     place = get_object_or_404(Place, id=place_id)
 
     # Проверка, имеет ли пользователь доступ к этому заведению
-    if not request.user.is_staff and place.manager != request.user:
-        return redirect("places_list")
+    if not request.user.is_admin and place.manager != request.user:
+        return redirect("dashboard:place_list")
 
     reservations = Reservation.objects.filter(place=place).order_by("-created_at")
 
@@ -132,7 +164,7 @@ def reservations_list(request, place_id):
 
 @login_required
 def all_reservations(request):
-    if request.user.is_staff:
+    if request.user.is_admin:
         # Администратор видит все бронирования
         reservations = Reservation.objects.all().order_by("-created_at")
     else:
@@ -154,7 +186,7 @@ def reservation_detail(request, reservation_id):
     place = reservation.place
 
     # Проверка, имеет ли пользователь доступ к этому бронированию
-    if not request.user.is_staff and reservation.place.manager != request.user:
+    if not request.user.is_admin and request.user not in place.manager.all():
         return HttpResponseForbidden(
             "У вас нет прав на просмотр и редактирование этого бронирования."
         )
@@ -181,20 +213,18 @@ def place_detail(request, slug):
 
     # Проверяем, что текущий пользователь не является суперпользователем
     # и либо владелец заведения, либо администратором
-    if not request.user.is_superuser and not (
-        place.manager == request.user or request.user.is_staff
-    ):
+    if not request.user.is_admin and request.user not in place.manager.all():
         return HttpResponseForbidden(
             "У вас нет прав на редактирование этого заведения."
         )
 
     if request.method == "POST":
-        form = PlaceForm(request.POST, request.FILES, instance=place)
+        form = PlaceForm(request.POST, request.FILES, instance=place, user=request.user)
         if form.is_valid():
             form.save()
             return redirect("dashboard:place_detail", slug=place.slug)
     else:
-        form = PlaceForm(instance=place)
+        form = PlaceForm(instance=place, user=request.user)
 
     context = {"place": place, "cuisines": cuisines, "features": features, "form": form}
     return render(request, "dashboard/place_detail.html", context)
@@ -204,39 +234,56 @@ def add_place(request):
     if request.method == "POST":
         form = PlaceCreationForm(request.POST)
         if form.is_valid():
+            # Сохранение заведения без коммита, чтобы связать его с владельцем позже
             place = form.save(commit=False)
             owner_email = form.cleaned_data["owner_email"]
             owner_password = form.cleaned_data["owner_password"]
             owner_name = form.cleaned_data["owner_name"]
 
-            owner = CustomUser.objects.create(
-                name=owner_name, email=owner_email, role="owner", is_active=False
+            # Создание пользователя
+            owner = CustomUser.objects.create_user(
+                email=owner_email,
+                password=owner_password,
+                name=owner_name,
+                role="owner",
+                is_active=True,  # Пользователь активен сразу после создания
             )
-            owner.set_password(owner_password)
             owner.save()
 
+            # Сохранение заведения и привязка владельца
             place.save()
             place.manager.add(owner)
 
-            # Отправка активационного письма
-            current_site = get_current_site(request)
-            mail_subject = "Активируйте вашу учетную запись"
-            message = render_to_string(
-                "users/activation_email.html",
-                {
-                    "user": owner,
-                    "domain": current_site.domain,
-                    "uid": urlsafe_base64_encode(force_bytes(owner.pk)),
-                    "token": default_token_generator.make_token(owner),
-                },
+            # Отправка письма с подтверждением email
+            email_address, created = EmailAddress.objects.get_or_create(
+                user=owner,
+                email=owner_email,
+                defaults={"primary": True, "verified": False},
             )
-            send_mail(mail_subject, message, "oashiryaev@yandex.ru", [owner_email])
 
-            return redirect("dashboard/add_place_success")
+            if created:
+                # Send confirmation email using Allauth
+                send_email_confirmation(request, owner)
+
+            # Аутентификация и логин пользователя
+            user = authenticate(email=owner_email, password=owner_password)
+            if user is not None:
+                login(
+                    request, user, backend="django.contrib.auth.backends.ModelBackend"
+                )
+
+            # Перенаправление на страницу заведения с параметром created=true
+            return redirect(
+                f"{reverse('dashboard:place_detail', kwargs={'slug': place.slug})}?created=true"
+            )
     else:
-        form = AddPlaceForm()
+        form = PlaceCreationForm()
 
-    return render(request, "dashboard/add_place.html", {"form": form})
+    return render(
+        request,
+        "dashboard/add_place.html",
+        {"form": form, "title": "Добавить новое заведение"},
+    )
 
 
 def add_place_success(request):

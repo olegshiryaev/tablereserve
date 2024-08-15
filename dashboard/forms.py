@@ -48,7 +48,6 @@ class PlaceForm(forms.ModelForm):
             "average_check",
             "features",
             "tags",
-            "has_kids_room",
             "capacity",
             "is_active",
             "manager",
@@ -75,14 +74,14 @@ class PlaceForm(forms.ModelForm):
             "short_description": forms.TextInput(attrs={"maxlength": 255}),
             "average_check": forms.NumberInput(attrs={"min": 0}),
             "features": forms.CheckboxSelectMultiple(),
-            "tags": forms.SelectMultiple(),
-            "has_kids_room": forms.CheckboxInput(),
+            "tags": forms.CheckboxSelectMultiple(),
             "capacity": forms.NumberInput(),
             "is_active": forms.CheckboxInput(),
             "manager": forms.SelectMultiple(),
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)  # Получаем пользователя из kwargs
         super().__init__(*args, **kwargs)
 
         # Добавление общих классов к виджетам полей формы
@@ -94,6 +93,12 @@ class PlaceForm(forms.ModelForm):
             elif not isinstance(field.widget, forms.CheckboxSelectMultiple):
                 field.widget.attrs["class"] = "form-control"
 
+        # Если пользователь не администратор, скрываем определенные поля
+        if not self.user.is_admin:
+            self.fields.pop("tags", None)
+            self.fields.pop("manager", None)
+            self.fields.pop("is_active", None)
+
         # Добавление класса 'is-invalid' к полям с ошибками
         if self.errors.get(field_name):
             field.widget.attrs["class"] += " is-invalid"
@@ -101,6 +106,17 @@ class PlaceForm(forms.ModelForm):
         # Установка начального значения для нового объекта
         if not self.instance.pk and not self.initial.get("phone"):
             self.fields["phone"].initial = "+7"
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Проверка, если пользователь не администратор, исключить админские поля
+        if not self.user.is_admin:
+            for field in ["tags", "is_active", "manager"]:
+                if field not in self.data:
+                    cleaned_data.pop(field, None)
+
+        return cleaned_data
 
     def clean_phone(self):
         phone = self.cleaned_data.get("phone", "").strip()
@@ -133,7 +149,6 @@ class PlaceUpdateRequestForm(forms.ModelForm):
             "updated_average_check",
             "updated_features",
             "updated_tags",
-            "updated_has_kids_room",
             "updated_capacity",
             "updated_cover_image",
         ]
@@ -178,34 +193,12 @@ class PlaceCreationForm(forms.ModelForm):
                 password=owner_password,
                 name=owner_name,
                 role="owner",
-                is_active=False,
+                is_active=True,
             )
             place.manager.add(owner)
             place.save()
 
-            # Send activation email here
-            self.send_activation_email(owner)
-
         return place
-
-    def send_activation_email(self, user):
-        # Логика отправки email для активации аккаунт
-
-        current_site = get_current_site(self.request)
-        mail_subject = "Activate your account."
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        activation_link = f"http://{current_site.domain}/activate/{uid}/{token}/"
-        message = render_to_string(
-            "activation_email.html",
-            {
-                "user": user,
-                "domain": current_site.domain,
-                "uid": uid,
-                "token": token,
-            },
-        )
-        send_mail(mail_subject, message, "oashiryaev@yandex.ru", [user.email])
 
 
 class PlaceImageForm(forms.ModelForm):
@@ -300,3 +293,13 @@ class PlaceTypeForm(forms.ModelForm):
     class Meta:
         model = PlaceType
         fields = ["name", "slug"]
+
+
+class AddPlaceForm(forms.ModelForm):
+    owner_name = forms.CharField(max_length=50, label="Имя владельца")
+    owner_email = forms.EmailField(label="Email владельца")
+    owner_password = forms.CharField(widget=forms.PasswordInput, label="Пароль")
+
+    class Meta:
+        model = Place
+        fields = ["name", "city", "phone"]

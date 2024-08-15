@@ -136,9 +136,23 @@
                         </div>
                     </div>
                 </div>
+                <!-- Описание заведения -->
+                <div id="place-description" class="place-description-section">
+                    <div class="place-description-inner">
+                        <h3>О заведении</h3>
+                        <!-- Особенности заведения -->
+                        <div class="features-container">
+                            <ul class="features-list">
+                                {% for feature in place.features.all %}
+                                    <li class="feature-element">{{ feature.name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <p class="place-description-text">{{ place.description }}</p>
+                    </div>
+                </div>
                 <div id="menu-prices" class="menu-prices-section">
                     <!-- Content about the menu and prices -->
-        
                     <div class="place-menu-section">
                         <div class="place-menu-inner">
                             <h2>Меню</h2>
@@ -179,7 +193,6 @@
                                     {% endfor %}
                                 </ul>
                             </div>
-        
                             <!-- Add more categories as needed -->
                         </div>
                     </div>

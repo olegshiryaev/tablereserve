@@ -1,10 +1,37 @@
-{% extends "base.html" %}
-
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
 {% block content %}
-<h2>Добавить заведение</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Добавить заведение</button>
-</form>
+<div class="container mt-5">
+    <h2 class="mb-4">Добавить заведение</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.owner_name.label_tag }}
+            {{ form.owner_name|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            {{ form.owner_email.label_tag }}
+            {{ form.owner_email|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            {{ form.owner_password.label_tag }}
+            {{ form.owner_password|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            {{ form.city.label_tag }}
+            {{ form.city|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            {{ form.phone.label_tag }}
+            {{ form.phone|add_class:"form-control" }}
+        </div>
+        <button type="submit" class="btn btn-primary">Добавить заведение</button>
+    </form>
+</div>
 {% endblock %}

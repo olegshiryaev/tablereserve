@@ -164,7 +164,6 @@ class PlaceAdmin(admin.ModelAdmin):
                     "features",
                     "cuisines",
                     "tags",
-                    "has_kids_room",
                     "capacity",
                     "logo",
                     "rating",

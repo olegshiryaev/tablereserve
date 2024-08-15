@@ -19,7 +19,7 @@
 {% block content %}
 <div class="container-fluid p-4">
   <a href="{% url 'dashboard:place_list' %}" class="btn btn-secondary mb-4">Назад</a>
-  <h2 class="my-4">{% if place %}Редактировать заведение{% else %}Добавить заведение{% endif %}</h2>
+  <h2 class="my-4">{% if place %}{{ place.name }}{% else %}Добавить заведение{% endif %}</h2>
   <div class="card">
     <div class="card-body">
       {% if place %}
@@ -201,6 +201,23 @@
                         </div>
                     {% endfor %}
                 </div>
+
+                {% if user.is_admin %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="id_tags" class="form-label">Теги:</label>
+                    </div>
+                    {% for option in form.tags.field.choices %}
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="{{ form.tags.name }}" value="{{ option.0 }}" {% if option.0 in form.tags.value %}checked{% endif %}>
+                                    {{ option.1 }}
+                                </label>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
                 <div class="row">
                     <div class="col-md-4">
                         {{ form.manager.label_tag }}
@@ -212,40 +229,6 @@
                         {% endif %}
                     </div>
                 </div>
-
-                {% if user.is_superuser %}
-                <div class="mb-3">
-                    {{ form.tags.label_tag }}
-                    {{ form.tags }}
-                    {% if form.tags.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.tags.errors|join:" " }}
-                        </div>
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <div class="mb-3">
-                    {{ form.has_kids_room.label_tag }}
-                    {{ form.has_kids_room }}
-                    {% if form.has_kids_room.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.has_kids_room.errors|join:" " }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-3">
-                    {{ form.logo.label_tag }}
-                    {{ form.logo }}
-                    {% if form.logo.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.logo.errors|join:" " }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                {% if user.is_superuser %}
                 <div class="mb-3">
                     {{ form.is_active.label_tag }}
                     {{ form.is_active }}
@@ -256,17 +239,36 @@
                     {% endif %}
                 </div>
                 {% endif %}
+
+                <div class="mb-3">
+                    {{ form.logo.label_tag }}
+                    {{ form.logo }}
+                    {% if form.logo.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.logo.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
             </div>          
             <!-- Контактные данные -->
             <div class="tab-pane fade" id="contact-info" role="tabpanel" aria-labelledby="contact-info-tab">
                 <div class="row mb-3 mt-3">
                     <div class="col-md-4">
-                        {{ form.facebook.label_tag }}
-                        {{ form.facebook }}
-                        {% if form.facebook.errors %}
+                        {{ form.vkontakte.label_tag }}
+                        {{ form.vkontakte }}
+                        {% if form.vkontakte.errors %}
                         <div class="text-danger mt-1">
-                                {{ form.facebook.errors|join:" " }}
+                                {{ form.vkontakte.errors|join:" " }}
                             </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.odnoklassniki.label_tag }}
+                        {{ form.odnoklassniki }}
+                        {% if form.odnoklassniki.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.odnoklassniki.errors|join:" " }}
+                        </div>
                         {% endif %}
                     </div>
                     <div class="col-md-4">
@@ -300,11 +302,11 @@
                         {% endif %}
                     </div>
                     <div class="col-md-4">
-                        {{ form.vkontakte.label_tag }}
-                        {{ form.vkontakte }}
-                        {% if form.vkontakte.errors %}
+                        {{ form.facebook.label_tag }}
+                        {{ form.facebook }}
+                        {% if form.facebook.errors %}
                         <div class="text-danger mt-1">
-                                {{ form.vkontakte.errors|join:" " }}
+                                {{ form.facebook.errors|join:" " }}
                             </div>
                         {% endif %}
                     </div>
@@ -328,42 +330,37 @@
                         </div>
                     {% endif %}
                     </div>
-                    <div class="col-md-4">
-                        {{ form.odnoklassniki.label_tag }}
-                        {{ form.odnoklassniki }}
-                        {% if form.odnoklassniki.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.odnoklassniki.errors|join:" " }}
-                        </div>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
 
           <!-- Изображения -->
           {% if place %}
-          <div class="tab-pane fade" id="images" role="tabpanel" aria-labelledby="images-tab">
-            <h3 class="mt-3">Изображения</h3>
-            <a href="{% url 'dashboard:placeimage_add' place_id=place.id %}" class="btn btn-primary mb-3">Добавить изображение</a>
-            <div class="row">
-                {% for media in place.images.all %}
-                <div class="col-md-3">
-                    {% if media.embed_code %}
-                        {{ media.get_media_display|safe }}
-                    {% elif media.video_url %}
-                        <iframe width="240" height="160" src="{{ media.video_url }}" frameborder="0" allowfullscreen></iframe>
-                    {% elif media.image %}
-                        <img src="{{ media.image.url }}" alt="{{ media }}" class="img-thumbnail">
-                    {% else %}
-                        <img src="{% static 'images/default_image.jpg' %}" alt="No Media Available" class="img-thumbnail">
-                    {% endif %}
-                    <a href="{% url 'dashboard:placeimage_edit' pk=media.pk %}" class="btn btn-secondary btn-sm mt-2">Редактировать</a>
-                    <a href="{% url 'dashboard:placeimage_delete' pk=media.pk %}" class="btn btn-danger btn-sm mt-2">Удалить</a>
+            <div class="tab-pane fade" id="images" role="tabpanel" aria-labelledby="images-tab">
+                <h3 class="mt-3">Изображения</h3>
+                <a href="{% url 'dashboard:placeimage_add' place_id=place.id %}" class="btn btn-primary mb-3">Добавить изображение</a>
+                <div class="row">
+                    {% for media in place.images.all %}
+                    <div class="col-md-3 d-flex flex-column align-items-center">
+                        <div class="image-container">
+                            {% if media.embed_code %}
+                                {{ media.get_media_display|safe }}
+                            {% elif media.video_url %}
+                                <iframe width="240" height="160" src="{{ media.video_url }}" frameborder="0" allowfullscreen></iframe>
+                            {% elif media.image %}
+                                <img src="{{ media.image.url }}" alt="{{ media }}" class="img-thumbnail image-fit">
+                            {% else %}
+                                <img src="{% static 'images/default_image.jpg' %}" alt="No Media Available" class="img-thumbnail image-fit">
+                            {% endif %}
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'dashboard:placeimage_edit' pk=media.pk %}" class="btn btn-secondary btn-sm">Редактировать</a>
+                            <a href="{% url 'dashboard:placeimage_delete' pk=media.pk %}" class="btn btn-danger btn-sm">Удалить</a>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
-          </div>
-          {% endif %}
+            {% endif %}
         </div>
 
         <button type="submit" class="btn btn-primary" id="saveButton">Сохранить</button>
@@ -372,7 +369,34 @@
   </div>
 </div>
 
+<!-- Модальное окно подтверждения -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Заявка принята</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Ваша заявка принята и будет рассмотрена в течение 2 часов. После этого заведение станет активным.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 {% if place %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Открываем модальное окно, если пользователь только что создал заведение
+        {% if created %}
+        var confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        confirmationModal.show();
+        {% endif %}
+    });
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var formElements = document.getElementById('placeForm').elements;

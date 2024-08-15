@@ -351,9 +351,6 @@ class Place(models.Model):
     average_check = models.IntegerField(
         default=0, null=True, blank=True, verbose_name="Средний чек"
     )
-    features = models.ManyToManyField(
-        Feature, related_name="places", blank=True, verbose_name="Особенности"
-    )
     tags = models.ManyToManyField(
         Tag, blank=True, related_name="places", verbose_name="Теги"
     )
@@ -728,6 +725,29 @@ class Reservation(models.Model):
         verbose_name = "Бронирование"
         verbose_name_plural = "Бронирования"
         ordering = ["-date", "-time"]
+
+
+class PlaceFeature(models.Model):
+    place = models.ForeignKey(
+        Place, on_delete=models.CASCADE, related_name="place_features"
+    )
+    feature = models.ForeignKey(
+        Feature, on_delete=models.CASCADE, related_name="place_features"
+    )
+    description = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Описание особенности"
+    )
+
+    class Meta:
+        unique_together = (
+            "place",
+            "feature",
+        )  # Это ограничивает повторение одной и той же особенности для одного заведения
+        verbose_name = "Особенность заведения"
+        verbose_name_plural = "Особенности заведения"
+
+    def __str__(self):
+        return f"{self.place.name} - {self.feature.name}: {self.description}"
 
 
 class Menu(models.Model):

@@ -45,18 +45,18 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ("name",)
 
 
-@admin.register(Feature)
-class FeatureAdmin(admin.ModelAdmin):
-    list_display = ["name"]
-    list_filter = ["name"]
-    search_fields = ["name"]
+# @admin.register(Feature)
+# class FeatureAdmin(admin.ModelAdmin):
+#     list_display = ["name"]
+#     list_filter = ["name"]
+#     search_fields = ["name"]
 
-    fieldsets = ((None, {"fields": ("name",)}),)
+#     fieldsets = ((None, {"fields": ("name",)}),)
 
 
-class FeatureInline(admin.TabularInline):
-    model = Place.features.through
-    extra = 1
+# class FeatureInline(admin.TabularInline):
+#     model = Place.features.through
+#     extra = 1
 
 
 class WorkScheduleInline(admin.TabularInline):
@@ -123,7 +123,7 @@ class PlaceAdmin(admin.ModelAdmin):
     )
     search_fields = ("name", "city__name", "address", "phone", "tags__name")
     list_filter = ("city", "type", "is_active")
-    inlines = [WorkScheduleInline, FeatureInline, HallInline, PlaceImageInline]
+    inlines = [WorkScheduleInline, HallInline, PlaceImageInline]
     filter_horizontal = (
         "tags",
         "cuisines",
@@ -170,7 +170,6 @@ class PlaceAdmin(admin.ModelAdmin):
                     "description",
                     "short_description",
                     "average_check",
-                    "features",
                     "cuisines",
                     "tags",
                     "capacity",

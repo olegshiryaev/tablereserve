@@ -49,11 +49,11 @@
                             <td>{{ reservation.wishes }}</td>
                             <td>
                                 {% if reservation.status == "confirmed" %}
-                                <span class="badge bg-success">{{ reservation.status }}</span>
+                                <span class="badge bg-success">{{ reservation.get_status_display }}</span>
                                 {% elif reservation.status == "cancelled" %}
-                                <span class="badge bg-danger">{{ reservation.status }}</span>
+                                <span class="badge bg-danger">{{ reservation.get_status_display }}</span>
                                 {% elif reservation.status == "pending" %}
-                                <span class="badge bg-warning">{{ reservation.status }}</span>
+                                <span class="badge bg-warning">{{ reservation.get_status_display }}</span>
                                 {% endif %}
                             </td>
                             <td>

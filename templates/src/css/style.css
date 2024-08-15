@@ -1515,6 +1515,43 @@ footer a:hover {
     font-size: 16px;
     font-weight: 600;
     line-height: 22px;
+    text-decoration: none;
+}
+
+a.place-detail-item-value:hover {
+    color: #007aff;
+}
+
+.place-detail-item-body {
+    display: flex;
+    align-items: center;
+    column-gap: 4px;
+    flex: 1 1 auto;
+    justify-content: space-between;
+}
+
+.place-detail-item-action {
+    align-items: center;
+    -moz-column-gap: 10px;
+    column-gap: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+.place-detail-item-action-link {
+    align-items: center;
+    color: #0a74ff;
+    display: flex;
+    flex: 0 0 16px;
+    height: 16px;
+    justify-content: center;
+    transition: .3s ease-in-out;
+    width: 16px;
+}
+
+.place-detail-item-action-link img {
+    width: 16px; /* Установите нужный размер */
+    height: 16px;
 }
 
 @media (max-width: 767px) {

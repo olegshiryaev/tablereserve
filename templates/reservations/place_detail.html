@@ -133,6 +133,42 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="place-detail-item">
+                                <div class="place-detail-item-label">
+                                    Телефон
+                                </div>
+                                <div class="place-detail-item-body">
+                                    <a href="tel:{{ place.phone }}" class="place-detail-item-value">
+                                        {{ place.phone|format_phone_number }}
+                                    </a>
+                                    <div class="place-detail-item-action">
+                                        {% if place.telegram %}
+                                            <a href="{{ place.telegram }}" target="_blank" class="place-detail-item-action-link">
+                                                <img src="{% static 'icons/telegram.svg' %}" alt="Telegram">
+                                            </a>
+                                        {% endif %}
+                                        {% if place.whatsapp %}
+                                            <a href="https://wa.me/{{ place.whatsapp }}" target="_blank" class="place-detail-item-action-link">
+                                                <img src="{% static 'icons/whatsapp.svg' %}" alt="WhatsApp">
+                                            </a>
+                                        {% endif %}
+                                        {% if place.viber %}
+                                            <a href="viber://chat?number={{ place.viber }}" target="_blank" class="place-detail-item-action-link">
+                                                <img src="{% static 'icons/viber.svg' %}" alt="Viber">
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="place-detail-item">
+                                <div class="place-detail-item-label">
+                                    Сегодня работает
+                                </div>
+                                <div class="place-detail-item-body">
+                                    <div class="place-detail-item-value">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

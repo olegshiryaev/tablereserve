@@ -1,4 +1,5 @@
 from django import template
+import re
 from django.forms.widgets import CheckboxSelectMultiple
 
 register = template.Library()
@@ -57,3 +58,14 @@ def split_list(value, chunk_size):
 def range(value, arg):
     """Returns a list containing range made from `value` to `arg`"""
     return range(value, arg)
+
+
+@register.filter
+def format_phone_number(value):
+    if not value:
+        return ""
+    # Удаляем все нецифровые символы
+    value = re.sub(r"\D", "", value)
+    if len(value) == 11:
+        return f"+7 ({value[1:4]}) {value[4:7]} {value[7:9]} {value[9:]}"
+    return value

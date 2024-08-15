@@ -852,7 +852,6 @@ h2 {
     font-weight: 600;
     font-size: 15px;
     line-height: 20px;
-    margin-bottom: 5px;
     display: inline-block;
 }
 
@@ -1026,6 +1025,23 @@ footer a:hover {
 
     .page-navigation-list a {
         font-size: 18px; /* Чуть больший шрифт для удобства на мобильных */
+    }
+
+    .features-container {
+        padding: 10px;
+    }
+
+    .features-title {
+        font-size: 18px;
+    }
+
+    .features-list {
+        align-items: flex-start;
+    }
+
+    .feature-element {
+        padding: 6px 10px;
+        font-size: 14px;
     }
 
     footer .container {

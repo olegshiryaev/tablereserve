@@ -113,12 +113,17 @@ class PlaceCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("dashboard:place_list")
 
     def dispatch(self, request, *args, **kwargs):
-        # Проверяем, что текущий пользователь является администратором
-        if not request.user.is_admin:
+        if not request.user.is_authenticated or not request.user.is_admin:
             return HttpResponseForbidden(
                 "У вас нет прав на добавление нового заведения."
             )
         return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        # Передаем пользователя в kwargs формы
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         form.instance.slug = slugify(form.instance.name)

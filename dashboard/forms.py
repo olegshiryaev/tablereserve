@@ -121,7 +121,7 @@ class PlaceForm(forms.ModelForm):
     def clean_phone(self):
         phone = self.cleaned_data.get("phone", "").strip()
         if phone and not phone.startswith("+7"):
-            phone = "+7" + phone.lstrip("+7")
+            phone = "+7" + phone.lstrip("8")
         if len(phone) < 12:
             raise forms.ValidationError(
                 "Номер телефона должен быть не менее 12 символов."

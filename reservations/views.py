@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+import calendar
 
 from users.models import CustomUser, Favorite
 from .models import (
@@ -280,6 +281,14 @@ def place_detail(request, city_slug, place_slug):
 
     reservation_form = ReservationForm(place=place, user=user)
     schedules = WorkSchedule.get_sorted_schedules(place.id)
+
+    today_weekday = calendar.day_name[date.today().weekday()].upper()[
+        :3
+    ]  # Получаем текущий день недели
+    today_schedule = next(
+        (schedule for schedule in schedules if schedule.day == today_weekday), None
+    )
+
     reviews = place.reviews.filter(is_approved=True)
     review_count = reviews.count()
     average_rating = place.rating
@@ -345,6 +354,8 @@ def place_detail(request, city_slug, place_slug):
             "reservation_form": reservation_form,
             "selected_city": city,
             "schedules": schedules,
+            "today_weekday": today_weekday,
+            "today_schedule": today_schedule,
             "average_rating": average_rating,
             "reviews": reviews,
             "review_count": review_count,

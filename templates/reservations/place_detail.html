@@ -32,7 +32,7 @@
                         <path
                             d="M6.62 10.79a15.53 15.53 0 006.59 6.59l2.2-2.2a1.5 1.5 0 011.7-.27c1.2.48 2.5.74 3.84.74a1.5 1.5 0 011.5 1.5v3.75a1.5 1.5 0 01-1.5 1.5A18 18 0 012 4.5a1.5 1.5 0 011.5-1.5H7.25a1.5 1.5 0 011.5 1.5c0 1.34.26 2.63.74 3.84a1.5 1.5 0 01-.27 1.7l-2.2 2.2z" />
                     </svg>
-                    <a href="tel:{{ place.phone }}" target="_blank" style="text-decoration: none; color: inherit;">{{ place.phone }}</a>
+                    <a href="tel:{{ place.phone }}" target="_blank" style="text-decoration: none; color: inherit;">{{ place.phone|format_phone_number }}</a>
                 </p>
             </div>
             <div class="right-info">
@@ -162,10 +162,46 @@
                             </div>
                             <div class="place-detail-item">
                                 <div class="place-detail-item-label">
-                                    Сегодня работает
+                                    Время работы
                                 </div>
                                 <div class="place-detail-item-body">
-                                    <div class="place-detail-item-value">
+                                    {% if today_schedule %}
+                                        {% if today_schedule.is_closed %}
+                                            <div class="place-detail-item-value">
+                                                сегодня закрыто
+                                            </div>
+                                        {% else %}
+                                            <div class="place-detail-item-value">
+                                                сегодня с {{ today_schedule.open_time|time:"H:i" }} до {{ today_schedule.close_time|time:"H:i" }}
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="place-detail-item-value">
+                                            График работы не задан
+                                        </div>
+                                    {% endif %}
+                                    <div class="place-detail-item-action" style="position: relative;">
+                                        <span class="place-detail-item-action-link work-schedule-link">
+                                            График
+                                        </span>
+                                        <div class="work-schedule-tooltip">
+                                            <table class="work-schedule-table">
+                                                {% for schedule in schedules %}
+                                                    <tr class="{% if schedule.day == today_weekday %}current-day{% endif %}">
+                                                        <td class="work-schedule-day">
+                                                            {{ schedule.get_day_display }}
+                                                        </td>
+                                                        <td class="work-schedule-time">
+                                                            {% if schedule.is_closed %}
+                                                                не работает
+                                                            {% else %}
+                                                                с {{ schedule.open_time|time:"H:i" }} до {{ schedule.close_time|time:"H:i" }}
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -587,6 +623,23 @@
         window.addEventListener('click', function(event) {
             if (event.target === modal) {
                 modal.style.display = 'none';
+            }
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const workScheduleLink = document.querySelector('.work-schedule-link');
+        const tooltip = document.querySelector('.work-schedule-tooltip');
+    
+        workScheduleLink.addEventListener('click', function(event) {
+            event.preventDefault(); // предотвращаем добавление # в URL и перемещение страницы
+            tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+        });
+    
+        document.addEventListener('click', function(event) {
+            if (!workScheduleLink.contains(event.target) && !tooltip.contains(event.target)) {
+                tooltip.style.display = 'none';
             }
         });
     });

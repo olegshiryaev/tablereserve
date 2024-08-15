@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -60,9 +61,17 @@ class FeatureInline(admin.TabularInline):
 
 class WorkScheduleInline(admin.TabularInline):
     model = WorkSchedule
+    form = WorkScheduleForm
     extra = 1
-    min_num = 7
+    fields = ("day", "open_time", "close_time", "is_closed", "copy_to_all")
+    ordering = ["day"]
     max_num = 7
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(day_order=WorkSchedule.get_day_order_annotation()).order_by(
+            "day_order"
+        )
 
 
 class TableInline(admin.TabularInline):
@@ -209,6 +218,14 @@ class WorkScheduleAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("place")
+
+    def save_model(self, request, obj, form, change):
+        # Если время закрытия до времени открытия, считается, что заведение работает до следующего дня
+        if obj.close_time and obj.open_time and obj.close_time <= obj.open_time:
+            obj.close_time = (
+                datetime.combine(datetime.today(), obj.close_time) + timedelta(days=1)
+            ).time()
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Hall)

@@ -460,6 +460,18 @@ class Place(models.Model):
         return self.name
 
 
+@receiver(post_save, sender=Place)
+def create_default_work_schedule(sender, instance, created, **kwargs):
+    if created:
+        days = WorkSchedule.DAY_CHOICES
+        for day in days:
+            WorkSchedule.objects.create(
+                place=instance,
+                day=day[0],
+                is_closed=True,
+            )
+
+
 @receiver(pre_save, sender=City)
 @receiver(pre_save, sender=Cuisine)
 @receiver(pre_save, sender=Feature)
@@ -541,7 +553,12 @@ class WorkSchedule(models.Model):
         ("SAT", "Суббота"),
         ("SUN", "Воскресенье"),
     )
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, verbose_name="Заведение")
+    place = models.ForeignKey(
+        Place,
+        on_delete=models.CASCADE,
+        related_name="work_schedule",
+        verbose_name="Заведение",
+    )
     day = models.CharField(
         max_length=3, choices=DAY_CHOICES, verbose_name="День недели"
     )
@@ -550,24 +567,26 @@ class WorkSchedule(models.Model):
     is_closed = models.BooleanField(default=False, verbose_name="Закрыто")
 
     def __str__(self):
-        return f"{self.place.name} - {self.get_day_display()}: {self.open_time} - {self.close_time}"
+        return f"{self.place.name} - {self.get_day_display()}: {'Закрыто' if self.is_closed else f'{self.open_time} - {self.close_time}'}"
+
+    @staticmethod
+    def get_day_order_annotation():
+        return Case(
+            When(day="MON", then=Value(1)),
+            When(day="TUE", then=Value(2)),
+            When(day="WED", then=Value(3)),
+            When(day="THU", then=Value(4)),
+            When(day="FRI", then=Value(5)),
+            When(day="SAT", then=Value(6)),
+            When(day="SUN", then=Value(7)),
+            output_field=IntegerField(),
+        )
 
     @staticmethod
     def get_sorted_schedules(place_id):
         return (
             WorkSchedule.objects.filter(place_id=place_id)
-            .annotate(
-                day_order=Case(
-                    When(day="MON", then=Value(1)),
-                    When(day="TUE", then=Value(2)),
-                    When(day="WED", then=Value(3)),
-                    When(day="THU", then=Value(4)),
-                    When(day="FRI", then=Value(5)),
-                    When(day="SAT", then=Value(6)),
-                    When(day="SUN", then=Value(7)),
-                    output_field=IntegerField(),
-                )
-            )
+            .annotate(day_order=WorkSchedule.get_day_order_annotation())
             .order_by("day_order")
         )
 

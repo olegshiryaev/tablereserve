@@ -4,6 +4,12 @@ from .models import Place, Reservation, Review, WorkSchedule
 
 
 class WorkScheduleForm(forms.ModelForm):
+    copy_to_all = forms.BooleanField(
+        required=False,
+        label="Скопировать на все дни",
+        help_text="Отметьте, чтобы скопировать расписание на все остальные дни недели.",
+    )
+
     class Meta:
         model = WorkSchedule
         fields = "__all__"
@@ -24,6 +30,24 @@ class WorkScheduleForm(forms.ModelForm):
                 )
 
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        if commit:
+            instance.save()
+
+        if self.cleaned_data.get("copy_to_all"):
+            # Копируем расписание на все остальные дни недели, кроме текущего
+            WorkSchedule.objects.filter(place=instance.place).exclude(
+                day=instance.day
+            ).update(
+                open_time=instance.open_time,
+                close_time=instance.close_time,
+                is_closed=instance.is_closed,
+            )
+
+        return instance
 
 
 class ReviewForm(forms.ModelForm):

@@ -109,11 +109,13 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
+ACCOUNT_LOGOUT_ON_GET = True
 LOGIN_REDIRECT_URL = "/"  # URL для перенаправления после входа в систему
 LOGOUT_REDIRECT_URL = "/"  # URL для перенаправления после выхода из системы
 
 ACCOUNT_FORMS = {
     "signup": "users.forms.CustomSignupForm",
+    "login": "users.forms.CustomLoginForm",
 }
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -218,6 +220,18 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_CONFIGS = {
+    "default": {
+        "toolbar": "full",
+        "height": 300,
+        "width": 800,
+        "extraAllowedContent": "div(*){*};a[*](*);img[*](*);",
+        "removeButtons": "Save,NewPage,Preview,Print,Templates",
+    },
+}
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

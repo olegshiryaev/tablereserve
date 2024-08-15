@@ -39,7 +39,12 @@ class CustomUser(AbstractUser):
         ("user", "Пользователь"),
     )
     username = None
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="user")
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default="user",
+        verbose_name="Адрес электронной почты",
+    )
     name = models.CharField(max_length=50, blank=True, verbose_name="Имя")
     email = models.EmailField(unique=True, verbose_name="Адрес электронной почты")
     phone_number = PhoneNumberField(

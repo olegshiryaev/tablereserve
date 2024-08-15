@@ -23,6 +23,7 @@ from PIL import Image
 from django.core.validators import URLValidator
 from django.db.models import Case, When, IntegerField, Value
 from tempfile import NamedTemporaryFile
+from ckeditor.fields import RichTextField
 
 
 def upload_to_city_image(instance, filename):

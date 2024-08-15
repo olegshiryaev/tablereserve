@@ -1,5 +1,5 @@
 from django import forms
-from allauth.account.forms import SignupForm
+from allauth.account.forms import SignupForm, LoginForm
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import CustomUser
 
@@ -21,15 +21,17 @@ class CustomSignupForm(SignupForm):
 class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm):
         model = CustomUser
-        fields = (
-            "email",
-            "name",
-        )
+        fields = ("email", "password1", "password2")
         error_messages = {
             "email": {
                 "unique": "Пользователь с таким адресом электронной почты уже существует.",
             },
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({"class": "form-control"})
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -49,3 +51,14 @@ class CustomUserChangeForm(UserChangeForm):
                 "unique": "Пользователь с таким адресом электронной почты уже существует.",
             },
         }
+
+
+class CustomLoginForm(LoginForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["login"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Email"}
+        )
+        self.fields["password"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Пароль"}
+        )

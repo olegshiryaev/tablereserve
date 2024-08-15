@@ -4,11 +4,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
-    path('', include('dashboard.urls', namespace='dashboard')),
-    path('', include('reservations.urls')),
-    path('user/', include('users.urls', namespace='users')),
+    path("ckeditor/", include("ckeditor_uploader.urls")),
+    path("admin/", admin.site.urls),
+    path("accounts/", include("allauth.urls")),
+    path("", include("dashboard.urls", namespace="dashboard")),
+    path("", include("reservations.urls")),
+    path("user/", include("users.urls", namespace="users")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -20,17 +20,8 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     inlines = [PlaceInline]
 
-    list_display = (
-        "email",
-        "name",
-        "is_staff",
-        "is_active",
-    )
-    list_filter = (
-        "email",
-        "is_staff",
-        "is_active",
-    )
+    list_display = ("email", "name", "role", "phone_number", "date_joined", "is_active")
+    list_filter = ("role", "is_active")
     fieldsets = (
         (None, {"fields": ("email", "password", "role")}),
         (_("Personal Info"), {"fields": ("name", "phone_number", "avatar")}),
@@ -53,12 +44,20 @@ class CustomUserAdmin(UserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "password1", "password2", "is_staff", "is_active"),
+                "fields": (
+                    "email",
+                    "password1",
+                    "password2",
+                    "name",
+                    "phone_number",
+                    "role",
+                ),
             },
         ),
     )
-    search_fields = ("email",)
-    ordering = ("email",)
+    filter_horizontal = ()
+    search_fields = ("email", "name", "phone_number")
+    ordering = ["email"]
 
 
 @admin.register(Favorite)

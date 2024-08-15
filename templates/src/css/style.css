@@ -901,17 +901,20 @@ footer a:hover {
 }
 
 .footer-button .btn {
-    background-color: #007bff;
+    background-color: transparent;
     color: #fff;
+    border: 2px solid #fff;
     text-decoration: none;
     padding: 10px 20px;
     border-radius: 5px;
     display: inline-block;
     font-size: 16px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .footer-button .btn:hover {
-    background-color: #0056b3;
+    background-color: #fff;
+    color: #1f2124;
     text-decoration: none;
 }
 
@@ -1032,10 +1035,6 @@ footer a:hover {
 
     .page-navigation-list a {
         font-size: 18px; /* Чуть больший шрифт для удобства на мобильных */
-    }
-
-    .features-container {
-        padding: 10px;
     }
 
     .features-title {

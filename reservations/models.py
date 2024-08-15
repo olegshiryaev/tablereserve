@@ -351,6 +351,13 @@ class Place(models.Model):
     average_check = models.IntegerField(
         default=0, null=True, blank=True, verbose_name="Средний чек"
     )
+    features = models.ManyToManyField(
+        Feature,
+        through="PlaceFeature",
+        related_name="places",
+        blank=True,
+        verbose_name="Особенности",
+    )
     tags = models.ManyToManyField(
         Tag, blank=True, related_name="places", verbose_name="Теги"
     )
@@ -432,6 +439,9 @@ class Place(models.Model):
         # Перемешивание и ограничение до 3 заведений
         random.shuffle(all_similar_places)
         return all_similar_places[:3]
+
+    def get_place_features(self):
+        return PlaceFeature.objects.filter(place=self).select_related("feature")
 
     @property
     def favorite_count(self):
@@ -734,8 +744,11 @@ class PlaceFeature(models.Model):
     feature = models.ForeignKey(
         Feature, on_delete=models.CASCADE, related_name="place_features"
     )
-    description = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name="Описание особенности"
+    description = models.TextField(
+        blank=True, null=True, verbose_name="Описание особенности"
+    )
+    display_on_card = models.BooleanField(
+        default=False, verbose_name="Отображать на карточке"
     )
 
     class Meta:

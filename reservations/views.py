@@ -196,7 +196,9 @@ def place_list(request, city_slug):
         .order_by("-count")
     )
 
-    top_features = features[:2]
+    features_on_card = features.filter(place_features__display_on_card=True).distinct()[
+        :2
+    ]
 
     # Получение корректной формы слова "место"
     place_word = get_place_word(shown_places)
@@ -204,7 +206,7 @@ def place_list(request, city_slug):
     title = f"Рестораны, кафе и бары {city.name}а"
 
     context = {
-        "top_features": top_features,
+        "features_on_card": features_on_card,
         "places": places,
         "selected_city": city,
         "title": title,
@@ -293,6 +295,9 @@ def place_detail(request, city_slug, place_slug):
     review_count = reviews.count()
     average_rating = place.rating
 
+    # Получаем особенности заведения вместе с описаниями
+    place_features = place.get_place_features()
+
     # Инициализация переменных для модального окна
     reservation_successful = False
     reservation_data = None
@@ -365,6 +370,7 @@ def place_detail(request, city_slug, place_slug):
             "reservation_successful": reservation_successful,
             "reservation_data": reservation_data,
             "reservation_message": reservation_message,
+            "place_features": place_features,
         },
     )
 

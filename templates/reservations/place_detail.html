@@ -215,8 +215,15 @@
                         <!-- Особенности заведения -->
                         <div class="features-container">
                             <ul class="features-list">
-                                {% for feature in place.features.all %}
-                                    <li class="feature-element">{{ feature.name }}</li>
+                                {% for place_feature in place_features %}
+                                    <li class="feature-element {% if place_feature.description %}has-description{% endif %}">
+                                        {{ place_feature.feature.name }}
+                                        {% if place_feature.description %}
+                                            <div class="tooltip">
+                                                {{ place_feature.description|safe }}
+                                            </div>
+                                        {% endif %}
+                                    </li>
                                 {% endfor %}
                             </ul>
                         </div>

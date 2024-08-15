@@ -9,6 +9,7 @@ from .models import (
     Discount,
     Feature,
     Place,
+    PlaceFeature,
     PlaceImage,
     Menu,
     MenuItem,
@@ -45,18 +46,23 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ("name",)
 
 
-# @admin.register(Feature)
-# class FeatureAdmin(admin.ModelAdmin):
-#     list_display = ["name"]
-#     list_filter = ["name"]
-#     search_fields = ["name"]
+@admin.register(Feature)
+class FeatureAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+    list_filter = ["name"]
+    search_fields = ["name"]
 
-#     fieldsets = ((None, {"fields": ("name",)}),)
+    fieldsets = ((None, {"fields": ("name",)}),)
 
 
-# class FeatureInline(admin.TabularInline):
-#     model = Place.features.through
-#     extra = 1
+@admin.register(PlaceFeature)
+class PlaceFeatureAdmin(admin.ModelAdmin):
+    list_display = ["place", "feature", "description"]
+
+
+class PlaceFeatureInline(admin.TabularInline):
+    model = PlaceFeature
+    extra = 1
 
 
 class WorkScheduleInline(admin.TabularInline):
@@ -123,7 +129,7 @@ class PlaceAdmin(admin.ModelAdmin):
     )
     search_fields = ("name", "city__name", "address", "phone", "tags__name")
     list_filter = ("city", "type", "is_active")
-    inlines = [WorkScheduleInline, HallInline, PlaceImageInline]
+    inlines = [WorkScheduleInline, PlaceFeatureInline, HallInline, PlaceImageInline]
     filter_horizontal = (
         "tags",
         "cuisines",

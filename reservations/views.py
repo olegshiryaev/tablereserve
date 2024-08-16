@@ -54,6 +54,17 @@ def main_page(request, city_slug):
     # Создаем экземпляр формы для бронирования (предполагая, что ReservationForm определена и имеет атрибут place=None)
     reservation_form = ReservationForm(place=None)
 
+    # Получение особенностей, которые должны отображаться на карточках
+    features_on_card = Feature.objects.filter(
+        place_features__display_on_card=True
+    ).distinct()[:2]
+
+    # Подготовка данных для отображения особенностей в контексте каждого заведения
+    for place in popular_places:
+        place.features_on_card = place.features.filter(
+            place_features__display_on_card=True
+        )
+
     title = f"Рестораны, кафе и бары {city.name}"
 
     context = {
@@ -65,6 +76,7 @@ def main_page(request, city_slug):
         "title": title,
         "favorite_places": favorite_places,
         "total_places_count": total_places_count,
+        "features_on_card": features_on_card,
     }
 
     return render(request, "reservations/main_page.html", context)
@@ -202,6 +214,12 @@ def place_list(request, city_slug):
 
     # Получение корректной формы слова "место"
     place_word = get_place_word(shown_places)
+
+    # Подготовка данных для отображения особенностей в контексте каждого заведения
+    for place in places:
+        place.features_on_card = place.features.filter(
+            place_features__display_on_card=True
+        )
 
     title = f"Рестораны, кафе и бары {city.name}а"
 

@@ -475,7 +475,9 @@ def create_default_work_schedule(sender, instance, created, **kwargs):
             WorkSchedule.objects.create(
                 place=instance,
                 day=day[0],
-                is_closed=True,
+                open_time="08:00",
+                close_time="20:00",
+                is_closed=False,
             )
 
 

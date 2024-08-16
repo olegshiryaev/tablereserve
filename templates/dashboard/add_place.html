@@ -8,18 +8,6 @@
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-            {{ form.owner_name.label_tag }}
-            {{ form.owner_name|add_class:"form-control" }}
-        </div>
-        <div class="mb-3">
-            {{ form.owner_email.label_tag }}
-            {{ form.owner_email|add_class:"form-control" }}
-        </div>
-        <div class="mb-3">
-            {{ form.owner_password.label_tag }}
-            {{ form.owner_password|add_class:"form-control" }}
-        </div>
-        <div class="mb-3">
             {{ form.name.label_tag }}
             {{ form.name|add_class:"form-control" }}
         </div>
@@ -30,6 +18,14 @@
         <div class="mb-3">
             {{ form.phone.label_tag }}
             {{ form.phone|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            {{ form.owner_name.label_tag }}
+            {{ form.owner_name|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            {{ form.owner_email.label_tag }}
+            {{ form.owner_email|add_class:"form-control" }}
         </div>
         <button type="submit" class="btn btn-primary">Добавить заведение</button>
     </form>

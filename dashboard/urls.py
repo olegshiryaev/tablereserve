@@ -27,7 +27,7 @@ urlpatterns = [
         views.reservations_list,
         name="reservations_list",
     ),
-    path("add_place/", views.add_place, name="add_place"),
+    path("welcome/", views.add_place, name="welcome"),
     path("add_place_success/", views.add_place_success, name="add_place_success"),
     path(
         "dashboard/places/<int:place_id>/images/add/",
@@ -115,4 +115,24 @@ urlpatterns = [
         views.PlaceTypeDeleteView.as_view(),
         name="placetype_delete",
     ),
+    path(
+        "place-request-success/",
+        views.place_request_success,
+        name="place_request_success",
+    ),  # Сообщение об успешной подаче заявки
+    path(
+        "review-place-requests/",
+        views.review_place_requests,
+        name="review_place_requests",
+    ),  # Просмотр заявок для администратора
+    path(
+        "approve-place-request/<int:request_id>/",
+        views.approve_place_request,
+        name="approve_place_request",
+    ),  # Одобрение заявки
+    path(
+        "reject-place-request/<int:request_id>/",
+        views.reject_place_request,
+        name="reject_place_request",
+    ),  # Отклонение заявки
 ]

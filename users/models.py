@@ -58,6 +58,7 @@ class CustomUser(AbstractUser):
     )
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     is_staff = models.BooleanField(default=False, verbose_name="Статус сотрудника")
+    password_sent = models.BooleanField(default=False, verbose_name="Пароль отправлен")
 
     objects = CustomUserManager()
 

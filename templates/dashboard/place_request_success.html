@@ -1,0 +1,9 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Заявка успешно подана</h2>
+    <p>Спасибо за вашу заявку! Мы рассмотрим её и свяжемся с вами в ближайшее время.</p>
+    <a href="{% url 'dashboard:welcome' %}" class="btn btn-primary">Подать ещё одну заявку</a>
+</div>
+{% endblock %}

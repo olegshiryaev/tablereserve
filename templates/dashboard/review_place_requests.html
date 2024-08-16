@@ -1,0 +1,47 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<h2>Review Place Requests</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>City</th>
+            <th>Phone</th>
+            <th>Owner Name</th>
+            <th>Owner Email</th>
+            <th>Creation Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for request in requests %}
+        <tr>
+            <td>{{ request.name }}</td>
+            <td>{{ request.city }}</td>
+            <td>{{ request.phone }}</td>
+            <td>{{ request.owner_name }}</td>
+            <td>{{ request.owner_email }}</td>
+            <td>{{ request.created_at }}</td>
+            <td>
+                {% if request.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% elif request.status == 'approved' %}
+                    <span class="badge bg-success text-white">Approved</span>
+                {% elif request.status == 'rejected' %}
+                    <span class="badge bg-danger text-white">Rejected</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if request.status == 'pending' %}
+                    <a href="{% url 'dashboard:approve_place_request' request.id %}" class="btn btn-success">Approve</a>
+                    <a href="{% url 'dashboard:reject_place_request' request.id %}" class="btn btn-danger">Reject</a>
+                {% else %}
+                    <button class="btn btn-secondary" disabled>Actions</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,10 +1,12 @@
 # forms.py
 from django import forms
+from dashboard.models import PlaceRequest
 from reservations.models import (
     City,
     Cuisine,
     Feature,
     Place,
+    PlaceFeature,
     PlaceImage,
     PlaceType,
     PlaceUpdateRequest,
@@ -46,7 +48,7 @@ class PlaceForm(forms.ModelForm):
             "description",
             "short_description",
             "average_check",
-            # "features",
+            "features",
             "tags",
             "capacity",
             "is_active",
@@ -73,7 +75,7 @@ class PlaceForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"rows": 3}),
             "short_description": forms.TextInput(attrs={"maxlength": 255}),
             "average_check": forms.NumberInput(attrs={"min": 0}),
-            # "features": forms.CheckboxSelectMultiple(),
+            "features": forms.CheckboxSelectMultiple(),
             "tags": forms.CheckboxSelectMultiple(),
             "capacity": forms.NumberInput(),
             "is_active": forms.CheckboxInput(),
@@ -172,9 +174,6 @@ class ReservationForm(forms.ModelForm):
 class PlaceCreationForm(forms.ModelForm):
     owner_name = forms.CharField(max_length=50, label="Имя владельца")
     owner_email = forms.EmailField(label="Email владельца")
-    owner_password = forms.CharField(
-        widget=forms.PasswordInput, label="Пароль владельца"
-    )
 
     class Meta:
         model = Place
@@ -184,18 +183,8 @@ class PlaceCreationForm(forms.ModelForm):
         place = super().save(commit=False)
         owner_name = self.cleaned_data["owner_name"]
         owner_email = self.cleaned_data["owner_email"]
-        owner_password = self.cleaned_data["owner_password"]
 
         if commit:
-            place.save()
-            owner = CustomUser.objects.create_user(
-                email=owner_email,
-                password=owner_password,
-                name=owner_name,
-                role="owner",
-                is_active=True,
-            )
-            place.manager.add(owner)
             place.save()
 
         return place
@@ -303,3 +292,20 @@ class AddPlaceForm(forms.ModelForm):
     class Meta:
         model = Place
         fields = ["name", "city", "phone"]
+
+
+class PlaceRequestForm(forms.ModelForm):
+    city = forms.ModelChoiceField(
+        queryset=City.objects.all(), label="Город", empty_label="Выберите город"
+    )
+
+    class Meta:
+        model = PlaceRequest
+        fields = ["name", "city", "phone", "owner_name", "owner_email"]
+        labels = {
+            "name": "Название заведения",
+            "city": "Город",
+            "phone": "Телефон",
+            "owner_name": "Имя владельца",
+            "owner_email": "Email владельца",
+        }

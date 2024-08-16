@@ -1,3 +1,4 @@
+from django.dispatch import receiver
 from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
@@ -15,12 +16,14 @@ from dashboard.forms import (
     PlaceCreationForm,
     PlaceForm,
     PlaceImageForm,
+    PlaceRequestForm,
     PlaceTypeCreateForm,
     PlaceTypeForm,
     ReservationForm,
     TagCreateForm,
     TagForm,
 )
+from dashboard.models import PlaceRequest
 from reservations.models import (
     City,
     Cuisine,
@@ -52,6 +55,10 @@ from .mixins import AdminRequiredMixin
 from django.contrib.auth import authenticate, login
 from allauth.account.utils import send_email_confirmation
 from allauth.account.models import EmailAddress
+from django.utils.crypto import get_random_string
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
 
 
 class PlaceListView(LoginRequiredMixin, ListView):
@@ -237,52 +244,12 @@ def place_detail(request, slug):
 
 def add_place(request):
     if request.method == "POST":
-        form = PlaceCreationForm(request.POST)
+        form = PlaceRequestForm(request.POST)
         if form.is_valid():
-            # Сохранение заведения без коммита, чтобы связать его с владельцем позже
-            place = form.save(commit=False)
-            owner_email = form.cleaned_data["owner_email"]
-            owner_password = form.cleaned_data["owner_password"]
-            owner_name = form.cleaned_data["owner_name"]
-
-            # Создание пользователя
-            owner = CustomUser.objects.create_user(
-                email=owner_email,
-                password=owner_password,
-                name=owner_name,
-                role="owner",
-                is_active=True,  # Пользователь активен сразу после создания
-            )
-            owner.save()
-
-            # Сохранение заведения и привязка владельца
-            place.save()
-            place.manager.add(owner)
-
-            # Отправка письма с подтверждением email
-            email_address, created = EmailAddress.objects.get_or_create(
-                user=owner,
-                email=owner_email,
-                defaults={"primary": True, "verified": False},
-            )
-
-            if created:
-                # Send confirmation email using Allauth
-                send_email_confirmation(request, owner)
-
-            # Аутентификация и логин пользователя
-            user = authenticate(email=owner_email, password=owner_password)
-            if user is not None:
-                login(
-                    request, user, backend="django.contrib.auth.backends.ModelBackend"
-                )
-
-            # Перенаправление на страницу заведения с параметром created=true
-            return redirect(
-                f"{reverse('dashboard:place_detail', kwargs={'slug': place.slug})}?created=true"
-            )
+            place_request = form.save()
+            return redirect("dashboard:place_request_success")
     else:
-        form = PlaceCreationForm()
+        form = PlaceRequestForm()
 
     return render(
         request,
@@ -769,3 +736,76 @@ class PlaceTypeDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
         if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({"success": True})
         return super().delete(request, *args, **kwargs)
+
+
+def is_admin(user):
+    return user.is_superuser
+
+
+@user_passes_test(is_admin)
+def review_place_requests(request):
+    requests = PlaceRequest.objects.all()
+    return render(
+        request, "dashboard/review_place_requests.html", {"requests": requests}
+    )
+
+
+@user_passes_test(is_admin)
+def approve_place_request(request, request_id):
+    place_request = get_object_or_404(PlaceRequest, pk=request_id)
+    if place_request.status == "pending":
+        User = get_user_model()
+        user, created = User.objects.get_or_create(
+            email=place_request.owner_email,
+            defaults={"name": place_request.owner_name, "role": "owner"},
+        )
+
+        if created:
+            # Установите пароль автоматически после подтверждения email
+            password = get_random_string(length=8)
+            user.set_password(password)
+            user.save()
+
+            email_address, created = EmailAddress.objects.get_or_create(
+                user=user,
+                email=user.email,
+                defaults={"verified": False, "primary": True},
+            )
+            if created:
+                send_email_confirmation(
+                    request, user
+                )  # Отправка только письма с подтверждением
+
+        # Создание заведения
+        place = Place.objects.create(
+            name=place_request.name, city=place_request.city, phone=place_request.phone
+        )
+        place.manager.add(user)
+        place.save()
+
+        # Обновление статуса заявки
+        place_request.status = "approved"
+        place_request.save()
+
+    return redirect("dashboard:review_place_requests")
+
+
+@user_passes_test(is_admin)
+def reject_place_request(request, request_id):
+    place_request = PlaceRequest.objects.get(pk=request_id)
+    if place_request.status == "pending":
+        place_request.status = "rejected"
+        place_request.save()
+    return redirect("dashboard:review_place_requests")
+
+
+def place_request_success(request):
+    return render(request, "dashboard/place_request_success.html")
+
+
+def send_password_email(email, password):
+    subject = "Ваш новый пароль"
+    message = render_to_string(
+        "emails/new_account_password.html", {"password": password}
+    )
+    send_mail(subject, message, "oashiryaev@yandex.ru", [email])

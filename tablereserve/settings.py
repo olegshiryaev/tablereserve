@@ -113,6 +113,8 @@ ACCOUNT_LOGOUT_ON_GET = True
 LOGIN_REDIRECT_URL = "/"  # URL для перенаправления после входа в систему
 LOGOUT_REDIRECT_URL = "/"  # URL для перенаправления после выхода из системы
 
+ACCOUNT_ADAPTER = "users.adapters.CustomAccountAdapter"
+
 ACCOUNT_FORMS = {
     "signup": "users.forms.CustomSignupForm",
     "login": "users.forms.CustomLoginForm",

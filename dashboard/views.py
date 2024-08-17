@@ -33,6 +33,7 @@ from reservations.models import (
     PlaceType,
     Reservation,
     Tag,
+    WorkSchedule,
 )
 from users.models import CustomUser
 from pytils.translit import slugify
@@ -94,6 +95,10 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
             "form", PlaceForm(instance=self.object, user=self.request.user)
         )
         context["created"] = self.request.GET.get("created", False)
+        context["is_edit_mode"] = self.request.GET.get(
+            "edit", False
+        )  # Флаг режима редактирования
+        context["work_schedule"] = WorkSchedule.get_sorted_schedules(self.object.id)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -107,6 +112,23 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
                 place.slug = slugify(place.name)
             place.save()
             form.save_m2m()  # Сохранение полей ManyToMany
+
+            # Обновление расписания работы
+            for schedule in place.work_schedule.all():
+                open_time = request.POST.get(f"open_time_{schedule.day}")
+                close_time = request.POST.get(f"close_time_{schedule.day}")
+                is_closed = request.POST.get(f"is_closed_{schedule.day}") == "1"
+
+                if is_closed:
+                    schedule.open_time = None
+                    schedule.close_time = None
+                    schedule.is_closed = True
+                else:
+                    schedule.open_time = open_time
+                    schedule.close_time = close_time
+                    schedule.is_closed = False
+                schedule.save()
+
             return redirect("dashboard:place_detail", slug=place.slug)
         else:
             context = self.get_context_data(form=form)

@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 import calendar
 
+from reservations.utils import get_available_booking_times
 from users.models import CustomUser, Favorite
 from .models import (
     City,
@@ -16,7 +17,7 @@ from .models import (
     Discount,
     WorkSchedule,
 )
-from .forms import ReservationForm, ReviewForm
+from .forms import BookingForm, ReservationForm, ReviewForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
@@ -394,58 +395,17 @@ def place_detail(request, city_slug, place_slug):
 
 
 def update_time_choices(request, place_id, date):
-    # Получаем объект заведения по его ID
-    place = Place.objects.get(id=place_id)
-
     # Преобразуем строковую дату из запроса в объект date
     selected_date = datetime.strptime(date, "%Y-%m-%d").date()
 
-    # Получаем день недели в формате, используемом в модели WorkSchedule
-    day_name = selected_date.strftime("%a").upper()
+    # Используем функцию get_available_booking_times для получения доступных временных слотов
+    time_choices = get_available_booking_times(selected_date, place_id)
 
-    # Получаем расписание работы заведения для выбранного дня недели
-    work_schedule = WorkSchedule.objects.filter(place=place, day=day_name).first()
-
-    # Список для хранения доступных временных слотов
-    time_choices = []
-
-    if work_schedule:
-        # Определяем время открытия и закрытия заведения
-        start_time = work_schedule.open_time
-        end_time = (
-            datetime.combine(datetime.today(), work_schedule.close_time)
-            - timedelta(hours=1)
-        ).time()
-
-        # Интервал времени между временными слотами (30 минут)
-        interval = timedelta(minutes=30)
-
-        # Определяем текущее время и следующий полуторачасовой интервал
-        now = datetime.now()
-        current_time = now.time()
-
-        if now.minute < 30:
-            next_half_hour = now.replace(minute=30, second=0, microsecond=0)
-        else:
-            next_half_hour = (now + timedelta(hours=1)).replace(
-                minute=0, second=0, microsecond=0
-            )
-
-        # Используем либо начальное время работы, либо следующий полуторачасовой интервал, в зависимости от выбранной даты
-        if selected_date == now.date():
-            current_time = max(next_half_hour.time(), start_time)
-        else:
-            current_time = start_time
-
-        # Формируем список доступных временных слотов
-        while current_time <= end_time:
-            time_choices.append(current_time.strftime("%H:%M"))
-            current_time = (
-                datetime.combine(datetime.today(), current_time) + interval
-            ).time()
+    # Форматируем временные слоты для отправки в формате JSON
+    formatted_time_choices = [time.strftime("%H:%M") for time in time_choices]
 
     # Возвращаем список временных слотов в формате JSON
-    return JsonResponse({"time_choices": time_choices})
+    return JsonResponse({"time_choices": formatted_time_choices})
 
 
 def reserve_table(request, city_slug, place_slug):

@@ -70,16 +70,12 @@
                         {% with cuisines_list=place.cuisines.all %} 
                             {% if cuisines_list|length > 2 %} 
                                 {% for cuisine in cuisines_list|slice:":2" %}
-                                    {{ cuisine.name }}
-                                    {% if not forloop.last %},
-                                    {% endif %} 
+                                    {{ cuisine.name }}{% if not forloop.last %}, {% endif %} 
                                 {% endfor %} и ещё
                                 {{cuisines_list|length|add:"-2" }}
                             {% else %}
                                 {% for cuisine in cuisines_list %}
-                                    {{ cuisine.name }}
-                                    {% if not forloop.last %},
-                                    {% endif %}
+                                    {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
                             {% endif %}
                         {% endwith %}

@@ -22,6 +22,12 @@
             </li>
 
             {% if user.is_superuser %}
+            <li class="sidebar-item {% if request.resolver_match.url_name == 'review_place_requests' %}active{% endif %}">
+                <a class="sidebar-link" href="{% url 'dashboard:review_place_requests' %}">
+                    <i class="align-middle" data-feather="book"></i> <span class="align-middle">Запросы на добавление</span>
+                </a>
+            </li>
+
             <li class="sidebar-item {% if request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'cuisine_list' or request.resolver_match.url_name == 'feature_list' or request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'placetype_list' %}active{% endif %}">
                 <a data-bs-target="#directories" data-bs-toggle="collapse" class="sidebar-link {% if request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'cuisine_list' or request.resolver_match.url_name == 'feature_list' or request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'placetype_list' %}collapsed{% endif %}" aria-expanded="{% if request.resolver_match.url_name == 'city_list' or request.resolver_match.url_name == 'cuisine_list' or request.resolver_match.url_name == 'feature_list' %}true{% else %}false{% endif %}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list align-middle">

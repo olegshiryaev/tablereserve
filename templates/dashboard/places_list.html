@@ -37,7 +37,6 @@
                             <th>Кухни</th>
                             <th>Средний чек, руб.</th>
                             <th>Особенности</th>
-                            <th>Наличие детской комнаты</th>
                             <th>Вместимость, чел.</th>
                             <th>Рейтинг</th>
                             <th>Действия</th>
@@ -55,7 +54,6 @@
                             <td>{{ place.cuisines.all|join:", " }}</td>
                             <td>{{ place.average_check }}</td>
                             <td>{{ place.features.all|join:", " }}</td>
-                            <td>{{ place.has_kids_room|yesno:"Да,Нет" }}</td>
                             <td>{{ place.capacity }}</td>
                             <td>{{ place.rating }}</td>
                             <td>

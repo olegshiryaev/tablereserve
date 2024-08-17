@@ -1,0 +1,13 @@
+{% block content %}
+<h1>{{ place.name }}</h1>
+<p>{{ place.description }}</p>
+
+<h2>Забронировать</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ booking_form.as_p }}
+    <button type="submit">Забронировать</button>
+</form>
+
+{% endblock %}

@@ -407,46 +407,42 @@
     </div>
 </section>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const galleryGrid = document.querySelector('.place-gallery-grid');
-        const imageCount = galleryGrid.children.length;
-        galleryGrid.setAttribute('data-count', imageCount);
-    });
-</script>
-<script>
     document.addEventListener('DOMContentLoaded', function () {
         const dateInput = document.querySelector('#id_date');
         const timeSelect = document.querySelector('#id_time');
-
-        // Set the default date to today in the format yyyy-mm-dd
+    
         if (dateInput) {
             const today = new Date();
             const day = String(today.getDate()).padStart(2, '0');
-            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+            const month = String(today.getMonth() + 1).padStart(2, '0');
             const year = today.getFullYear();
             const formattedDate = `${year}-${month}-${day}`;
-            dateInput.value = formattedDate; // Set in yyyy-mm-dd format for input type date
-
-            // Fetch available time slots for today
+            dateInput.value = formattedDate;
+    
             fetchAvailableTimes(formattedDate);
-
-            // Update available times when date changes
+    
             dateInput.addEventListener('change', function () {
                 const selectedDate = this.value;
                 fetchAvailableTimes(selectedDate);
             });
         }
-
+    
         function fetchAvailableTimes(date) {
             fetch(`{% url 'update_time_choices' place_id=place.id date='DATE_PLACEHOLDER' %}`.replace('DATE_PLACEHOLDER', date))
                 .then(response => response.json())
                 .then(data => {
                     timeSelect.innerHTML = '';
                     data.time_choices.forEach(time => {
-                        const option = document.createElement('option');
-                        option.value = time;
-                        option.textContent = time;
-                        timeSelect.appendChild(option);
+                        if (time === "----------") {
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = '----------';
+                            timeSelect.appendChild(optgroup);
+                        } else {
+                            const option = document.createElement('option');
+                            option.value = time;
+                            option.textContent = time;
+                            timeSelect.appendChild(option);
+                        }
                     });
                 });
         }

@@ -1,5 +1,7 @@
 from datetime import datetime, date, timezone, timedelta
 from django import forms
+
+from reservations.utils import get_available_booking_times
 from .models import Place, Reservation, Review, WorkSchedule
 
 
@@ -126,53 +128,47 @@ class ReservationForm(forms.ModelForm):
             self.update_time_choices(selected_date)
 
     def update_time_choices(self, selected_date):
-        # Определяем день недели в формате, используемом в модели WorkSchedule
-        day_name = selected_date.strftime("%a").upper()
+        # Получаем доступные временные интервалы для бронирования на выбранную дату
+        available_times = get_available_booking_times(selected_date, self.place.id)
 
-        # Получаем расписание работы заведения для выбранного дня недели
-        work_schedule = WorkSchedule.objects.filter(
-            place=self.place, day=day_name
-        ).first()
+        # Форматируем доступные временные интервалы для отображения в форме
+        time_choices = [
+            (time.strftime("%H:%M"), time.strftime("%H:%M")) for time in available_times
+        ]
 
-        if work_schedule:
-            # Определяем время открытия и временные границы для выбранного дня
-            start_time = work_schedule.open_time
-            end_time = (
-                datetime.combine(datetime.today(), work_schedule.close_time)
-                - timedelta(hours=1)
-            ).time()  # Определяем время закрытия за час до окончания
+        # Устанавливаем выбор времени в поле формы
+        self.fields["time"].choices = time_choices
 
-            now = datetime.now()
-            current_time = now.time()
 
-            # Вычисляем следующий полуторачасовой интервал
-            if now.minute < 30:
-                next_half_hour = now.replace(minute=30, second=0, microsecond=0)
-            else:
-                next_half_hour = (now + timedelta(hours=1)).replace(
-                    minute=0, second=0, microsecond=0
-                )
+class BookingForm(forms.ModelForm):
+    class Meta:
+        model = Reservation
+        fields = [
+            "date",
+            "time",
+            "customer_name",
+            "customer_phone",
+            "customer_email",
+            "guests",
+            "wishes",
+        ]
+        widgets = {
+            "date": forms.SelectDateWidget(),
+            "time": forms.Select(),
+        }
+        labels = {
+            "date": "Дата",
+            "time": "Время",
+            "customer_name": "Ваше имя",
+            "customer_phone": "Ваш телефон",
+            "customer_email": "Ваш email",
+            "guests": "Количество гостей",
+            "wishes": "Пожелания",
+        }
 
-            # Используем либо текущее время, либо следующий полуторачасовой интервал, в зависимости от того, что позже
-            if selected_date == now.date():
-                current_time = max(next_half_hour.time(), start_time)
-            else:
-                current_time = start_time
-
-            time_choices = []
-            interval = timedelta(minutes=30)
-
-            # Генерируем список временных слотов с интервалом в 30 минут до времени закрытия
-            while current_time <= end_time:
-                time_choices.append(
-                    (current_time.strftime("%H:%M"), current_time.strftime("%H:%M"))
-                )
-                current_time = (
-                    datetime.combine(datetime.today(), current_time) + interval
-                ).time()
-
-            # Устанавливаем выбор времени в поле формы
-            self.fields["time"].choices = time_choices
-        else:
-            # Если расписание не найдено, очищаем список доступного времени
-            self.fields["time"].choices = []
+    def __init__(self, *args, **kwargs):
+        available_times = kwargs.pop("available_times", [])
+        super().__init__(*args, **kwargs)
+        self.fields["time"].widget.choices = [
+            (time, time.strftime("%H:%M")) for time in available_times
+        ]

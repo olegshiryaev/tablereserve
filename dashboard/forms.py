@@ -172,8 +172,8 @@ class ReservationForm(forms.ModelForm):
 
 
 class PlaceCreationForm(forms.ModelForm):
-    owner_name = forms.CharField(max_length=50, label="Имя владельца")
-    owner_email = forms.EmailField(label="Email владельца")
+    owner_name = forms.CharField(max_length=50, label="Имя и фамилия")
+    owner_email = forms.EmailField(label="Ваш email")
 
     class Meta:
         model = Place

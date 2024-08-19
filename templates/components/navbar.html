@@ -32,6 +32,7 @@
                 <li class="nav-item"><a class="nav-link" href="#">События</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Акции</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
+                <li class="nav-item"><a href="{% url 'dashboard:welcome' %}" class="add-place-btn">Добавить заведение</a></li>
                 {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdownToggle" aria-expanded="false" aria-haspopup="true">{{ user.name }}</a>

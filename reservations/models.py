@@ -493,7 +493,7 @@ class Place(models.Model):
         day = date.strftime("%a").upper()
         schedules = self.work_schedule.filter(day=day, is_closed=False)
         slots = []
-        
+
         interval_minutes = self.booking_interval
 
         for schedule in schedules:
@@ -549,8 +549,14 @@ def create_default_work_schedule(sender, instance, created, **kwargs):
 @receiver(pre_save, sender=PlaceType)
 @receiver(pre_save, sender=Place)
 def pre_save_slug(sender, instance, *args, **kwargs):
-    if not instance.slug or instance.slug != slugify(instance.name):
-        instance.slug = slugify(instance.name)
+    if isinstance(instance, City):
+        # Для модели City: если слаг не задан, генерируем его
+        if not instance.slug:
+            instance.slug = slugify(instance.name)
+    else:
+        # Для всех остальных моделей: если слаг не задан или изменен, генерируем новый
+        if not instance.slug or instance.slug != slugify(instance.name):
+            instance.slug = slugify(instance.name)
 
 
 class Hall(models.Model):

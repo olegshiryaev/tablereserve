@@ -1,4 +1,5 @@
-# from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time
+from django.utils import timezone
 
 # from reservations.models import WorkSchedule
 
@@ -57,3 +58,45 @@
 #         current_time += timedelta(minutes=30)
 
 #     return booking_intervals
+
+
+def calculate_available_time_slots(place, selected_date):
+    if place is None:
+        return []
+
+    day_name = selected_date.strftime("%a").upper()  # Получаем название дня недели
+    work_schedule = place.work_schedule.filter(day=day_name).first()
+
+    if not work_schedule or work_schedule.is_closed:
+        return []
+
+    # Время открытия и закрытия
+    open_time = work_schedule.open_time
+    close_time = work_schedule.close_time
+
+    # Если заведение закрывается после полуночи (в другой день)
+    next_day_close_time = None
+    if close_time < open_time:
+        next_day_close_time = close_time
+        close_time = time(23, 59)  # Завершение работы в текущий день
+
+    # Генерация временных слотов
+    time_slots = []
+    current_time = datetime.combine(selected_date, open_time)
+    end_time = datetime.combine(selected_date, close_time)
+
+    while current_time <= end_time:
+        time_slots.append(current_time.strftime("%H:%M"))
+        current_time += timedelta(minutes=30)  # Интервал в 30 минут
+
+    # Если заведение закрывается после полуночи, добавляем слоты следующего дня
+    if next_day_close_time:
+        next_day_date = selected_date + timedelta(days=1)
+        current_time = datetime.combine(next_day_date, time(0, 0))
+        end_time = datetime.combine(next_day_date, next_day_close_time)
+
+        while current_time <= end_time:
+            time_slots.append(current_time.strftime("%H:%M"))
+            current_time += timedelta(minutes=30)
+
+    return time_slots

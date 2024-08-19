@@ -1084,6 +1084,23 @@ footer a:hover {
         font-size: 14px;
     }
 
+    .place-halls-inner h2 {
+        font-size: 20px;
+    }
+
+    .accordion-button {
+        font-size: 16px;
+    }
+
+    .table-image {
+        width: 80px;
+        height: 80px;
+    }
+
+    .book-button {
+        font-size: 12px;
+    }
+
     footer .container {
         flex-direction: column;
         align-items: center;
@@ -2057,4 +2074,96 @@ a.place-detail-item-value:hover {
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+/* Halls section styles */
+.place-halls-section {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.place-halls-inner h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Основной стиль аккордеона */
+.accordion {
+    margin-bottom: 20px;
+}
+
+.accordion-button {
+    background-color: #fff;
+    color: #007BFF;
+    border: none; /* Убираем обводку */
+    padding: 15px;
+    text-align: left;
+    width: 100%;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Добавляем тень */
+}
+
+.accordion-button:hover {
+    color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Усиливаем тень при наведении */
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    padding: 0 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+}
+
+/* Стили для элемента стола */
+.table-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.table-image {
+    width: 100px;
+    height: 100px;
+    margin-right: 15px;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.table-details {
+    flex: 1;
+}
+
+.book-button-container {
+    display: flex;
+    align-items: center;
+}
+
+.book-button {
+    padding: 8px 12px;
+    background-color: #5cb85c;
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.book-button:hover {
+    background-color: #4cae4c;
+    transform: scale(0.98);
 }

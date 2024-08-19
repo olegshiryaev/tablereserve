@@ -1,4 +1,5 @@
-from datetime import datetime, date, timezone, timedelta
+from datetime import datetime, date, timedelta
+from django.utils import timezone
 from django import forms
 from .models import Place, Reservation, Review, WorkSchedule
 
@@ -101,6 +102,7 @@ class ReservationForm(forms.ModelForm):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         self.place = place
+        self.fields["time"].choices = self.get_time_choices()
 
         # Установка данных пользователя, если он авторизован
         if user and user.is_authenticated:
@@ -116,97 +118,87 @@ class ReservationForm(forms.ModelForm):
         # Установка начального значения для даты и времени
         if self.instance.pk is None:  # Проверяем, создается ли новая запись
             self.fields["date"].initial = datetime.today().date()  # Текущая дата
-            self.update_time_choices(
-                datetime.today().date()
-            )  # Установить время для текущей даты
 
-        # Определение доступного времени для бронирования при изменении даты
-        if "date" in self.data:
-            selected_date = datetime.strptime(self.data["date"], "%Y-%m-%d").date()
-            self.update_time_choices(selected_date)
+    def get_time_choices(self):
+        # Получаем дату из данных формы или из начального значения
+        date_str = self.data.get(
+            "booking_date", self.initial.get("booking_date", timezone.now().date())
+        )
 
-    def update_time_choices(self, selected_date):
-        # Определяем день недели в формате, используемом в модели WorkSchedule
-        day_name = selected_date.strftime("%a").upper()
-
-        # Получаем расписание работы заведения для выбранного дня недели
-        work_schedule = WorkSchedule.objects.filter(
-            place=self.place, day=day_name
-        ).first()
-
-        if work_schedule:
-            # Определяем время открытия и временные границы для выбранного дня
-            start_time = work_schedule.open_time
-            end_time = (
-                datetime.combine(datetime.today(), work_schedule.close_time)
-                - timedelta(hours=1)
-            ).time()  # Определяем время закрытия за час до окончания
-
-            now = datetime.now()
-            current_time = now.time()
-
-            # Вычисляем следующий полуторачасовой интервал
-            if now.minute < 30:
-                next_half_hour = now.replace(minute=30, second=0, microsecond=0)
-            else:
-                next_half_hour = (now + timedelta(hours=1)).replace(
-                    minute=0, second=0, microsecond=0
-                )
-
-            # Используем либо текущее время, либо следующий полуторачасовой интервал, в зависимости от того, что позже
-            if selected_date == now.date():
-                current_time = max(next_half_hour.time(), start_time)
-            else:
-                current_time = start_time
-
-            time_choices = []
-            interval = timedelta(minutes=30)
-
-            # Генерируем список временных слотов с интервалом в 30 минут до времени закрытия
-            while current_time <= end_time:
-                time_choices.append(
-                    (current_time.strftime("%H:%M"), current_time.strftime("%H:%M"))
-                )
-                current_time = (
-                    datetime.combine(datetime.today(), current_time) + interval
-                ).time()
-
-            # Устанавливаем выбор времени в поле формы
-            self.fields["time"].choices = time_choices
+        if isinstance(date_str, str):
+            # Если дата пришла как строка, преобразуем её в объект date
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            except ValueError:
+                date = timezone.now().date()  # fallback в случае неверного формата
         else:
-            # Если расписание не найдено, очищаем список доступного времени
-            self.fields["time"].choices = []
+            date = date_str
+
+        # Получаем доступные слоты
+        slots = self.place.get_available_time_slots(date)
+        return [(slot.strftime("%H:%M"), slot.strftime("%H:%M")) for slot in slots]
 
 
-class BookingForm(forms.ModelForm):
-    class Meta:
-        model = Reservation
-        fields = [
-            "date",
-            "time",
-            "customer_name",
-            "customer_phone",
-            "customer_email",
-            "guests",
-            "wishes",
-        ]
-        widgets = {
-            "date": forms.SelectDateWidget(),
-            "time": forms.Select(),
-        }
-        labels = {
-            "date": "Дата",
-            "time": "Время",
-            "customer_name": "Ваше имя",
-            "customer_phone": "Ваш телефон",
-            "customer_email": "Ваш email",
-            "guests": "Количество гостей",
-            "wishes": "Пожелания",
-        }
+# class BookingForm(forms.ModelForm):
+#     class Meta:
+#         model = Reservation
+#         fields = [
+#             "date",
+#             "time",
+#             "customer_name",
+#             "customer_phone",
+#             "customer_email",
+#             "guests",
+#             "wishes",
+#         ]
+#         widgets = {
+#             "date": forms.SelectDateWidget(),
+#             "time": forms.Select(),
+#         }
+#         labels = {
+#             "date": "Дата",
+#             "time": "Время",
+#             "customer_name": "Ваше имя",
+#             "customer_phone": "Ваш телефон",
+#             "customer_email": "Ваш email",
+#             "guests": "Количество гостей",
+#             "wishes": "Пожелания",
+#         }
 
-    def __init__(self, *args, **kwargs):
-        available_times = kwargs.pop("available_times", [])
+#     def __init__(self, *args, **kwargs):
+#         available_times = kwargs.pop("available_times", [])
+#         super().__init__(*args, **kwargs)
+#         self.fields["time"].widget.choices = [
+#             (time, time.strftime("%H:%M")) for time in available_times
+#         ]
+
+
+class BookingForm(forms.Form):
+    booking_date = forms.DateField(
+        widget=forms.SelectDateWidget, initial=timezone.now().date()
+    )
+    booking_time = forms.ChoiceField()
+
+    def __init__(self, place, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["time"].widget.choices = [
-            (time, time.strftime("%H:%M")) for time in available_times
-        ]
+        self.place = place
+        self.fields["booking_time"].choices = self.get_time_choices()
+
+    def get_time_choices(self):
+        # Получаем дату из данных формы или из начального значения
+        date_str = self.data.get(
+            "booking_date", self.initial.get("booking_date", timezone.now().date())
+        )
+
+        if isinstance(date_str, str):
+            # Если дата пришла как строка, преобразуем её в объект date
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            except ValueError:
+                date = timezone.now().date()  # fallback в случае неверного формата
+        else:
+            date = date_str
+
+        # Получаем доступные слоты
+        slots = self.place.get_available_time_slots(date)
+        return [(slot.strftime("%H:%M"), slot.strftime("%H:%M")) for slot in slots]

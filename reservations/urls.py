@@ -24,4 +24,9 @@ urlpatterns = [
         views.add_review,
         name="add_review",
     ),
+    path(
+        "place/<int:place_id>/available-time-slots/",
+        views.get_available_time_slots,
+        name="get_available_time_slots",
+    ),
 ]

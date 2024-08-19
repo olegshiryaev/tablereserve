@@ -1,13 +1,58 @@
-{% block content %}
-<h1>{{ place.name }}</h1>
-<p>{{ place.description }}</p>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ place.name }}</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>{{ place.name }}</h1>
+    <p>{{ place.description }}</p>
 
-<h2>Забронировать</h2>
+    <!-- Форма бронирования -->
+    <form method="post">
+        {% csrf_token %}
+        <label for="booking_date">Дата:</label>
+        <input type="date" id="booking_date" name="booking_date" required value="{{ today_date }}">
 
-<form method="post">
-    {% csrf_token %}
-    {{ booking_form.as_p }}
-    <button type="submit">Забронировать</button>
-</form>
+        <label for="booking_time">Время:</label>
+        <select id="booking_time" name="booking_time" required>
+            <option value="" selected disabled>Выберите время</option>
+            <!-- Доступные временные слоты будут добавлены здесь -->
+        </select>
 
-{% endblock %}
+        <button type="submit">Забронировать</button>
+    </form>
+
+    <script>
+        $(document).ready(function() {
+            $('#booking_date').change(function() {
+                const selectedDate = $(this).val();
+                const placeId = "{{ place.id }}";  // Получаем ID заведения
+        
+                if (selectedDate) {
+                    $.ajax({
+                        url: '{% url "get_available_time_slots" place.id %}',  // URL для получения временных слотов
+                        data: {
+                            'date': selectedDate
+                        },
+                        success: function(data) {
+                            const timeSelect = $('#booking_time');
+                            timeSelect.empty();  // Очищаем текущие опции
+                            timeSelect.append('<option value="" selected disabled>Выберите время</option>');
+        
+                            if (data.length > 0) {
+                                data.forEach(function(time) {
+                                    timeSelect.append(new Option(time, time));
+                                });
+                            } else {
+                                timeSelect.append('<option value="" disabled>Нет доступных слотов</option>');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

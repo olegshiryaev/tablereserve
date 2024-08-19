@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from django.utils.safestring import mark_safe
 import os
 from PIL import Image, ImageOps
@@ -388,6 +388,9 @@ class Place(models.Model):
     logo = models.ImageField(
         upload_to=upload_logo_to, verbose_name="Логотип", null=True, blank=True
     )
+    booking_interval = models.PositiveIntegerField(
+        default=30, verbose_name="Интервал между бронированиями (минуты)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
@@ -452,6 +455,64 @@ class Place(models.Model):
 
     def approved_reviews(self):
         return self.reviews.filter(is_approved=True)
+
+    def get_working_hours(self, day=None):
+        """
+        Возвращает время работы заведения на указанный день недели (или сегодня).
+        Если заведению характерны перерывы в течение дня, возвращает все интервалы.
+        """
+        if day is None:
+            day = datetime.now().strftime("%a").upper()
+
+        schedules = self.work_schedule.filter(day=day, is_closed=False)
+        if schedules.exists():
+            return [(schedule.open_time, schedule.close_time) for schedule in schedules]
+        return []
+
+    def is_open_for_booking(self, booking_time):
+        """Проверяет, открыто ли заведение для бронирования на указанное время."""
+        booking_day = booking_time.strftime("%a").upper()
+        working_hours = self.get_working_hours(booking_day)
+
+        for open_time, close_time in working_hours:
+            if open_time < close_time:
+                if open_time <= booking_time.time() <= close_time:
+                    return True
+            else:
+                # Пересечение полуночи
+                if (
+                    booking_time.time() >= open_time
+                    or booking_time.time() <= close_time
+                ):
+                    return True
+
+        return False  # Заведение закрыто
+
+    def get_available_time_slots(self, date):
+        """Возвращает доступные временные слоты для бронирования на указанную дату."""
+        day = date.strftime("%a").upper()
+        schedules = self.work_schedule.filter(day=day, is_closed=False)
+        slots = []
+        
+        interval_minutes = self.booking_interval
+
+        for schedule in schedules:
+            open_time = schedule.open_time
+            close_time = schedule.close_time
+
+            if open_time < close_time:
+                current_time = datetime.combine(date, open_time)
+                end_time = datetime.combine(date, close_time)
+            else:
+                # Пересечение полуночи
+                current_time = datetime.combine(date, open_time)
+                end_time = datetime.combine(date + timedelta(days=1), close_time)
+
+            while current_time < end_time:
+                slots.append(current_time.time())
+                current_time += timedelta(minutes=interval_minutes)
+
+        return slots
 
     @property
     def review_count(self):
@@ -1032,3 +1093,32 @@ class PlaceUpdateRequest(models.Model):
 
     def __str__(self):
         return f"Запрос на обновление для {self.place.name}"
+
+
+class Booking(models.Model):
+    place = models.ForeignKey(
+        Place,
+        on_delete=models.CASCADE,
+        related_name="bookings",
+        verbose_name="Заведение",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="bookings",
+        verbose_name="Пользователь",
+    )
+    booking_time = models.DateTimeField(verbose_name="Время бронирования")
+    guests_count = models.IntegerField(verbose_name="Количество гостей")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    class Meta:
+        verbose_name = "Бронирование"
+        verbose_name_plural = "Бронирования"
+
+    def clean(self):
+        # Проверка на соответствие времени бронирования времени работы заведения
+        if not self.place.is_open_for_booking(self.booking_time):
+            raise ValidationError("Заведение закрыто в выбранное время.")
+
+        # Дополнительные проверки, например, на максимальное количество гостей или наличие свободных столиков

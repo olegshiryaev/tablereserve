@@ -1,9 +1,11 @@
 from datetime import date, datetime, timedelta
+from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 import calendar
 
+from reservations.utils import calculate_available_time_slots
 from users.models import CustomUser, Favorite
 from .models import (
     City,
@@ -16,7 +18,7 @@ from .models import (
     Discount,
     WorkSchedule,
 )
-from .forms import ReservationForm, ReviewForm
+from .forms import BookingForm, ReservationForm, ReviewForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
@@ -51,9 +53,6 @@ def main_page(request, city_slug):
         place__city=city, start_date__lte=date.today(), end_date__gte=date.today()
     ).order_by("end_date")[:5]
 
-    # Создаем экземпляр формы для бронирования (предполагая, что ReservationForm определена и имеет атрибут place=None)
-    reservation_form = ReservationForm(place=None)
-
     # Получение особенностей, которые должны отображаться на карточках
     features_on_card = Feature.objects.filter(
         place_features__display_on_card=True
@@ -72,7 +71,6 @@ def main_page(request, city_slug):
         "upcoming_events": upcoming_events,
         "active_discounts": active_discounts,
         "selected_city": city,
-        "form": reservation_form,
         "title": title,
         "favorite_places": favorite_places,
         "total_places_count": total_places_count,
@@ -95,9 +93,6 @@ def get_place_word(count):
 
 def place_list(request, city_slug):
     city = get_object_or_404(City, slug=city_slug)
-
-    # Создаем экземпляр формы для бронирования
-    reservation_form = ReservationForm(place=None)
 
     # Получаем параметры из GET-запроса
     search_query = request.GET.get("search", "")
@@ -240,7 +235,6 @@ def place_list(request, city_slug):
         "selected_average_checks": average_check_filters,
         "selected_features": feature_filters,
         "selected_rating": rating_filter,
-        "form": reservation_form,
         "favorite_places": favorite_places,
     }
     return render(request, "reservations/place_list.html", context)
@@ -369,6 +363,9 @@ def place_detail(request, city_slug, place_slug):
     # Получаем похожие заведения
     similar_places = place.get_similar_places()
 
+    # Получение данных о залах и столиках
+    halls = place.halls.all()
+
     return render(
         request,
         "reservations/place_detail.html",
@@ -389,6 +386,7 @@ def place_detail(request, city_slug, place_slug):
             "reservation_data": reservation_data,
             "reservation_message": reservation_message,
             "place_features": place_features,
+            "halls": halls,
         },
     )
 
@@ -492,5 +490,91 @@ def add_review(request, city_slug, place_slug):
             "place": place,
             "form": form,
             "review": review,
+        },
+    )
+
+
+# def place_detail(request, city_slug, place_slug):
+#     city = get_object_or_404(City, slug=city_slug)
+#     place = get_object_or_404(Place, slug=place_slug, city=city)
+#     today_date = timezone.now().date().strftime("%Y-%m-%d")  # Используем timezone
+
+#     return render(
+#         request,
+#         "reservations/place_detail.html",
+#         {
+#             "place": place,
+#             "today_date": today_date,
+#             "selected_city": city,
+#         },
+#     )
+
+
+def get_available_time_slots(request, place_id):
+    place = get_object_or_404(Place, id=place_id)
+    selected_date_str = request.GET.get("date")
+
+    if selected_date_str:
+        try:
+            selected_date = timezone.datetime.strptime(
+                selected_date_str, "%Y-%m-%d"
+            ).date()
+            time_slots = calculate_available_time_slots(place, selected_date)
+            return JsonResponse(time_slots, safe=False)
+        except ValueError:
+            return JsonResponse({"error": "Invalid date format"}, status=400)
+
+    return JsonResponse([], safe=False)
+
+
+def create_booking(request, place_id):
+    place = get_object_or_404(Place, id=place_id)
+
+    if request.method == "POST":
+        form = BookingForm(place, request.POST)
+        if form.is_valid():
+            booking_date = form.cleaned_data["booking_date"]
+            booking_time = form.cleaned_data["booking_time"]
+
+            try:
+                booking_datetime = timezone.make_aware(
+                    datetime.datetime.combine(
+                        booking_date,
+                        datetime.datetime.strptime(booking_time, "%H:%M").time(),
+                    )
+                )
+            except ValueError:
+                return render(
+                    request,
+                    "reservations/place_detail.html",
+                    {
+                        "place": place,
+                        "form": form,
+                        "today_date": timezone.now().date().strftime("%Y-%m-%d"),
+                        "error": "Invalid time format",
+                    },
+                )
+
+            if place.is_open_for_booking(booking_datetime):
+                Booking.objects.create(
+                    place=place,
+                    user=request.user,
+                    booking_time=booking_datetime,
+                    guests_count=form.cleaned_data["guests_count"],
+                )
+                return redirect("success_page")
+            else:
+                form.add_error(None, "The place is not available at the selected time.")
+
+    else:
+        form = BookingForm(place)
+
+    return render(
+        request,
+        "reservations/place_detail.html",
+        {
+            "place": place,
+            "form": form,
+            "today_date": timezone.now().date().strftime("%Y-%m-%d"),
         },
     )

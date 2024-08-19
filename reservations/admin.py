@@ -179,6 +179,7 @@ class PlaceAdmin(admin.ModelAdmin):
                     "cuisines",
                     "tags",
                     "capacity",
+                    "booking_interval",
                     "logo",
                     "rating",
                 )

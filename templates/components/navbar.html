@@ -45,7 +45,7 @@
                         </a>
                         <ul class="dropdown-menu" id="userDropdownMenu" aria-labelledby="userDropdownToggle">
                             {% if user.is_admin %}
-                                <li><a class="dropdown-item" href="/admin">Админ-панель</a></li>
+                                <li><a class="dropdown-item" href="{% url 'admin:index' %}">Админ-панель</a></li>
                             {% endif %}
                             {% if user.is_admin or user.is_owner %}
                                 <li><a class="dropdown-item" href="{% url 'dashboard:place_list' %}">Дашборд</a></li>

@@ -1,6 +1,10 @@
+import logging
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
 from .models import City
+
+# Настройка логгера
+logger = logging.getLogger("django")
 
 
 class RestrictAdminByIPMiddleware:
@@ -13,6 +17,8 @@ class RestrictAdminByIPMiddleware:
         if request.path.startswith("/secure-admin/"):
             ip = request.META.get("REMOTE_ADDR")
             if ip not in self.ALLOWED_IPS:
+                # Логирование несанкционированной попытки доступа
+                logger.warning(f"Unauthorized admin access attempt from IP {ip}")
                 return HttpResponseForbidden("Access Denied")
         return self.get_response(request)
 

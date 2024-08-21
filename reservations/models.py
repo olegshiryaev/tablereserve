@@ -536,9 +536,7 @@ def create_default_work_schedule(sender, instance, created, **kwargs):
             WorkSchedule.objects.create(
                 place=instance,
                 day=day[0],
-                open_time="08:00",
-                close_time="20:00",
-                is_closed=False,
+                is_closed=True,
             )
 
 
@@ -561,8 +559,8 @@ def pre_save_slug(sender, instance, *args, **kwargs):
 
 class Hall(models.Model):
     HALL_KIND_CHOICES = [
-        ("real", "Реальный"),
-        ("virtual", "Виртуальный"),
+        ("real", "Реальная"),
+        ("virtual", "Виртуальная"),
     ]
 
     HALL_TYPE_CHOICES = [
@@ -575,7 +573,7 @@ class Hall(models.Model):
         ("booth", "Кабинка"),
     ]
 
-    name = models.CharField(max_length=100, verbose_name="Название зала")
+    name = models.CharField(max_length=100, verbose_name="Название зоны")
     place = models.ForeignKey(
         Place,
         on_delete=models.CASCADE,
@@ -586,10 +584,10 @@ class Hall(models.Model):
         max_length=10,
         choices=HALL_KIND_CHOICES,
         default="real",
-        verbose_name="Вид",
+        verbose_name="Вид зоны",
     )
     hall_type = models.CharField(
-        max_length=20, choices=HALL_TYPE_CHOICES, verbose_name="Тип зала"
+        max_length=20, choices=HALL_TYPE_CHOICES, verbose_name="Тип зоны"
     )
     description = models.TextField(null=True, blank=True, verbose_name="Описание")
     number_of_seats = models.PositiveIntegerField(
@@ -604,8 +602,8 @@ class Hall(models.Model):
     )
 
     class Meta:
-        verbose_name = "Зал"
-        verbose_name_plural = "Залы"
+        verbose_name = "Зона"
+        verbose_name_plural = "Зоны"
         unique_together = (
             ("place", "name"),
         )  # Сектора должны быть уникальны в рамках одного заведения
@@ -690,10 +688,15 @@ class Table(models.Model):
     hall = models.ForeignKey(
         Hall, on_delete=models.CASCADE, related_name="tables", verbose_name="Зал"
     )
-    name = models.CharField(max_length=100, verbose_name="Наименование столика")
+    name = models.CharField(
+        max_length=100, verbose_name="Наименование столика", blank=True
+    )
     seats = models.PositiveIntegerField(default=4, verbose_name="Количество мест")
     photo = models.ImageField(
         upload_to="table_photos/", verbose_name="Фото столика", null=True, blank=True
+    )
+    quantity = models.PositiveIntegerField(
+        default=1, verbose_name="Количество столиков данного вида"
     )
     min_booking_seats = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
@@ -701,10 +704,10 @@ class Table(models.Model):
         verbose_name="Минимальное количество мест для бронирования",
     )  # Значение по умолчанию: 2 места
     min_booking_period = models.DurationField(
-        default=timedelta(hours=1), verbose_name="Минимальный период бронирования"
+        default=timedelta(minutes=30), verbose_name="Минимальный период бронирования"
     )
     max_booking_period = models.DurationField(
-        default=timedelta(hours=3), verbose_name="Максимальный период бронирования"
+        default=timedelta(hours=2), verbose_name="Максимальный период бронирования"
     )
     booking_payment = models.CharField(
         max_length=10,
@@ -716,12 +719,18 @@ class Table(models.Model):
         default=timedelta(minutes=30), verbose_name="Период между бронированиями"
     )  # Значение по умолчанию: 30 минут
 
-    def __str__(self):
-        return f"{self.name} ({self.hall.name})"
-
     class Meta:
         verbose_name = "Столик"
         verbose_name_plural = "Столики"
+
+    def save(self, *args, **kwargs):
+        # Автоматическая генерация названия столика
+        if not self.name:
+            self.name = f"Столик в {self.hall.name} на {self.seats}-х"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.hall.name})"
 
 
 class Reservation(models.Model):

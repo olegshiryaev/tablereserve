@@ -13,13 +13,16 @@ from dashboard.forms import (
     CuisineForm,
     FeatureCreateForm,
     FeatureForm,
+    HallForm,
     PlaceCreationForm,
+    PlaceFeatureForm,
     PlaceForm,
     PlaceImageForm,
     PlaceRequestForm,
     PlaceTypeCreateForm,
     PlaceTypeForm,
     ReservationForm,
+    TableForm,
     TagCreateForm,
     TagForm,
 )
@@ -28,10 +31,13 @@ from reservations.models import (
     City,
     Cuisine,
     Feature,
+    Hall,
     Place,
+    PlaceFeature,
     PlaceImage,
     PlaceType,
     Reservation,
+    Table,
     Tag,
     WorkSchedule,
 )
@@ -66,7 +72,6 @@ class PlaceListView(LoginRequiredMixin, ListView):
     model = Place
     template_name = "dashboard/places_list.html"
     context_object_name = "places"
-    paginate_by = 10
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -99,6 +104,8 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
             "edit", False
         )  # Флаг режима редактирования
         context["work_schedule"] = WorkSchedule.get_sorted_schedules(self.object.id)
+        context["halls"] = self.object.halls.all().prefetch_related("tables")
+        context["tables"] = Table.objects.filter(hall__place=self.object)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -831,3 +838,124 @@ def send_password_email(email, password):
         "emails/new_account_password.html", {"password": password}
     )
     send_mail(subject, message, "oashiryaev@yandex.ru", [email])
+
+
+class HallCreateView(LoginRequiredMixin, CreateView):
+    model = Hall
+    form_class = HallForm
+    template_name = "dashboard/hall_form.html"
+
+    def form_valid(self, form):
+        form.instance.place = self.get_place()
+        return super().form_valid(form)
+
+    def get_place(self):
+        place_slug = self.kwargs.get("slug")
+        return Place.objects.get(slug=place_slug)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "dashboard:place_detail", kwargs={"slug": self.get_place().slug}
+        )
+
+
+class HallUpdateView(LoginRequiredMixin, UpdateView):
+    model = Hall
+    fields = ["name", "kind", "hall_type", "description", "number_of_seats", "area"]
+    template_name = "dashboard/hall_form.html"
+    context_object_name = "hall"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
+        )
+
+
+class HallDeleteView(LoginRequiredMixin, DeleteView):
+    model = Hall
+    template_name = "dashboard/hall_confirm_delete.html"
+    context_object_name = "hall"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
+        )
+
+
+class TableCreateView(CreateView):
+    model = Table
+    form_class = TableForm
+    template_name = "dashboard/table_form.html"
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        place_id = self.kwargs["place_id"]
+        # Ограничиваем выбор залов только теми, которые принадлежат текущему заведению
+        form.fields["hall"].queryset = Hall.objects.filter(place_id=place_id)
+        return form
+
+    def form_valid(self, form):
+        table = form.save()
+        return redirect(
+            reverse("dashboard:place_detail", kwargs={"slug": table.hall.place.slug})
+        )
+
+
+class TableUpdateView(UpdateView):
+    model = Table
+    form_class = TableForm
+    template_name = "dashboard/table_form.html"
+
+    def form_valid(self, form):
+        table = form.save()
+        return redirect(
+            reverse("dashboard:place_detail", kwargs={"slug": table.hall.place.slug})
+        )
+
+
+class TableDeleteView(LoginRequiredMixin, DeleteView):
+    model = Table
+    template_name = "dashboard/table_confirm_delete.html"
+    context_object_name = "table"
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "dashboard:place_detail", kwargs={"slug": self.object.hall.place.slug}
+        )
+
+
+class PlaceFeatureCreateView(CreateView):
+    model = PlaceFeature
+    form_class = PlaceFeatureForm
+    template_name = "dashboard/placefeature_form.html"
+
+    def form_valid(self, form):
+        form.instance.place = get_object_or_404(Place, id=self.kwargs["place_id"])
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse(
+            "dashboard:place_detail",
+            kwargs={"slug": get_object_or_404(Place, id=self.kwargs["place_id"]).slug},
+        )
+
+
+class PlaceFeatureUpdateView(UpdateView):
+    model = PlaceFeature
+    form_class = PlaceFeatureForm
+    template_name = "dashboard/placefeature_form.html"
+
+    def get_success_url(self):
+        return reverse(
+            "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
+        )
+
+
+class PlaceFeatureDeleteView(DeleteView):
+    model = PlaceFeature
+    template_name = "dashboard/placefeature_confirm_delete.html"
+
+    def get_success_url(self):
+        return reverse(
+            "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
+        )

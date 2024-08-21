@@ -5,12 +5,14 @@ from reservations.models import (
     City,
     Cuisine,
     Feature,
+    Hall,
     Place,
     PlaceFeature,
     PlaceImage,
     PlaceType,
     PlaceUpdateRequest,
     Reservation,
+    Table,
     Tag,
 )
 from django.core.mail import send_mail
@@ -308,4 +310,80 @@ class PlaceRequestForm(forms.ModelForm):
             "phone": "Телефон",
             "owner_name": "Имя владельца",
             "owner_email": "Email владельца",
+        }
+
+
+class HallForm(forms.ModelForm):
+    class Meta:
+        model = Hall
+        fields = ["name", "kind", "hall_type", "description", "number_of_seats", "area"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "kind": forms.Select(attrs={"class": "form-control"}),
+            "hall_type": forms.Select(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "number_of_seats": forms.NumberInput(
+                attrs={"class": "form-control", "min": 1}
+            ),
+            "area": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
+        }
+
+
+class TableForm(forms.ModelForm):
+    hall = forms.ModelChoiceField(
+        queryset=Hall.objects.all(),
+        label="Зал",
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+
+    class Meta:
+        model = Table
+        fields = [
+            "hall",
+            "name",
+            "seats",
+            "quantity",
+            "photo",
+            "min_booking_seats",
+            "min_booking_period",
+            "max_booking_period",
+            "booking_payment",
+            "booking_interval",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "seats": forms.NumberInput(attrs={"class": "form-control"}),
+            "photo": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "quantity": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
+            "min_booking_seats": forms.NumberInput(
+                attrs={"class": "form-control", "min": 1}
+            ),
+            "min_booking_period": forms.NumberInput(
+                attrs={"class": "form-control", "type": "time"}
+            ),
+            "max_booking_period": forms.NumberInput(
+                attrs={"class": "form-control", "type": "time"}
+            ),
+            "booking_payment": forms.Select(attrs={"class": "form-control"}),
+            "booking_interval": forms.NumberInput(
+                attrs={"class": "form-control", "type": "time"}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Добавление подсказки
+        self.fields["name"].help_text = (
+            "Оставьте поле пустым для автоматической генерации названия столика."
+        )
+
+
+class PlaceFeatureForm(forms.ModelForm):
+    class Meta:
+        model = PlaceFeature
+        fields = ["feature", "description", "display_on_card"]
+        widgets = {
+            "feature": forms.Select(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "display_on_card": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }

@@ -27,6 +27,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.utils.html import format_html
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 User = get_user_model()
@@ -380,6 +381,17 @@ def place_detail(request, city_slug, place_slug):
     # Получение данных о залах и столиках
     halls = place.halls.all()
 
+    # Set the title dynamically
+    place_type = place.type
+    place_name = place.name
+    place_address = place.address
+    title = format_html(
+        "{} {}, {}: цены, меню, фото, отзывы | reserve.cafe",
+        place_type,
+        place_name,
+        place_address,
+    )
+
     return render(
         request,
         "reservations/place_detail.html",
@@ -401,6 +413,7 @@ def place_detail(request, city_slug, place_slug):
             "reservation_message": reservation_message,
             "place_features": place_features,
             "halls": halls,
+            "title": title,
         },
     )
 

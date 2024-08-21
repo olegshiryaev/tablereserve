@@ -135,4 +135,35 @@ urlpatterns = [
         views.reject_place_request,
         name="reject_place_request",
     ),  # Отклонение заявки
+    path(
+        "place/<slug:slug>/hall/add/",
+        views.HallCreateView.as_view(),
+        name="hall_create",
+    ),
+    path("hall/<int:pk>/edit/", views.HallUpdateView.as_view(), name="hall_edit"),
+    path("hall/<int:pk>/delete/", views.HallDeleteView.as_view(), name="hall_delete"),
+    path(
+        "place/<int:place_id>/table/add/",
+        views.TableCreateView.as_view(),
+        name="table_create",
+    ),
+    path("table/<int:pk>/edit/", views.TableUpdateView.as_view(), name="table_edit"),
+    path(
+        "table/<int:pk>/delete/", views.TableDeleteView.as_view(), name="table_delete"
+    ),
+    path(
+        "place/<int:place_id>/feature/add/",
+        views.PlaceFeatureCreateView.as_view(),
+        name="place_feature_add",
+    ),
+    path(
+        "place/feature/<int:pk>/edit/",
+        views.PlaceFeatureUpdateView.as_view(),
+        name="place_feature_edit",
+    ),
+    path(
+        "place/feature/<int:pk>/delete/",
+        views.PlaceFeatureDeleteView.as_view(),
+        name="place_feature_delete",
+    ),
 ]

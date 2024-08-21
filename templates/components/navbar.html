@@ -35,7 +35,14 @@
                 <li class="nav-item"><a href="{% url 'dashboard:welcome' %}" class="add-place-btn">Добавить заведение</a></li>
                 {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdownToggle" aria-expanded="false" aria-haspopup="true">{{ user.name }}</a>
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdownToggle" aria-expanded="false" aria-haspopup="true">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" alt="{{ user.name }}" class="profile-icon" />
+                            {% else %}
+                                <img src="{% static 'images/default_profile.png' %}" alt="{{ user.name }}" class="profile-icon" />
+                            {% endif %}
+                            {{ user.name }}
+                        </a>
                         <ul class="dropdown-menu" id="userDropdownMenu" aria-labelledby="userDropdownToggle">
                             {% if user.is_admin %}
                                 <li><a class="dropdown-item" href="/admin">Админ-панель</a></li>
@@ -78,6 +85,7 @@
             <input type="email" id="email" name="login" required>
             <label for="password">Пароль</label>
             <input type="password" id="password" name="password" required>
+            <div id="loginFormErrors" class="form-errors"></div>
             <button type="submit" class="login-modal-btn">Войти</button>
             <button type="button" id="registerButton" class="register-modal-btn">Зарегистрироваться</button>
         </form>
@@ -97,6 +105,7 @@
             <input type="email" id="regEmail" name="email" required>
             <label for="regPassword">Пароль</label>
             <input type="password" id="regPassword" name="password1" required>
+            <div id="registerFormErrors" class="form-errors"></div>
             <button type="submit" class="register-modal-btn">Зарегистрироваться</button>
         </form>
     </div>

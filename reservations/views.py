@@ -27,6 +27,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 User = get_user_model()
 
@@ -82,13 +83,13 @@ def main_page(request, city_slug):
 
 def get_place_word(count):
     if 11 <= count % 100 <= 19:
-        return "мест"
+        return "заведений"
     elif count % 10 == 1:
-        return "место"
+        return "заведение"
     elif 2 <= count % 10 <= 4:
-        return "места"
+        return "заведения"
     else:
-        return "мест"
+        return "заведений"
 
 
 def place_list(request, city_slug):
@@ -175,9 +176,21 @@ def place_list(request, city_slug):
     if sort_by in sort_options:
         places = places.order_by(sort_options[sort_by])
 
+    # Пагинация
+    per_page = 18  # Количество заведений на странице
+    paginator = Paginator(places, per_page)
+    page = request.GET.get("page", 1)
+
+    try:
+        places = paginator.page(page)
+    except PageNotAnInteger:
+        places = paginator.page(1)
+    except EmptyPage:
+        places = paginator.page(paginator.num_pages)
+
     # Получение общего количества и количества показанных заведений
-    total_places = places.count()
-    shown_places = places.count()
+    total_places = paginator.count
+    shown_places = len(places)
 
     # Получение доступных типов заведений для фильтрации
     place_types = (
@@ -236,6 +249,7 @@ def place_list(request, city_slug):
         "selected_features": feature_filters,
         "selected_rating": rating_filter,
         "favorite_places": favorite_places,
+        "paginator": paginator,  # Добавляем paginator в контекст
     }
     return render(request, "reservations/place_list.html", context)
 

@@ -430,7 +430,7 @@ h2 {
 
 .filter-container {
     flex: 0 0 250px;
-    padding: 20px;
+    padding: 15px;
 }
 
 .filter-container h3 {
@@ -442,16 +442,17 @@ h2 {
 }
 
 .filter-block {
-    padding: .75rem;
-    margin-bottom: 20px;
-    border-radius: 1rem; /* Закругленные углы для каждого блока фильтра */
-    background-color: #fff; /* Белый фон для каждого блока фильтра */
+    padding: 10px;
+    margin-bottom: 15px; /* Уменьшил отступ снизу для сжатия расстояния между блоками */
+    border-radius: 1rem;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Добавление легкой тени для четкого отделения блоков */
 }
 
 .filter-block .search-field {
     width: 100%;
     padding: 8px;
-    font-size: 16px;
+    font-size: 14px;
     border: 1px solid #ccc;
     background-color: #F5F5F5;
     border-radius: 4px;
@@ -465,7 +466,7 @@ h2 {
 
 .filter-block label {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 8px; /* Уменьшил отступ между лейблом и содержимым */
     font-size: .875rem;
     line-height: 1.25rem;
     font-weight: 600;
@@ -484,7 +485,7 @@ h2 {
 .filter-form .form-check {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .filter-form .form-check-label {
@@ -498,9 +499,8 @@ h2 {
 }
 
 .filter-form .form-check-input {
-    margin-right: 10px;
-    margin-left: 0;
-    transform: scale(1.5);
+    margin-right: 8px; /* Уменьшил отступ между чекбоксом и текстом */
+    transform: scale(1.2); /* Сделал чекбоксы чуть меньше */
     cursor: pointer;
 }
 
@@ -524,8 +524,7 @@ h2 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: .25rem;
-    padding-bottom: .25rem;
+    padding: 5px 0; /* Уменьшил padding внутри фильтров */
 }
 
 .filter-count {
@@ -579,7 +578,7 @@ h2 {
 
 .places-container {
     flex: 1;
-    margin-top: 20px;
+    padding: 15px;
 }
 
 .places-container h2 {
@@ -592,28 +591,40 @@ h2 {
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     align-items: stretch;
+    margin-bottom: 20px;
 }
 
 .place-card {
     background: #fff;
-    padding: 0 0 20px;
+    padding: 0;
     border-radius: 1rem;
     text-align: left;
     display: flex;
     flex-direction: column;
-    max-height: 408px;
+    position: relative;
+    max-height: 428px;
     min-height: 280px;
+    height: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.place-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .place-card-image {
     position: relative;
     width: 100%;
-    height: 320px;
+    padding-top: 56.25%; /* 16:9 соотношение сторон */
     overflow: hidden;
 }
 
-.place-card-image .place-image {
-    display: block;
+.place-card-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -628,7 +639,19 @@ h2 {
     width: 100%;
     height: 100%;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
-    z-index: 1; /* чтобы затемнитель был выше изображения, но ниже текста */
+    z-index: 1;
+}
+
+.place-card-link {
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+
+.place-card-link .place-card-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .place-rating.image-rating {
@@ -713,13 +736,14 @@ h2 {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 2;
+    z-index: 4;
     transition: background 0.3s, color 0.3s;
     padding: 0;
 }
 
 .favorite-button svg {
     fill: #fff;
+    transition: fill 0.3s;
 }
 
 .favorite-button.favorited {
@@ -731,7 +755,7 @@ h2 {
 }
 
 .favorite-button:hover {
-    background: rgb(237, 236, 236, 0.9);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .place-card img {
@@ -741,13 +765,11 @@ h2 {
 }
 
 .place-card-content {
+    padding: 10px 20px 20px;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    padding: 0 20px;
-    bottom: 0;
     flex-grow: 1;
-    margin-top: 10px;
+    justify-content: flex-start;
 }
 
 .place-card-content .place-title:hover {
@@ -773,31 +795,18 @@ h2 {
 }
 
 .place-card-content .btn {
-    bottom: 0;
-    display: block;
-    position: relative;
+    margin-top: auto;
     background-color: #2E8BC0;
     color: #fff;
-    border: none;
-    padding: 10px 20px;
-    font-size: 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.3s;
-    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
     text-align: center;
-    line-height: 16px;
-    letter-spacing: .25px;
-    font-weight: 500;
-    text-transform: uppercase;
-    margin-top: auto;
-    align-self: center;
-    outline: none;
-    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color 0.3s;
 }
 
 .place-card-content .btn:hover {
-    background-color: #145DA0;
+    background-color: #206090;
 }
 
 .show-more-container {
@@ -1123,6 +1132,23 @@ footer a:hover {
 
     .book-button {
         font-size: 12px;
+    }
+
+    .nav-item {
+        flex-direction: column; /* Ставим элементы в колонку */
+        align-items: flex-start; /* Выравниваем элементы по левому краю */
+    }
+
+    .login-btn, .add-place-btn {
+        width: 100%; /* Кнопки занимают всю ширину */
+        margin: 5px 0; /* Отступы между кнопками */
+        text-align: center; /* Центрируем текст внутри кнопок */
+        padding: 10px 0; /* Увеличиваем внутренние отступы для удобства на мобильных */
+        font-size: 14px; /* Уменьшаем размер шрифта для мобильных */
+    }
+
+    .add-place-btn {
+        margin-left: 0; /* Убираем отступ слева для мобильной версии */
     }
 
     footer .container {
@@ -2225,4 +2251,47 @@ a.place-detail-item-value:hover {
 .book-button:hover {
     background-color: #4cae4c;
     transform: scale(0.98);
+}
+
+.profile-icon {
+    top: 8px;
+    width: 28px; /* Ширина иконки */
+    height: 28px; /* Высота иконки */
+    border-radius: 50%; /* Круглая иконка */
+    margin-right: 8px; /* Отступ справа от иконки */
+    vertical-align: middle; /* Выравнивание по центру */
+}
+
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.pagination .step-links {
+    display: inline-block;
+    padding: 8px 16px;
+}
+
+.pagination a {
+    color: #007bff;
+    text-decoration: none;
+    margin: 0 2px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    border: 1px solid #007bff;
+}
+
+.pagination a:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.pagination .current {
+    margin: 0 2px;
+    padding: 5px 10px;
+    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+    border-radius: 3px;
+    border: 1px solid #007bff;
 }

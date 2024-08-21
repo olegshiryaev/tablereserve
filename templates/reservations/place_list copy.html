@@ -192,13 +192,9 @@
         <div class="places-cards">
             {% for place in places %}
             <div class="place-card">
-                <span class="favorite-button {% if place.id in favorite_places %}favorited{% endif %}" data-place-id="{{ place.id }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </span>
-                <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" class="place-card-link">
-                    <div class="place-card-image">
+                <div class="place-card-image">
+                    <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" class="place-card-link">
+                        <img src="{{ place.get_cover_image }}" alt="{{ place.name }}" class="place-image">
                         <div class="place-features">
                             {% for feature in place.features_on_card.all %}
                                 <span class="feature">{{ feature.name }}</span>
@@ -217,9 +213,13 @@
                             {{ place.rating|formatted_float }}
                         </div>
                         {% endif %}
-                        <img src="{{ place.get_cover_image }}" alt="{{ place.name }}" class="place-image">
-                    </div>
-                </a>
+                    </a>
+                    <button class="favorite-button {% if place.id in favorite_places %}favorited{% endif %}" data-place-id="{{ place.id }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="place-card-content">
                     <p class="place-address">
                         <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="bi bi-geo-alt">
@@ -252,28 +252,6 @@
                 </div>
             </div>
             {% endfor %}
-        </div>
-        <!-- Секция пагинации -->
-        <div class="pagination">
-            <span class="step-links">
-                {% if places.has_previous %}
-                    <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo;</a>
-                    <a href="?page={{ places.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&lsaquo;</a>
-                {% endif %}
-        
-                {% for num in places.paginator.page_range %}
-                    {% if places.number == num %}
-                        <span class="current">{{ num }}</span>
-                    {% elif num > places.number|add:'-3' and num < places.number|add:'3' %}
-                        <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-        
-                {% if places.has_next %}
-                    <a href="?page={{ places.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&rsaquo;</a>
-                    <a href="?page={{ places.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&raquo;</a>
-                {% endif %}
-            </span>
         </div>
     </div>
 </section>

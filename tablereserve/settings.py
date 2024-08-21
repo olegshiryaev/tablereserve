@@ -69,7 +69,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_hosts.middleware.HostsResponseMiddleware",
-    "reservations.middleware.RestrictAdminByIPMiddleware",
     "reservations.middleware.CityMiddleware",
 ]
 
@@ -93,32 +92,6 @@ TEMPLATES = [
         },
     },
 ]
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "{asctime} {levelname} {name} {message}",
-            "style": "{",
-        },
-    },
-    "handlers": {
-        "file": {
-            "level": "WARNING",
-            "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "logs/admin_access.log"),
-            "formatter": "verbose",  # Указываем форматтер
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["file"],
-            "level": "WARNING",
-            "propagate": True,
-        },
-    },
-}
 
 # django-allauth
 # https://docs.allauth.org/en/latest/installation/quickstart.html
@@ -264,12 +237,12 @@ CKEDITOR_CONFIGS = {
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.yandex.ru"
+EMAIL_HOST = "smtp.reserve.cafe"
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 
-EMAIL_HOST_USER = "oashiryaev@yandex.ru"
-EMAIL_HOST_PASSWORD = "hqrixkwszaoxgpsk"
+EMAIL_HOST_USER = "mail@reserve.cafe"
+EMAIL_HOST_PASSWORD = "lkEIP8otko"
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER

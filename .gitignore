@@ -35,5 +35,5 @@ db.sqlite3
 .env
 env/
 venv/
-.docker/
-logs/
+docker/*
+logs/*

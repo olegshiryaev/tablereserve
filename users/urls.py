@@ -1,10 +1,12 @@
 from django.urls import path
 from allauth.account.views import SignupView
 from .views import (
+    ReservationDetailView,
     activate,
     custom_email_verification,
+    ProfileUpdateView,
+    ProfileDetailView,
     toggle_favorite,
-    user_profile,
 )
 
 
@@ -12,7 +14,8 @@ app_name = "users"
 
 urlpatterns = [
     path("signup/", SignupView.as_view(), name="account_signup"),
-    path("profile/", user_profile, name="user_profile"),
+    path("profile/<int:id>/", ProfileDetailView.as_view(), name="profile"),
+    path("profile/edit/", ProfileUpdateView.as_view(), name="profile-edit"),
     path(
         "accounts/confirm-email/<str:key>/",
         custom_email_verification,
@@ -20,4 +23,9 @@ urlpatterns = [
     ),
     path("activate/<uidb64>/<token>/", activate, name="activate"),
     path("favorites/toggle/<int:place_id>/", toggle_favorite, name="toggle_favorite"),
+    path(
+        "reservation/<int:pk>/",
+        ReservationDetailView.as_view(),
+        name="reservation-detail",
+    ),
 ]

@@ -1,7 +1,7 @@
 from django import forms
 from allauth.account.forms import SignupForm, LoginForm
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import CustomUser
+from .models import CustomUser, Profile
 
 
 class CustomSignupForm(SignupForm):
@@ -39,7 +39,6 @@ class CustomUserChangeForm(UserChangeForm):
         model = CustomUser
         fields = (
             "email",
-            "name",
             "is_active",
             "is_staff",
             "is_superuser",
@@ -62,3 +61,12 @@ class CustomLoginForm(LoginForm):
         self.fields["password"].widget.attrs.update(
             {"class": "form-control", "placeholder": "Пароль"}
         )
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ["name", "phone_number", "avatar", "bio", "city"]
+        widgets = {
+            "bio": forms.Textarea(attrs={"rows": 4}),
+        }

@@ -4,33 +4,34 @@ from django.utils.translation import gettext_lazy as _
 
 from reservations.models import Place
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import CustomUser, Favorite
+from .models import CustomUser, Favorite, Profile
 
 
-class PlaceInline(admin.TabularInline):
-    model = Place.manager.through  # Use the through model of the ManyToManyField
-    extra = 1  # Number of extra forms to display
-    verbose_name = "Представитель заведения"
-    verbose_name_plural = "Представитель заведений"
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = "Профили"
+    fk_name = "user"
 
 
+@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    add_form = CustomUserCreationForm
-    form = CustomUserChangeForm
-    model = CustomUser
-    inlines = [PlaceInline]
+    # Поля, отображаемые в списке пользователей
+    list_display = ("email", "role", "is_staff", "is_active")
+    list_filter = ("is_staff", "is_active", "role")
+    search_fields = ("email",)
+    ordering = ("email",)
 
-    list_display = ("email", "name", "role", "phone_number", "date_joined", "is_active")
-    list_filter = ("role", "is_active")
+    # Настройка форм добавления/редактирования пользователя
     fieldsets = (
-        (None, {"fields": ("email", "password", "role")}),
-        (_("Personal Info"), {"fields": ("name", "phone_number", "avatar")}),
+        (None, {"fields": ("email", "password")}),
+        (_("Personal info"), {"fields": ("role",)}),
         (
             _("Permissions"),
             {
                 "fields": (
-                    "is_staff",
                     "is_active",
+                    "is_staff",
                     "is_superuser",
                     "groups",
                     "user_permissions",
@@ -39,6 +40,7 @@ class CustomUserAdmin(UserAdmin):
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
+
     add_fieldsets = (
         (
             None,
@@ -48,16 +50,43 @@ class CustomUserAdmin(UserAdmin):
                     "email",
                     "password1",
                     "password2",
-                    "name",
-                    "phone_number",
                     "role",
+                    "is_staff",
+                    "is_active",
                 ),
             },
         ),
     )
-    filter_horizontal = ()
-    search_fields = ("email", "name", "phone_number")
-    ordering = ["email"]
+
+    # Связь инлайнового профиля с моделью пользователя
+    inlines = (ProfileInline,)
+
+    # Определение поля идентификации пользователя
+    def get_inline_instances(self, request, obj=None):
+        if not obj:
+            return []
+        return super().get_inline_instances(request, obj)
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    # Поля, отображаемые в списке профилей
+    list_display = ("user", "name", "phone_number", "date_joined", "city")
+    list_filter = ("date_joined", "city")
+    search_fields = ("user__email", "name", "phone_number")
+    ordering = ("user__email",)
+
+
+# Регистрация кастомных моделей пользователя и профиля
+admin.site.unregister(Profile)
+admin.site.register(Profile, ProfileAdmin)
+
+
+class PlaceInline(admin.TabularInline):
+    model = Place.manager.through  # Use the through model of the ManyToManyField
+    extra = 1  # Number of extra forms to display
+    verbose_name = "Представитель заведения"
+    verbose_name_plural = "Представитель заведений"
 
 
 @admin.register(Favorite)
@@ -71,6 +100,3 @@ class FavoriteInline(admin.TabularInline):
     model = Favorite
     extra = 0
     raw_id_fields = ("user",)
-
-
-admin.site.register(CustomUser, CustomUserAdmin)

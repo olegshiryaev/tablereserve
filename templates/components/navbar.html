@@ -1,77 +1,113 @@
 {% load static %}
 <!-- Верхняя панель навигации -->
-<header>
-    <div class="container">
+<header class="header">
+    <div class="container d-flex justify-content-between align-items-center">
         <div class="logo">
             <a href="/">
                 <img src="{% static 'images/logo.png' %}" alt="Логотип" />
             </a>
         </div>
-        <div class="city-selector">
-            <a href="#" class="nav-link dropdown-toggle" id="cityDropdownToggle" aria-expanded="false" aria-haspopup="true">
+
+        <!-- Выбор города -->
+        <div class="city-selector dropdown">
+            <a href="#" class="nav-link dropdown-toggle" id="cityDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
                 {% if selected_city %}
                     {{ selected_city.name }}
                 {% else %}
                     Выберите город
                 {% endif %}
             </a>
-            <ul class="dropdown-menu" id="cityDropdownMenu" aria-labelledby="cityDropdownToggle">
+            <ul class="dropdown-menu" aria-labelledby="cityDropdownToggle">
                 {% for city in cities %}
-                    <li><a class="dropdown-item" href="/{{ city.slug }}/">{{ city.name }}</a></li>
+                <li><a class="dropdown-item city-link" data-city-slug="{{ city.slug }}" href="#">{{ city.name }}</a></li>
                 {% endfor %}
             </ul>
         </div>
-        <div class="hamburger" aria-expanded="false" aria-haspopup="true">
+
+        <!-- Гамбургер для мобильного меню -->
+        <div class="hamburger d-lg-none" aria-expanded="false" aria-haspopup="true">
             <span></span>
             <span></span>
             <span></span>
         </div>
-        <nav>
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{% if selected_city %}{% url 'place_list' selected_city.slug %}{% else %}#{% endif %}">Места</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">События</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Акции</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
-                <li class="nav-item"><a href="{% url 'dashboard:welcome' %}" class="add-place-btn">Добавить заведение</a></li>
-                {% if user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdownToggle" aria-expanded="false" aria-haspopup="true">
-                            {% if user.avatar %}
-                                <img src="{{ user.avatar.url }}" alt="{{ user.name }}" class="profile-icon" />
-                            {% else %}
-                                <img src="{% static 'images/default_profile.png' %}" alt="{{ user.name }}" class="profile-icon" />
-                            {% endif %}
-                            {{ user.name }}
-                        </a>
-                        <ul class="dropdown-menu" id="userDropdownMenu" aria-labelledby="userDropdownToggle">
-                            {% if user.is_admin %}
-                                <li><a class="dropdown-item" href="{% url 'admin:index' %}">Админ-панель</a></li>
-                            {% endif %}
-                            {% if user.is_admin or user.is_owner %}
-                                <li><a class="dropdown-item" href="{% url 'dashboard:place_list' %}">Дашборд</a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item" href="{% url 'users:user_profile' %}">Профиль</a></li>
-                            <li><a class="dropdown-item" href="{% url 'account_logout' %}">Выйти</a></li>
-                        </ul>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <button id="loginButton" class="login-btn" aria-expanded="false" aria-haspopup="true">Войти</button>
-                        <div id="loginPopover" class="popover-content">
-                            <p>Войдите, чтобы сохранять любимые заведения и оставлять отзывы.</p>
-                            <button class="login-popover-btn">Войти или зарегистрироваться</button>
-                            <div class="social-login">
-                                <p>Войти с помощью:</p>
-                                <a href="#"><img src="{% static 'images/vk_icon.png' %}" alt="VK" class="social-icon"></a>
-                                <a href="#"><img src="{% static 'images/yandex_icon.png' %}" alt="Yandex" class="social-icon"></a>
-                            </div>
-                        </div>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
+
+        <!-- Десктопное меню -->
+        <ul class="nav col-12 col-lg-auto mb-2 justify-content-end mb-md-0 d-none d-lg-flex">
+            <li class="nav-item"><a class="nav-link" href="{% if selected_city %}{% url 'place_list' selected_city.slug %}{% else %}#{% endif %}">Места</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">События</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Акции</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
+        </ul>
+
+        <!-- Кнопки для авторизованных пользователей -->
+        <div class="text-end d-none d-lg-flex align-items-center">
+            <a href="{% url 'dashboard:welcome' %}" class="btn btn-primary add-place-btn me-2">Добавить заведение</a>
+            {% if user.is_authenticated %}
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle no-caret" href="#" id="userDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" alt="{{ user.profile.name }}" class="profile-icon rounded-circle" />
+                        {% else %}
+                            <img src="{% static 'images/default_profile.png' %}" alt="{{ user.profile.name }}" class="profile-icon rounded-circle" />
+                        {% endif %}
+                        {{ user.profile.name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggle">
+                        {% if user.is_admin %}
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">Админ-панель</a></li>
+                        {% endif %}
+                        {% if user.is_admin or user.is_owner %}
+                            <li><a class="dropdown-item" href="{% url 'dashboard:place_list' %}">Дашборд</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="{% url 'users:profile' id=user.id %}">Профиль</a></li>
+                        <li><a class="dropdown-item" href="{% url 'account_logout' %}">Выйти</a></li>
+                    </ul>
+                </div>
+            {% else %}
+                <button id="loginButton" class="btn btn-outline-primary login-btn">Войти</button>
+            {% endif %}
+        </div>
     </div>
 </header>
+
+<!-- Мобильное меню -->
+<nav class="mobile-nav">
+    <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="{% if selected_city %}{% url 'place_list' selected_city.slug %}{% else %}#{% endif %}">Места</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">События</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Акции</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
+        <li class="nav-item">
+            <a href="{% url 'dashboard:welcome' %}" class="btn btn-primary add-place-btn">Добавить заведение</a>
+        </li>
+        {% if user.is_authenticated %}
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle no-caret" href="#" id="userDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="{{ user.profile.name }}" class="profile-icon rounded-circle" />
+                {% else %}
+                    <img src="{% static 'images/default_profile.png' %}" alt="{{ user.profile.name }}" class="profile-icon rounded-circle" />
+                {% endif %}
+                {{ user.profile.name }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggle">
+                {% if user.is_admin %}
+                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">Админ-панель</a></li>
+                {% endif %}
+                {% if user.is_admin or user.is_owner %}
+                    <li><a class="dropdown-item" href="{% url 'dashboard:place_list' %}">Дашборд</a></li>
+                {% endif %}
+                <li><a class="dropdown-item" href="{% url 'users:profile' id=user.id %}">Профиль</a></li>
+                <li><a class="dropdown-item" href="{% url 'account_logout' %}">Выйти</a></li>
+            </ul>
+        </li>
+        {% else %}
+            <li class="nav-item">
+                <button id="loginButton" class="btn btn-outline-primary login-btn">Войти</button>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
 
 <!-- Модальное окно входа -->
 <div id="loginModal" class="modal" aria-hidden="true" aria-labelledby="loginModalTitle">
@@ -85,10 +121,20 @@
             <input type="email" id="email" name="login" required>
             <label for="password">Пароль</label>
             <input type="password" id="password" name="password" required>
+            <div class="show-password">
+                <input type="checkbox" id="showPasswordLogin">
+                <label for="showPasswordLogin">Показать пароль</label>
+            </div>
             <div id="loginFormErrors" class="form-errors"></div>
             <button type="submit" class="login-modal-btn">Войти</button>
-            <button type="button" id="registerButton" class="register-modal-btn">Зарегистрироваться</button>
         </form>
+        <!-- Кнопки входа через социальные сети -->
+        <div class="social-login">
+            <p>Войти с помощью:</p>
+            <a href="#"><img src="{% static 'images/vk_icon.png' %}" alt="VK" class="social-icon"></a>
+            <a href="#"><img src="{% static 'images/yandex_icon.png' %}" alt="Yandex" class="social-icon"></a>
+        </div>
+        <p class="switch-to-register">Впервые на сайте? <a href="#" id="switchToRegister">Регистрация</a></p>
     </div>
 </div>
 
@@ -105,8 +151,30 @@
             <input type="email" id="regEmail" name="email" required>
             <label for="regPassword">Пароль</label>
             <input type="password" id="regPassword" name="password1" required>
+            <div class="show-password">
+                <input type="checkbox" id="showPasswordRegister">
+                <label for="showPasswordRegister">Показать пароль</label>
+            </div>
             <div id="registerFormErrors" class="form-errors"></div>
             <button type="submit" class="register-modal-btn">Зарегистрироваться</button>
         </form>
+        <p class="switch-to-login">Уже есть аккаунт? <a href="#" id="switchToLogin">Войти</a></p>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cityLinks = document.querySelectorAll('.city-link');
+        
+        cityLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const newCitySlug = this.getAttribute('data-city-slug');
+                const currentPath = window.location.pathname;
+                const currentCitySlug = currentPath.split('/')[1];
+                const newPath = currentPath.replace(`/${currentCitySlug}`, `/${newCitySlug}`);
+                window.location.href = newPath;
+            });
+        });
+    });
+    </script>

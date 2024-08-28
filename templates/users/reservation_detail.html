@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Детали бронирования</h2>
+    <ul>
+        <li>Заведение: {{ reservation.place.name }}</li>
+        <li>Дата: {{ reservation.date }}</li>
+        <li>Время: {{ reservation.time }}</li>
+        <li>Количество гостей: {{ reservation.guests }}</li>
+        <li>Статус: {{ reservation.status }}</li>
+        <li>Имя заказчика: {{ reservation.customer_name }}</li>
+        <li>Телефон заказчика: {{ reservation.customer_phone }}</li>
+        <li>Email заказчика: {{ reservation.customer_email }}</li>
+        <li>Пожелания: {{ reservation.wishes }}</li>
+    </ul>
+</div>
+{% endblock %}

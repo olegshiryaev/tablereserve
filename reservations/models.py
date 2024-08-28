@@ -413,7 +413,10 @@ class Place(models.Model):
                 img.save(self.logo.path)
 
     def get_absolute_url(self):
-        return reverse_lazy("place_detail", kwargs={"slug": self.slug})
+        return reverse(
+            "place_detail",
+            kwargs={"city_slug": self.city.slug, "place_slug": self.slug},
+        )
 
     def update_rating(self):
         reviews = self.reviews.filter(is_approved=True)
@@ -796,7 +799,7 @@ class Reservation(models.Model):
         return f"{self.user} - {self.place.name} - {self.date} {self.time}"
 
     def get_absolute_url(self):
-        return reverse("reservation-detail", kwargs={"pk": self.pk})
+        return reverse("users:reservation-detail", kwargs={"pk": self.pk})
 
     def save(self, *args, **kwargs):
         if not self.number:
@@ -874,7 +877,9 @@ class MenuItem(models.Model):
 
 class Review(models.Model):
     place = models.ForeignKey("Place", on_delete=models.CASCADE, related_name="reviews")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews"
+    )
     text = models.TextField()
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]

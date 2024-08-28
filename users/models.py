@@ -2,10 +2,11 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils import timezone
 
-from reservations.models import Place
+from reservations.models import City, Place
 
 
 class CustomUserManager(BaseUserManager):
@@ -43,19 +44,9 @@ class CustomUser(AbstractUser):
         max_length=10,
         choices=ROLE_CHOICES,
         default="user",
-        verbose_name="Адрес электронной почты",
+        verbose_name="Роль",
     )
-    name = models.CharField(max_length=50, blank=True, verbose_name="Имя")
     email = models.EmailField(unique=True, verbose_name="Адрес электронной почты")
-    phone_number = PhoneNumberField(
-        unique=True, blank=True, null=True, verbose_name="Телефон"
-    )
-    avatar = models.ImageField(
-        upload_to="avatars/", null=True, blank=True, verbose_name="Аватар"
-    )
-    date_joined = models.DateTimeField(
-        default=timezone.now, verbose_name="Дата регистрации"
-    )
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     is_staff = models.BooleanField(default=False, verbose_name="Статус сотрудника")
     password_sent = models.BooleanField(default=False, verbose_name="Пароль отправлен")
@@ -84,6 +75,37 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(
+        CustomUser, on_delete=models.CASCADE, related_name="profile"
+    )
+    name = models.CharField(max_length=50, blank=True, verbose_name="Имя")
+    phone_number = PhoneNumberField(
+        unique=True, blank=True, null=True, verbose_name="Телефон"
+    )
+    avatar = models.ImageField(
+        upload_to="avatars/", null=True, blank=True, verbose_name="Аватар"
+    )
+    date_joined = models.DateTimeField(
+        default=timezone.now, verbose_name="Дата регистрации"
+    )
+    bio = models.TextField(blank=True, verbose_name="О себе")
+    city = models.ForeignKey(
+        City, null=True, blank=True, on_delete=models.SET_NULL, verbose_name="Город"
+    )
+
+    class Meta:
+        verbose_name = "Профиль"
+        verbose_name_plural = "Профили"
+
+    def __str__(self):
+        return self.user.email
+
+    def get_absolute_url(self):
+        # Возвращает URL для отображения профиля пользователя
+        return reverse("users:profile", kwargs={"id": self.user.id})
 
 
 class Favorite(models.Model):

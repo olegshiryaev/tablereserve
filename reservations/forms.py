@@ -106,8 +106,8 @@ class ReservationForm(forms.ModelForm):
 
         # Установка данных пользователя, если он авторизован
         if user and user.is_authenticated:
-            self.fields["customer_name"].initial = user.name or user.username
-            self.fields["customer_phone"].initial = user.phone_number or ""
+            self.fields["customer_name"].initial = user.profile.name or user.username
+            self.fields["customer_phone"].initial = user.profile.phone_number or ""
             self.fields["customer_email"].initial = user.email
 
         # Настройка меток полей

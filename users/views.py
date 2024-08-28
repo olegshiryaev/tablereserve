@@ -10,10 +10,13 @@ from allauth.account.models import EmailAddress
 from django.shortcuts import redirect, HttpResponse
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import DetailView, UpdateView
 
-from reservations.models import Place
-from users.models import CustomUser, Favorite
+from reservations.models import Place, Reservation
+from users.forms import ProfileForm
+from users.models import CustomUser, Favorite, Profile
 
 User = get_user_model()
 
@@ -33,14 +36,52 @@ def activate(request, uidb64, token):
         return render(request, "users/activation_invalid.html")
 
 
-@login_required
-def user_profile(request):
-    favorite_places = request.user.favorites.all()
+class ProfileDetailView(LoginRequiredMixin, DetailView):
+    """
+    Представление для просмотра профиля
+    """
 
-    context = {
-        "favorite_places": favorite_places,
-    }
-    return render(request, "users/user_profile.html", context)
+    model = CustomUser
+    context_object_name = "user"
+    template_name = "users/profile_detail.html"
+
+    def get_object(self, queryset=None):
+        # Возвращает текущего пользователя
+        return get_object_or_404(CustomUser, pk=self.request.user.pk)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.get_object()
+        # Добавляем дополнительные данные в контекст
+        context["reservations"] = user.reservations.all()
+        context["favorites"] = user.favorites.all()
+        context["reviews"] = user.reviews.all()
+        context["title"] = f"Страница пользователя: {user.profile.name}"
+        return context
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    """
+    Представление для редактирования профиля
+    """
+
+    model = Profile
+    form_class = ProfileForm
+    template_name = "users/profile_edit.html"
+    context_object_name = "profile"
+
+    def get_success_url(self):
+        return reverse("users:profile", kwargs={"id": self.request.user.id})
+
+    def get_object(self, queryset=None):
+        return self.request.user.profile
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = (
+            f"Редактирование профиля пользователя: {self.request.user.username}"
+        )
+        return context
 
 
 @require_POST
@@ -92,3 +133,9 @@ def custom_email_verification(request, key):
         return redirect(settings.ACCOUNT_EMAIL_CONFIRMATION_REDIRECT_URL)
     except EmailAddress.DoesNotExist:
         return HttpResponse("Неверный ключ подтверждения.")
+
+
+class ReservationDetailView(LoginRequiredMixin, DetailView):
+    model = Reservation
+    template_name = "users/reservation_detail.html"
+    context_object_name = "reservation"

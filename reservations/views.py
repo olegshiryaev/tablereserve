@@ -605,3 +605,4 @@ def create_booking(request, place_id):
             "today_date": timezone.now().date().strftime("%Y-%m-%d"),
         },
     )
+

@@ -738,9 +738,9 @@ class Table(models.Model):
 
 class Reservation(models.Model):
     STATUS_CHOICES = [
-        ("pending", "Ожидание"),
-        ("confirmed", "Подтверждено"),
-        ("cancelled", "Отменено"),
+        ("pending", "Ожидает подтверждения"),
+        ("confirmed", "Подтвержден рестораном"),
+        ("cancelled", "Отменен рестораном"),
     ]
     number = models.CharField(
         max_length=6, unique=True, editable=False, verbose_name="Номер заказа"

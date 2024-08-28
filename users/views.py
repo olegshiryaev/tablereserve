@@ -139,3 +139,13 @@ class ReservationDetailView(LoginRequiredMixin, DetailView):
     model = Reservation
     template_name = "users/reservation_detail.html"
     context_object_name = "reservation"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        reservation = self.get_object()
+
+        # Получаем обложку заведения, если она существует
+        cover_image = reservation.place.images.filter(is_cover=True).first()
+        context["cover_image"] = cover_image
+
+        return context

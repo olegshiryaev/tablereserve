@@ -95,7 +95,12 @@ User = get_user_model()
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="profile",
+        verbose_name="Пользователь",
+    )
     name = models.CharField(max_length=50, blank=True, verbose_name="Имя")
     phone_number = PhoneNumberField(
         unique=True,

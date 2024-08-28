@@ -14,6 +14,7 @@ class CityMiddleware:
             "accounts/",
             "dashboard/",
             "welcome/",
+            "user/",
         ]
 
     def __call__(self, request):

@@ -11,12 +11,12 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container pt-5 mb-5">
     <!-- Профиль пользователя -->
     <div class="row">
         <div class="col-md-4">
             <div class="card">
-                <img src="{{ user.profile.avatar.url }}" class="card-img-top" alt="{{ user.profile.name }}">
+                <img src="{{ user.profile.get_avatar_url }}" class="card-img-top" alt="{{ user.profile.name }}">
                 <div class="card-body text-center">
                     <h5 class="card-title">{{ user.profile.name }}</h5>
                     <p class="card-text">{{ user.email }}</p>

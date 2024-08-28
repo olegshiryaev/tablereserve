@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load custom_filters %}
 
 {% block navbar %}
     {% include 'components/navbar.html' %}
@@ -11,11 +12,33 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-  <h2>Редактировать профиль</h2>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Сохранить изменения</button>
-  </form>
-  <a href="{% url 'users:profile' profile.user.id %}">Назад к профилю</a>
+<div class="container pt-5 mb-5">
+    <h2 class="mb-4">Редактировать профиль</h2>
+    <form method="post" enctype="multipart/form-data" class="needs-validation border p-4 rounded shadow-sm bg-light" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+            <!-- Оборачиваем каждое поле формы в Bootstrap-классы -->
+            {% for field in form %}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field|add_class:"form-control" }}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ field.errors|striptags }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="mt-4 d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            <a href="{% url 'users:profile' profile.user.id %}" class="btn btn-secondary">Назад к профилю</a>
+        </div>
+    </form>
+</div>
 {% endblock %}

@@ -71,13 +71,13 @@
         <!-- Галерея изображений -->
         <div id="gallery" class="place-detail-gallery">
             <div class="place-detail-gallery-wrapper">
-                {% if place.images.all %}
+                {% if place.images.exists %}
                     {% if place.images.count == 1 %}
                         <!-- Единственное изображение занимает всю галерею -->
                         {% for media in place.images.all %}
                             {% if media.image %}
                             <div class="place-single-image">
-                                <img src="{{ media.image.url }}" alt="Image of {{ place.name }}" class="place-full-image" />
+                                <img src="{{ media.image.url }}" alt="Image of {{ place.name }}" loading="lazy" class="place-full-image" />
                             </div>
                             {% endif %}
                         {% endfor %}
@@ -87,22 +87,15 @@
                         <div class="place-slider">
                             <div class="place-slider-wrapper">
                                 {% for media in place.images.all %}
-                                    {% if media.video_url or media.embed_code %}
                                     <div class="place-slider-item" style="margin-right: 5px;">
                                         {% if media.video_url %}
-                                        <iframe width="560" height="315" src="{{ media.video_url }}" frameborder="0" allowfullscreen></iframe>
+                                            <iframe width="560" height="315" src="{{ media.video_url }}" frameborder="0" allowfullscreen></iframe>
                                         {% elif media.embed_code %}
-                                        {{ media.embed_code|safe }}
+                                            {{ media.embed_code|safe }}
+                                        {% elif media.image %}
+                                            <img data-src="{{ media.image.url }}" class="place-slider-img lazy" alt="Image of {{ place.name }}" loading="lazy" />
                                         {% endif %}
                                     </div>
-                                    {% endif %}
-                                {% endfor %}
-                                {% for media in place.images.all %}
-                                    {% if media.image %}
-                                    <div class="place-slider-item" style="margin-right: 5px;">
-                                        <img data-src="{{ media.image.url }}" class="place-slider-img lazy" alt="Image of {{ place.name }}" />
-                                    </div>
-                                    {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
@@ -216,32 +209,34 @@
                                         {% endif %}
                                     {% else %}
                                         <div class="place-detail-item-value">
-                                            график работы не задан
+                                            -
                                         </div>
                                     {% endif %}
-                                    <div class="place-detail-item-action" style="position: relative;">
-                                        <span class="place-detail-item-action-link work-schedule-link">
-                                            График
-                                        </span>
-                                        <div class="work-schedule-tooltip">
-                                            <table class="work-schedule-table">
-                                                {% for schedule in schedules %}
-                                                    <tr class="{% if schedule.day == today_weekday %}current-day{% endif %}">
-                                                        <td class="work-schedule-day">
-                                                            {{ schedule.get_day_display }}
-                                                        </td>
-                                                        <td class="work-schedule-time">
-                                                            {% if schedule.is_closed %}
-                                                                не работает
-                                                            {% else %}
-                                                                с {{ schedule.open_time|time:"H:i" }} до {{ schedule.close_time|time:"H:i" }}
-                                                            {% endif %}
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </table>
+                                    {% if schedules %}
+                                        <div class="place-detail-item-action" style="position: relative;">
+                                            <span class="place-detail-item-action-link work-schedule-link">
+                                                График
+                                            </span>
+                                            <div class="work-schedule-tooltip">
+                                                <table class="work-schedule-table">
+                                                    {% for schedule in schedules %}
+                                                        <tr class="{% if schedule.day == today_weekday %}current-day{% endif %}">
+                                                            <td class="work-schedule-day">
+                                                                {{ schedule.get_day_display }}
+                                                            </td>
+                                                            <td class="work-schedule-time">
+                                                                {% if schedule.is_closed %}
+                                                                    не работает
+                                                                {% else %}
+                                                                    с {{ schedule.open_time|time:"H:i" }} до {{ schedule.close_time|time:"H:i" }}
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </table>
+                                            </div>
                                         </div>
-                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

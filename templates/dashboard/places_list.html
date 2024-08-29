@@ -48,17 +48,16 @@
                             <td>{{ place.name }}</td>
                             <td>{{ place.type.name }}</td>
                             <td>{{ place.city.name }}</td>
-                            <td>{{ place.address }}</td>
+                            <td>{{ place.address|default_if_none:"" }}</td>
                             <td>{{ place.phone }}</td>
                             <td><a href="{{ place.website }}" target="_blank">{{ place.website }}</a></td>
                             <td>{{ place.cuisines.all|join:", " }}</td>
-                            <td>{{ place.average_check }}</td>
+                            <td>{{ place.average_check|default:"-" }}</td>
                             <td>{{ place.features.all|join:", " }}</td>
-                            <td>{{ place.capacity }}</td>
-                            <td>{{ place.rating }}</td>
+                            <td>{{ place.capacity|default:"-" }}</td>
+                            <td>{{ place.rating|default:"-" }}</td>
                             <td>
                                 <a href="{% url 'dashboard:place_detail' place.slug %}" class="btn btn-sm btn-info">Подробнее</a>
-                                <!-- Добавьте другие действия, например, редактирование или удаление -->
                             </td>
                         </tr>
                         {% empty %}

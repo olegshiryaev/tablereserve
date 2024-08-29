@@ -39,7 +39,8 @@
             const cityDropdownMenu = document.getElementById('cityDropdownMenu');
             const userDropdownToggle = document.getElementById('userDropdownToggle');
             const userDropdownMenu = document.getElementById('userDropdownMenu');
-            const loginButton = document.getElementById('loginButton');
+            const loginButtonDesktop = document.getElementById('loginButtonDesktop');
+            const loginButtonMobile = document.getElementById('loginButtonMobile');
             const loginModal = document.getElementById('loginModal');
             const registerModal = document.getElementById('registerModal');
             const modalCloseButtons = document.querySelectorAll('.modal .close');
@@ -62,15 +63,23 @@
                 });
             }
         
-            // Обработчик для кнопки входа
-            if (loginButton) {
-                loginButton.addEventListener('click', function(event) {
-                    event.preventDefault();
+            // Обработчик для кнопок входа (десктопной и мобильной)
+            function showLoginModal(event) {
+                event.preventDefault();
+                if (loginModal) {
                     loginModal.style.display = 'block';
                     if (emailInput) {
                         emailInput.focus();
                     }
-                });
+                }
+            }
+        
+            if (loginButtonDesktop) {
+                loginButtonDesktop.addEventListener('click', showLoginModal);
+            }
+        
+            if (loginButtonMobile) {
+                loginButtonMobile.addEventListener('click', showLoginModal);
             }
         
             // Закрытие других выпадающих меню при клике вне их области

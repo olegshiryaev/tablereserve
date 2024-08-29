@@ -29,33 +29,42 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.utils.html import format_html
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from .utils import inflect_word
 
 User = get_user_model()
 
 
 def main_page(request, city_slug):
     city = get_object_or_404(City, slug=city_slug)
+    city_name_genitive = inflect_word(city.name, "gent")
 
     # Популярные места, предстоящие события и активные скидки для выбранного города
-    popular_places = Place.objects.filter(city=city, is_active=True).order_by(
-        "-rating"
-    )[:9]
+    popular_places = (
+        Place.objects.filter(city=city, is_active=True)
+        .order_by("-rating")
+        .prefetch_related("features")[:9]
+    )
     total_places_count = Place.objects.filter(city=city, is_active=True).count()
 
+    # Получение любимых мест пользователя, если он аутентифицирован
     if request.user.is_authenticated:
         favorite_places = Favorite.objects.filter(user=request.user).values_list(
             "place_id", flat=True
         )
     else:
         favorite_places = []
+
+    # Получение предстоящих событий
     upcoming_events = Event.objects.filter(
         place__city=city, date__gte=date.today(), is_active=True
     ).order_by("date", "start_time")[:5]
+
+    # Получение активных скидок
     active_discounts = Discount.objects.filter(
         place__city=city, start_date__lte=date.today(), end_date__gte=date.today()
     ).order_by("end_date")[:5]
 
-    # Получение особенностей, которые должны отображаться на карточках
+    # Получение особенностей, которые отображаются на карточках
     features_on_card = Feature.objects.filter(
         place_features__display_on_card=True
     ).distinct()[:2]
@@ -66,8 +75,10 @@ def main_page(request, city_slug):
             place_features__display_on_card=True
         )
 
-    title = f"Рестораны, кафе и бары {city.name}"
+    # Заголовок страницы
+    title = f"Рестораны, кафе и бары {city_name_genitive.capitalize()}"
 
+    # Подготовка контекста для шаблона
     context = {
         "popular_places": popular_places,
         "upcoming_events": upcoming_events,
@@ -230,7 +241,11 @@ def place_list(request, city_slug):
             place_features__display_on_card=True
         )
 
-    title = f"Рестораны, кафе и бары {city.name}а"
+    # Склоняем название города в предложный падеж (например, 'loct')
+    city_name = city.name
+    city_name_case = inflect_word(city_name, "loct")
+
+    title = f"Поиск мест в {city_name_case.capitalize()} | Reserve.cafe"
 
     context = {
         "features_on_card": features_on_card,
@@ -381,12 +396,16 @@ def place_detail(request, city_slug, place_slug):
     # Получение данных о залах и столиках
     halls = place.halls.all()
 
-    # Set the title dynamically
+    # Склоняем тип заведения в предложный падеж
+    place_type_str = str(place.type) if place.type else "Тип заведения не указан"
+    place_type_phrase = inflect_word(place_type_str, "loct")
+
+    # Формируем заголовок страницы
     place_type = place.type
     place_name = place.name
     place_address = place.address
     title = format_html(
-        "{} {}, {}: цены, меню, фото, отзывы | reserve.cafe",
+        "{} {}, {}: меню, фото, отзывы | Reserve.cafe",
         place_type,
         place_name,
         place_address,
@@ -397,6 +416,7 @@ def place_detail(request, city_slug, place_slug):
         "reservations/place_detail.html",
         {
             "place": place,
+            "place_type_phrase": place_type_phrase,
             "reservation_form": reservation_form,
             "selected_city": city,
             "schedules": schedules,
@@ -605,4 +625,3 @@ def create_booking(request, place_id):
             "today_date": timezone.now().date().strftime("%Y-%m-%d"),
         },
     )
-

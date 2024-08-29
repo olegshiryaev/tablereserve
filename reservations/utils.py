@@ -1,7 +1,24 @@
 from datetime import datetime, timedelta, time
 from django.utils import timezone
+import pymorphy2
 
 # from reservations.models import WorkSchedule
+
+morph = pymorphy2.MorphAnalyzer()
+
+
+def inflect_word(word, case):
+    """
+    Склоняет слово в указанный падеж.
+    :param word: Слово для склонения.
+    :param case: Падеж, в который нужно склонить слово (например, 'gent', 'loct').
+    :return: Склоненное слово или исходное слово, если не удалось склонить.
+    """
+    parsed_word = morph.parse(word)[0]
+    inflected_word = parsed_word.inflect({case})
+    if inflected_word:
+        return inflected_word.word
+    return word
 
 
 # def get_available_booking_times(date, place_id):

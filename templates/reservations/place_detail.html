@@ -126,7 +126,7 @@
                 <!-- Меню по странице -->
                 <div class="page-navigation-menu">
                     <ul class="page-navigation-list">
-                        <li><a href="#place-type">О заведении</a></li>
+                        <li><a href="#place-type">О {{ place_type_phrase }}</a></li>
                         <li><a href="#menu-prices">Меню и цены</a></li>
                         <li><a href="#reviews">Отзывы</a></li>
                         <li><a href="#similar-places">Похожие заведения</a></li>
@@ -246,7 +246,7 @@
                 {% if place_features or place.description %}
                     <div id="place-description" class="place-description-section">
                         <div class="place-description-inner">
-                            <h3>О заведении</h3>
+                            <h3>О {{ place_type_phrase }}</h3>
 
                             <!-- Проверка наличия особенностей -->
                             {% if place_features %}

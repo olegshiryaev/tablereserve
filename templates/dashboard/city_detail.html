@@ -25,13 +25,19 @@
           <div class="card-body">
             <p><strong>Название:</strong> {{ object.name }}</p>
             <p><strong>URL:</strong> {{ object.slug }}</p>
-            <button id="edit-button" class="btn btn-warning">Изменить</button>
+            {% if object.image %}
+                <p><strong>Изображение:</strong></p>
+                <img src="{{ object.image.url }}" alt="{{ object.name }}" class="img-thumbnail mb-3" style="max-width: 200px;">
+            {% endif %}
+            <div class="mt-3">
+                <button id="edit-button" class="btn btn-warning">Изменить</button>
+            </div>
           </div>
         </div>
 
         <div id="edit-mode" class="card mb-3" style="display:none;">
           <div class="card-body">
-            <form id="edit-form" method="post">
+            <form id="edit-form" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div id="formErrors" class="alert alert-danger" role="alert" style="display: none;">
                     <div class="alert-message"></div>
@@ -47,6 +53,12 @@
                         <div class="form-group">
                             {{ form.slug.label_tag }}
                             {{ form.slug }}
+                        </div>
+                    </div>
+                    <div class="mb-3 col-md-6">
+                        <div class="form-group">
+                            {{ form.image.label_tag }}
+                            {{ form.image }} <!-- Поле для загрузки изображения -->
                         </div>
                     </div>
                 </div>

@@ -361,7 +361,7 @@ class CityDetailView(LoginRequiredMixin, AdminRequiredMixin, DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = CityForm(request.POST, instance=self.object)
+        form = CityForm(request.POST, request.FILES, instance=self.object)
         if form.is_valid():
             form.save()
             if request.headers.get("x-requested-with") == "XMLHttpRequest":

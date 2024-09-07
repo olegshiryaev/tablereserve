@@ -16,16 +16,22 @@ main {
     margin-top: 70px;
 }
 
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
 h3 {
     font-size: 24px;
     line-height: 26px;
 }
 
 .container {
-    max-width: 1248px;
-    margin-left: auto;
-    margin-right: auto;
+    position: relative;
+    max-width: 1600px;
+    margin: 0 auto;
     padding: 0 20px;
+    width: 100%;
 }
 
 
@@ -410,6 +416,91 @@ header.scrolled {
 h2 {
     font-size: 28px;
     margin-bottom: 20px;
+}
+
+/* Стили для секции с изображением города */
+.city-hero-section {
+    margin-top: 120px;
+    margin-bottom: 20px; /* добавьте отступ, если необходимо */
+}
+
+.city-hero {
+    position: relative;
+    width: 100%;
+    height: 420px;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+.city-hero picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.city-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+}
+
+.city-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #fff;
+    padding: 20px;
+    width: 100%;
+}
+
+.city-title {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.city-search-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.search-input {
+    padding: 10px;
+    width: 480px;
+    border-radius: 12px 0 0 12px;
+    border: none;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* легкая тень при фокусе */
+}
+
+.search-button {
+    padding: 10px 20px;
+    border-radius: 0 12px 12px 0;
+    border: none;
+    background-color: #ff6600;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+    background-color: #e65500;
 }
 
 .restaurant-cards, .event-cards, .offer-cards, .review-cards {
@@ -1194,6 +1285,27 @@ footer a:hover {
 
     .add-place-btn {
         margin-left: 0; /* Убираем отступ слева для мобильной версии */
+    }
+
+    .city-hero {
+        height: 300px; /* уменьшенная высота для мобильных устройств */
+    }
+    
+    .city-title {
+        font-size: 32px; /* уменьшенный размер шрифта на мобильных устройствах */
+    }
+
+    .city-search-form {
+        flex-direction: column; /* Меняем направление на вертикальное */
+        gap: 10px; /* Отступ между полем и кнопкой */
+        padding: 0 20px; /* Отступы по бокам для всей формы */
+        width: 100%; /* Растягиваем форму на всю ширину */
+    }
+
+    .search-input, .search-button {
+        width: calc(100% - 40px); /* Ширина 100% минус отступы формы */
+        border-radius: 12px; /* Скругляем все углы */
+        max-width: 100%; /* Ограничиваем максимальную ширину */
     }
 
     footer .container {

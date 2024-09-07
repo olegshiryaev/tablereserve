@@ -201,21 +201,22 @@ class PlaceImageForm(forms.ModelForm):
 class CityCreateForm(forms.ModelForm):
     class Meta:
         model = City
-        fields = ["name"]
+        fields = ["name", "image"]
 
 
 class CityUpdateForm(forms.ModelForm):
     class Meta:
         model = City
-        fields = ["name", "slug"]
+        fields = ["name", "image", "slug"]
 
 
 class CityForm(forms.ModelForm):
     class Meta:
         model = City
-        fields = ["name", "slug"]
+        fields = ["name", "image", "slug"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
+            "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "slug": forms.TextInput(attrs={"class": "form-control"}),
         }
 

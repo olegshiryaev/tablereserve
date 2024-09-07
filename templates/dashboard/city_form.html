@@ -20,7 +20,7 @@
     <h2>{% if form.instance.pk %}Редактировать город{% else %}Добавить город{% endif %}</h2>
     <div class="card">
         <div class="card-body">
-            <form method="post" class="needs-validation" novalidate>
+            <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="btn btn-success">Save</button>

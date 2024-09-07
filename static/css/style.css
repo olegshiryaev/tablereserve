@@ -16,18 +16,26 @@ main {
     margin-top: 70px;
 }
 
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
 h3 {
     font-size: 24px;
     line-height: 26px;
 }
 
 .container {
-    max-width: 1248px;
-    margin-left: auto;
-    margin-right: auto;
+    position: relative;
+    max-width: 1600px;
+    margin: 0 auto;
     padding: 0 20px;
+    width: 100%;
 }
 
+
+/* Header */
 header {
     background: #fff;
     color: #000;
@@ -48,6 +56,12 @@ header .logo {
     height: 50px;
 }
 
+header.scrolled {
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Выпадающий список выбора города */
 .city-selector {
     margin-right: auto;
     margin-left: 20px;
@@ -61,21 +75,35 @@ header .logo {
     transition: border-bottom 0.3s ease;
 }
 
+.city-selector .dropdown-toggle::after {
+    display: none;
+}
+
 .city-selector .dropdown-toggle:hover {
     border-bottom: none;
 }
 
-.navbar-nav {
-    list-style: none;
-    display: flex;
-    align-items: center;
-    margin: 0;
-    padding: 0;
+.mobile-nav {
+    display: none; /* Скрываем мобильное меню по умолчанию */
+    position: fixed;
+    top: 70px;
+    right: -250px;
+    width: 250px;
+    height: calc(100% - 70px);
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: right 0.3s ease;
+    z-index: 1000;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.mobile-nav.active {
+    right: 0; /* Показываем мобильное меню при активации */
 }
 
 .nav-item {
-    margin: 0 15px;
-    position: relative;
+    margin: 10px 0;
 }
 
 .nav-link {
@@ -103,6 +131,10 @@ header .logo {
     border-radius: 4px;
 }
 
+.dropdown-menu.show {
+    display: block;
+}
+
 .dropdown-item {
     padding: 10px 20px;
     text-decoration: none;
@@ -118,6 +150,7 @@ header .logo {
     background-color: #f1f1f1;
 }
 
+/* Hamburger Menu */
 .hamburger {
     display: none;
     cursor: pointer;
@@ -149,11 +182,6 @@ header .logo {
     transform: translateY(-9px) rotate(-45deg);
 }
 
-header.scrolled {
-    background-color: #f9f9f9;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
 .dropdown-menu.show {
     display: block;
 }
@@ -169,6 +197,10 @@ header.scrolled {
     transition: border-bottom 0.3s ease;
 }
 
+.user-dropdown .dropdown-toggle::after {
+    display: none;
+}
+
 .user-dropdown .dropdown-toggle:hover {
     border-bottom: none;
 }
@@ -179,38 +211,34 @@ header.scrolled {
     top: 100%;
 }
 
-.popover-content {
-    display: none;
-    position: absolute;
-    top: calc(100% + 10px); /* Отступ сверху */
-    right: 0;
-    background-color: #fff;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    padding: 15px;
-    border: 1px solid #ddd; /* Обводка */
-    border-radius: 4px; /* Радиус скругления */
-    z-index: 1000;
-    width: 250px;
-}
-
-.popover-content p {
-    margin: 0 0 10px;
-}
-
 .social-login {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
-.social-login p {
-    margin: 0 10px 0 0;
+.social-login img.social-icon {
+    width: 30px;
+    margin: 0 10px;
+    cursor: pointer;
 }
 
-.social-icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
+/* Стили для ссылок под формами */
+.switch-to-register,
+.switch-to-login {
+    text-align: center;
+    margin-top: 10px; /* Отступ сверху */
+}
+
+.switch-to-register a,
+.switch-to-login a {
+    color: #007bff; /* Цвет текста, например, синий */
+    text-decoration: none; /* Убираем подчеркивание */
+    font-weight: bold; /* Жирный шрифт */
+}
+
+.switch-to-register a:hover,
+.switch-to-login a:hover {
+    text-decoration: underline; /* Подчеркивание при наведении */
+    color: #0056b3; /* Темнее цвет при наведении */
 }
 
 .login-btn {
@@ -264,15 +292,10 @@ header.scrolled {
     background-color: #0056b3;
 }
 
-header.scrolled {
-    background-color: #f9f9f9;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
 .modal {
     display: none;
     position: fixed;
-    z-index: 1001;
+    z-index: 1050;
     left: 0;
     top: 0;
     width: 100%;
@@ -294,10 +317,13 @@ header.scrolled {
 }
 
 .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
     color: #aaa;
-    float: right;
     font-size: 28px;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .close:hover,
@@ -355,6 +381,15 @@ header.scrolled {
 
 .login-modal-btn:hover {
     background-color: #0056b3;
+}
+
+.show-password {
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.show-password input[type="checkbox"] {
+    margin-right: 5px;
 }
 
 .register-modal-btn {
@@ -602,8 +637,7 @@ h2 {
     display: flex;
     flex-direction: column;
     position: relative;
-    max-height: 428px;
-    min-height: 280px;
+    min-height: 400px;
     height: 100%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -856,6 +890,7 @@ h2 {
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    min-width: -webkit-fill-available;
 }
 
 .place-description-text {
@@ -867,6 +902,9 @@ h2 {
 .features-container {
     background-color: #f9f9f9;
     border-radius: 10px;
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
 }
 
 .features-title {
@@ -882,6 +920,7 @@ h2 {
     display: flex;
     flex-wrap: wrap;
     row-gap: 8px;
+    padding-left: unset;
 }
 
 .feature-element {
@@ -985,6 +1024,10 @@ footer a:hover {
 }
 
 @media (min-width: 768px) {
+    .header .nav,
+    .header .text-end {
+        display: flex;
+    }
     .show-more {
         width: auto;
         display: inline-block;
@@ -1012,7 +1055,22 @@ footer a:hover {
         display: flex;
     }
 
-    nav {
+    .mobile-nav {
+        display: flex; /* Показываем мобильное меню на мобильных */
+    }
+
+    .modal-content {
+        width: 90%; /* Больше ширина на маленьких экранах */
+    }
+
+    /* Скрываем все остальные элементы меню в хедере */
+    .header .nav,
+    .header .text-end {
+        display: none;
+    }
+
+    .nav {
+        display: none;
         position: fixed;
         top: 70px; /* Положение под навбаром, измените значение в зависимости от высоты навбара */
         right: -250px; /* Начальное положение за пределами экрана */
@@ -1022,21 +1080,15 @@ footer a:hover {
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         transition: right 0.3s ease;
         z-index: 1000; /* Убедитесь, что меню всегда сверху */
-    }
-
-    nav.active {
-        right: 0; /* Положение, когда меню открыто */
-    }
-
-    .navbar-nav {
-        display: flex;
         flex-direction: column;
-        width: 100%;
-        text-align: left;
         padding: 20px;
     }
 
-    .navbar-nav .nav-item {
+    .nav.active {
+        right: 0; /* Положение, когда меню открыто */
+    }
+
+    .nav-item {
         margin: 10px 0;
     }
 
@@ -1164,9 +1216,8 @@ footer a:hover {
 /* Place detail */
 
 .container.place-detail {
-    margin: 0 auto;
+    margin: 40px auto;
     padding: 20px;
-    max-width: 1200px;
 }
 
 .place-header {
@@ -1182,6 +1233,7 @@ footer a:hover {
 }
 
 .place-detail-container {
+    position: relative;
     margin-right: auto;
     margin-left: auto;
     max-width: 1256px;
@@ -1195,6 +1247,7 @@ footer a:hover {
 
 .place-detail-gallery {
     margin-top: 24px;
+    width: 100%;
     height: 560px;
     border-radius: 24px;
     position: relative;
@@ -1203,6 +1256,49 @@ footer a:hover {
 
 .place-detail-gallery-wrapper {
     position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.place-single-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    background-color: #f0f0f0; /* Цвет фона, если изображение отсутствует */
+}
+
+.place-full-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Подгоняет изображение по размеру контейнера, сохраняя пропорции */
+}
+
+.no-images-placeholder {
+    display: flex;
+    flex-direction: column; /* Располагает дочерние элементы (иконку и текст) вертикально */
+    justify-content: center; /* Центрирует элементы по вертикали */
+    align-items: center; /* Центрирует элементы по горизонтали */
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0; /* Серый цвет фона */
+    color: #888; /* Цвет текста заглушки */
+    font-size: 22px; /* Размер шрифта заглушки */
+    line-height: 28px;
+    text-align: center;
+    border: 1px solid #dfdfdf; /* Легкая граница для разделения */
+    border-radius: 24px;
+}
+
+.no-images-icon {
+    margin-bottom: 14px; /* Отступ между иконкой и текстом */
+    width: 96px; /* Ширина иконки */
+    height: 96px; /* Высота иконки */
+}
+
+.no-images-message {
+    margin: 0;
 }
 
 .place-slider {
@@ -2293,4 +2389,102 @@ a.place-detail-item-value:hover {
     color: white;
     border-radius: 3px;
     border: 1px solid #007bff;
+}
+
+.form-group .form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-control {
+    border-radius: 0.375rem;
+    box-shadow: none;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+}
+
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875rem;
+}
+
+/* Стили для секции с изображением города */
+.city-hero-section {
+    margin-bottom: 20px; /* добавьте отступ, если необходимо */
+}
+
+.city-hero {
+    position: relative;
+    width: 100%;
+    height: 420px;
+    overflow: hidden;
+}
+
+.city-hero picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.city-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.city-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #fff;
+}
+
+.city-title {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.city-search-form {
+    display: flex;
+    justify-content: center;
+}
+
+.search-input {
+    padding: 10px;
+    width: 300px;
+    border-radius: 32px 0 0 32px;
+    border: none;
+    font-size: 16px;
+}
+
+.search-button {
+    padding: 10px 20px;
+    border-radius: 0 32px 32px 0;
+    border: none;
+    background-color: #ff6600;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    background-color: #e65500;
 }

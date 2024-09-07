@@ -29,11 +29,18 @@ from ckeditor.fields import RichTextField
 def upload_to_city_image(instance, filename):
     ext = filename.split(".")[-1]
     filename = f"{instance.slug}.{ext}"
-    return os.path.join("cities", filename)
+    return os.path.join("city_images", filename)
 
 
 class City(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Город")
+    image = models.ImageField(
+        upload_to=upload_to_city_image,
+        blank=True,
+        null=True,
+        default="images/city_images/default.jpg",
+        verbose_name="Изображение",
+    )
     slug = models.SlugField(
         max_length=100, unique=True, blank=True, verbose_name="Уникальный идентификатор"
     )

@@ -37,8 +37,9 @@ User = get_user_model()
 def main_page(request, city_slug):
     city = get_object_or_404(City, slug=city_slug)
     city_name_genitive = inflect_word(city.name, "gent")
+    city_name_locative = inflect_word(city.name, "loct")
 
-    # Популярные места, предстоящие события и активные скидки для выбранного города
+    # Популярные места
     popular_places = (
         Place.objects.filter(city=city, is_active=True)
         .order_by("-rating")
@@ -46,30 +47,39 @@ def main_page(request, city_slug):
     )
     total_places_count = Place.objects.filter(city=city, is_active=True).count()
 
-    # Получение любимых мест пользователя, если он аутентифицирован
+    # Любимые места пользователя
+    favorite_places = []
     if request.user.is_authenticated:
         favorite_places = Favorite.objects.filter(user=request.user).values_list(
             "place_id", flat=True
         )
-    else:
-        favorite_places = []
 
-    # Получение предстоящих событий
-    upcoming_events = Event.objects.filter(
-        place__city=city, date__gte=date.today(), is_active=True
-    ).order_by("date", "start_time")[:5]
+    # Предстоящие события
+    upcoming_events = (
+        Event.objects.filter(
+            place__city=city, date__gte=timezone.now().date(), is_active=True
+        )
+        .order_by("date", "start_time")
+        .select_related("place")[:5]
+    )
 
-    # Получение активных скидок
-    active_discounts = Discount.objects.filter(
-        place__city=city, start_date__lte=date.today(), end_date__gte=date.today()
-    ).order_by("end_date")[:5]
+    # Активные скидки
+    active_discounts = (
+        Discount.objects.filter(
+            place__city=city,
+            start_date__lte=timezone.now().date(),
+            end_date__gte=timezone.now().date(),
+        )
+        .order_by("end_date")
+        .select_related("place")[:5]
+    )
 
-    # Получение особенностей, которые отображаются на карточках
+    # Особенности на карточках
     features_on_card = Feature.objects.filter(
         place_features__display_on_card=True
     ).distinct()[:2]
 
-    # Подготовка данных для отображения особенностей в контексте каждого заведения
+    # Добавляем особенности к заведениям
     for place in popular_places:
         place.features_on_card = place.features.filter(
             place_features__display_on_card=True
@@ -78,7 +88,7 @@ def main_page(request, city_slug):
     # Заголовок страницы
     title = f"Рестораны, кафе и бары {city_name_genitive.capitalize()}"
 
-    # Подготовка контекста для шаблона
+    # Контекст для шаблона
     context = {
         "popular_places": popular_places,
         "upcoming_events": upcoming_events,
@@ -88,6 +98,7 @@ def main_page(request, city_slug):
         "favorite_places": favorite_places,
         "total_places_count": total_places_count,
         "features_on_card": features_on_card,
+        "city_name_locative": city_name_locative,
     }
 
     return render(request, "reservations/main_page.html", context)

@@ -29,4 +29,9 @@ urlpatterns = [
         views.get_available_time_slots,
         name="get_available_time_slots",
     ),
+    path(
+        "place/<int:place_id>/check-open-status/",
+        views.check_open_status,
+        name="check_open_status",
+    ),
 ]

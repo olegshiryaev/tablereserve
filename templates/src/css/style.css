@@ -28,7 +28,7 @@ h3 {
 
 .container {
     position: relative;
-    max-width: 1600px;
+    max-width: 1280px;
     margin: 0 auto;
     padding: 0 20px;
     width: 100%;
@@ -1342,10 +1342,10 @@ footer a:hover {
     position: relative;
     margin-right: auto;
     margin-left: auto;
-    max-width: 1256px;
+    max-width: 1280px;
 }
 
-@media (min-width: 1256px) {
+@media (min-width: 1280px) {
     .place-detail-gallery {
         margin-bottom: 24px;
     }

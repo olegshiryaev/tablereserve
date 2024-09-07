@@ -331,7 +331,10 @@ def get_guest_word(count):
 
 def place_detail(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
-    place = get_object_or_404(Place, slug=place_slug)
+    place = get_object_or_404(
+        Place.objects.select_related("city").prefetch_related("work_schedule"),
+        slug=place_slug,
+    )
     user = request.user
 
     reservation_form = ReservationForm(place=place, user=user)
@@ -382,7 +385,7 @@ def place_detail(request, city_slug, place_slug):
                     f"завтра в {formatted_time} на {guests_count} {guest_word}."
                 )
             else:
-                reservation_message = f"{format(reservation_date, 'd.m.Y')} в {formatted_time} на {guests_count} {guest_word}."
+                reservation_message = f"{reservation_date.strftime('%d.%m.%Y')} в {formatted_time} на {guests_count} {guest_word}."
 
             reservation_data = {
                 "name": reservation.customer_name,
@@ -583,6 +586,26 @@ def get_available_time_slots(request, place_id):
             return JsonResponse({"error": "Invalid date format"}, status=400)
 
     return JsonResponse([], safe=False)
+
+
+def check_open_status(request, place_id):
+    place = get_object_or_404(Place, id=place_id)
+    selected_date = request.GET.get("date")
+
+    if selected_date:
+        selected_date = datetime.strptime(selected_date, "%Y-%m-%d")
+        selected_weekday = calendar.day_name[
+            selected_date.weekday()
+        ]  # Получаем день недели (например, 'Monday')
+
+        # Проверяем, работает ли заведение в этот день недели
+        is_open = place.work_schedule.filter(
+            day=selected_weekday, is_closed=False
+        ).exists()
+
+        return JsonResponse({"is_open": is_open})
+
+    return JsonResponse({"error": "Invalid date"}, status=400)
 
 
 def create_booking(request, place_id):

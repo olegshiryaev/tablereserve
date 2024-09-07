@@ -491,11 +491,22 @@
         const dateInput = document.getElementById("id_date");
         const timeSelect = document.getElementById("id_time");
     
+        // Установка текущей даты при загрузке
+        const today = new Date().toISOString().split("T")[0];
+        dateInput.value = today;
+    
+        // Запрос доступных временных слотов для текущей даты
+        updateAvailableTimeSlots(today);
+    
+        // Обновление временных слотов при изменении даты
         dateInput.addEventListener("change", function () {
             const selectedDate = dateInput.value;
-            const placeId = "{{ place.id }}";
+            updateAvailableTimeSlots(selectedDate);
+        });
     
-            fetch(`/place/${placeId}/available-time-slots/?date=${selectedDate}`)
+        function updateAvailableTimeSlots(date) {
+            const placeId = "{{ place.id }}";
+            fetch(`/place/${placeId}/available-time-slots/?date=${date}`)
                 .then(response => response.json())
                 .then(data => {
                     // Очистка текущих опций времени
@@ -509,7 +520,7 @@
                     });
                 })
                 .catch(error => console.error('Error fetching time slots:', error));
-        });
+        }
     });
 </script>
 <script>

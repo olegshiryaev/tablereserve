@@ -136,6 +136,19 @@ class ReservationForm(forms.ModelForm):
 
         # Получаем доступные слоты
         slots = self.place.get_available_time_slots(date)
+
+        now = datetime.now()
+        if date == now.date():
+            # Найдем ближайший получасовой слот для сегодняшнего дня
+            if now.minute < 30:
+                next_half_hour = now.replace(minute=30, second=0, microsecond=0)
+            else:
+                next_half_hour = (now + timedelta(hours=1)).replace(
+                    minute=0, second=0, microsecond=0
+                )
+            # Фильтруем слоты, которые уже прошли для текущей даты
+            slots = [slot for slot in slots if slot >= next_half_hour.time()]
+
         return [(slot.strftime("%H:%M"), slot.strftime("%H:%M")) for slot in slots]
 
 

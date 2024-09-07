@@ -84,8 +84,9 @@ def calculate_available_time_slots(place, selected_date):
     day_name = selected_date.strftime("%a").upper()  # Получаем название дня недели
     work_schedule = place.work_schedule.filter(day=day_name).first()
 
+    # Если нет рабочего расписания на этот день или заведение закрыто, возвращаем пустой список
     if not work_schedule or work_schedule.is_closed:
-        return []
+        return []  # Заведение не работает в выбранный день
 
     # Время открытия и закрытия
     open_time = work_schedule.open_time
@@ -100,6 +101,22 @@ def calculate_available_time_slots(place, selected_date):
     # Генерация временных слотов
     time_slots = []
     current_time = datetime.combine(selected_date, open_time)
+
+    # Если выбранная дата - сегодня, то вычисляем ближайший доступный интервал
+    now = datetime.now()
+    if selected_date == now.date():
+        # Рассчитываем ближайший 30-минутный интервал
+        if now.minute < 30:
+            next_half_hour = now.replace(minute=30, second=0, microsecond=0)
+        else:
+            next_half_hour = (now + timedelta(hours=1)).replace(
+                minute=0, second=0, microsecond=0
+            )
+
+        current_time = max(
+            current_time, next_half_hour
+        )  # Берём максимальное из времени открытия или ближайшего интервала
+
     end_time = datetime.combine(selected_date, close_time)
 
     while current_time <= end_time:

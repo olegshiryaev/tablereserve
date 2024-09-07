@@ -13,6 +13,7 @@ class CityMiddleware:
             "profile/",
             "accounts/",
             "dashboard/",
+            "place/",
             "welcome/",
             "user/",
         ]

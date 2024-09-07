@@ -436,8 +436,23 @@
                                     {{ reservation_form.customer_name }}
                                     {{ reservation_form.customer_email.label_tag }}
                                     {{ reservation_form.customer_email }}
+                                    {% if reservation_form.customer_email.help_text %}
+                                        <small class="form-text text-muted">{{ reservation_form.customer_email.help_text }}</small>
+                                    {% endif %}
                                     {{ reservation_form.wishes.label_tag }}
                                     {{ reservation_form.wishes }}
+                                    {% if reservation_form.errors %}
+                                        <div class="form-errors">
+                                            {% for field in reservation_form %}
+                                                {% for error in field.errors %}
+                                                    <div class="error-message">{{ error }}</div>
+                                                {% endfor %}
+                                            {% endfor %}
+                                            {% for error in reservation_form.non_field_errors %}
+                                                <div class="error-message">{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                     <button type="submit">
                                         Забронировать
                                     </button>

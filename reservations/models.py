@@ -785,8 +785,8 @@ class Reservation(models.Model):
         max_length=15,
         validators=[
             RegexValidator(
-                regex=r"^\+?1?\d{9,15}$",
-                message="Номер телефона должен быть введен в формате: '+999999999'. Допустимо до 15 цифр.",
+                regex=r"^\+?1?\d{9,12}$",
+                message="Номер телефона должен быть введен в формате: '+79999999999'",
             )
         ],
         verbose_name="Телефон",

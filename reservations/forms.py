@@ -92,7 +92,7 @@ class ReservationForm(forms.ModelForm):
             "wishes": forms.Textarea(
                 attrs={
                     "class": "form-control",
-                    "rows": 3,
+                    "rows": 5,
                     "placeholder": "(необязательно)",
                 }
             ),
@@ -114,6 +114,9 @@ class ReservationForm(forms.ModelForm):
         self.fields["date"].label = "Дата"
         self.fields["time"].label = "Время"
         self.fields["guests"].label = "Кол-во гостей"
+        self.fields["customer_email"].help_text = (
+            "Укажите для получения сообщений о статусах заказа."
+        )
 
         # Установка начального значения для даты и времени
         if self.instance.pk is None:  # Проверяем, создается ли новая запись

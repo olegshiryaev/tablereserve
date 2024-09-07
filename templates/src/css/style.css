@@ -2525,3 +2525,30 @@ a.place-detail-item-value:hover {
     color: #dc3545;
     font-size: 0.875rem;
 }
+
+.form-text.text-muted {
+    display: block;
+    margin: 0.25rem 0;
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
+.form-control {
+    margin-bottom: 0.5rem;
+}
+
+/* Стили для контейнера сообщений об ошибках */
+.form-errors {
+    margin-bottom: 1rem; /* Отступ снизу, чтобы отделить ошибки от остальных элементов формы */
+    padding: 1rem; /* Внутренние отступы для улучшения визуального восприятия */
+    background-color: #f8d7da; /* Цвет фона для ошибок (светло-красный) */
+    border: 1px solid #f5c6cb; /* Цвет границы для ошибок */
+    border-radius: 0.25rem; /* Скругление углов контейнера */
+}
+
+/* Стили для сообщений об ошибках */
+.error-message {
+    color: #721c24; /* Цвет текста сообщения об ошибке (темно-красный) */
+    font-size: 0.875rem; /* Размер шрифта для сообщений об ошибке */
+    margin-bottom: 0.5rem; /* Расстояние между сообщениями об ошибках */
+}

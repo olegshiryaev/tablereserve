@@ -26,6 +26,11 @@ class CustomUserManager(BaseUserManager):
         user = self.model(email=email, phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+
+        # Генерация имени пользователя в формате User-id
+        user.username = f"User-{user.id}"
+        user.save(using=self._db)
+
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
@@ -50,7 +55,13 @@ class CustomUser(AbstractUser):
         ("owner", "Владелец"),
         ("user", "Пользователь"),
     )
-    username = None
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name="Имя пользователя",
+    )
     role = models.CharField(
         max_length=10,
         choices=ROLE_CHOICES,
@@ -98,13 +109,19 @@ User = get_user_model()
 
 
 class Profile(models.Model):
+    GENDER_CHOICES = (
+        ("male", "Мужской"),
+        ("female", "Женский"),
+        ("other", "Не указано"),
+    )
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name="profile",
         verbose_name="Пользователь",
     )
-    name = models.CharField(max_length=50, blank=True, verbose_name="Имя")
+    name = models.CharField(max_length=150, blank=True, verbose_name="Имя и фамилия")
     phone_number = PhoneNumberField(
         unique=True,
         blank=True,
@@ -117,11 +134,22 @@ class Profile(models.Model):
         default="images/avatars/default_profile.png",
         blank=True,
         verbose_name="Аватар",
-        help_text="Загрузите свой аватар",
+        help_text="Не больше 5 Мб, форматы: jpg, jpeg, png",
         validators=[FileExtensionValidator(allowed_extensions=("png", "jpg", "jpeg"))],
     )
-    bio = models.TextField(max_length=500, blank=True, verbose_name="О себе")
-    birth_date = models.DateField(null=True, blank=True, verbose_name="Дата рождения")
+    bio = models.TextField(
+        max_length=500,
+        blank=True,
+        help_text="500 символов",
+        verbose_name="О себе",
+    )
+    birth_date = models.DateField(null=True, blank=True, verbose_name="День рождения")
+    gender = models.CharField(
+        max_length=10,
+        choices=GENDER_CHOICES,
+        default="other",
+        verbose_name="Ваш пол",
+    )
     city = models.ForeignKey(
         City,
         null=True,
@@ -132,6 +160,11 @@ class Profile(models.Model):
     )
     date_joined = models.DateTimeField(
         default=timezone.now, verbose_name="Дата регистрации"
+    )
+    email_notifications = models.BooleanField(
+        default=False,
+        verbose_name="Получать уведомления по электронной почте",
+        help_text="Включите этот флажок, чтобы получать уведомления на электронную почту.",
     )
 
     class Meta:

@@ -374,7 +374,15 @@
                         {% for review in reviews %}
                         <div class="review-item">
                             <div class="review-author">
-                                <strong>{{ review.user.profile.name|default:"Anonymous" }}</strong>
+                                <strong>
+                                    <a href="{% url 'users:profile' id=review.user.id %}">
+                                        {% if review.user.profile.name %}
+                                            {{ review.user.profile.name }}
+                                        {% else %}
+                                            {{ review.user.username }}
+                                        {% endif %}
+                                    </a>
+                                </strong>
                                 <span class="review-date">{{ review.created_at|date:"d M Y" }}</span>
                             </div>
                             <div class="review-rating">

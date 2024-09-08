@@ -46,7 +46,11 @@
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle no-caret" href="#" id="userDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="{{ user.profile.get_avatar_url }}" alt="{{ user.profile.name }}" class="profile-icon rounded-circle" />
-                        {{ user.profile.name }}
+                        {% if user.profile.name %}
+                            {{ user.profile.name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggle">
                         {% if user.is_admin %}

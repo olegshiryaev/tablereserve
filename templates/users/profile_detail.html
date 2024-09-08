@@ -17,9 +17,15 @@
         <div class="col-md-4">
             <div class="card">
                 <!-- Аватар пользователя -->
-                <img src="{{ profile_user.profile.get_avatar_url }}" class="card-img-top" alt="{{ profile_user.profile.name }}">
+                <img src="{{ profile_user.profile.get_avatar_url }}" class="card-img-top" alt="{% if profile_user.profile.name %}{{ profile_user.profile.name }}{% else %}{{ profile_user.username }}{% endif %}">
                 <div class="card-body text-center">
-                    <h5 class="card-title">{{ profile_user.profile.name }}</h5>
+                    <h5 class="card-title">
+                        {% if profile_user.profile.name %}
+                            {{ profile_user.profile.name }}
+                        {% else %}
+                            {{ profile_user.username }}
+                        {% endif %}
+                    </h5>
                     <!-- Email пользователя -->
                     <p class="card-text">{{ profile_user.email }}</p>
                     <!-- Статус активности пользователя (онлайн/оффлайн) -->

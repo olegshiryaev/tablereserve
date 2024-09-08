@@ -18,6 +18,7 @@ from reservations.models import Place, Reservation
 from users.forms import ProfileForm
 from users.models import CustomUser, Favorite, Profile
 from users.utils import time_since_last_seen
+from collections import defaultdict
 
 User = get_user_model()
 
@@ -37,7 +38,7 @@ def activate(request, uidb64, token):
         return render(request, "users/activation_invalid.html")
 
 
-class ProfileDetailView(LoginRequiredMixin, DetailView):
+class ProfileDetailView(DetailView):
     """
     Представление для просмотра профиля
     """
@@ -91,9 +92,12 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["title"] = (
-            f"Редактирование профиля пользователя: {self.request.user.username}"
+        # Используем getattr для получения имени, если оно есть, или username
+        name_or_username = (
+            getattr(self.request.user.profile, "name", None)
+            or self.request.user.username
         )
+        context["title"] = f"Редактирование профиля пользователя: {name_or_username}"
         return context
 
 

@@ -60,6 +60,9 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True, verbose_name="Адрес электронной почты")
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     is_staff = models.BooleanField(default=False, verbose_name="Статус сотрудника")
+    last_activity = models.DateTimeField(
+        null=True, blank=True, verbose_name="Последняя активность"
+    )
     password_sent = models.BooleanField(default=False, verbose_name="Пароль отправлен")
 
     objects = CustomUserManager()

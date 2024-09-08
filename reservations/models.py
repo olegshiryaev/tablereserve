@@ -24,6 +24,10 @@ from django.core.validators import URLValidator
 from django.db.models import Case, When, IntegerField, Value
 from tempfile import NamedTemporaryFile
 from ckeditor.fields import RichTextField
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import EmailMessage
+from django.db import transaction
 
 
 def upload_to_city_image(instance, filename):
@@ -747,10 +751,11 @@ class Reservation(models.Model):
     STATUS_CHOICES = [
         ("pending", "Ожидает подтверждения"),
         ("confirmed", "Подтвержден рестораном"),
-        ("cancelled", "Отменен рестораном"),
+        ("cancelled_by_restaurant", "Отменен рестораном"),
+        ("cancelled_by_customer", "Отменен клиентом"),
     ]
-    number = models.CharField(
-        max_length=6, unique=True, editable=False, verbose_name="Номер заказа"
+    number = models.PositiveIntegerField(
+        unique=True, editable=False, verbose_name="Номер заказа"
     )
     place = models.ForeignKey(
         Place,
@@ -795,7 +800,7 @@ class Reservation(models.Model):
     )
     customer_email = models.EmailField(blank=True, verbose_name="Email")
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="pending", verbose_name="Статус"
+        max_length=30, choices=STATUS_CHOICES, default="pending", verbose_name="Статус"
     )
     created_at = models.DateTimeField(
         default=timezone.now, editable=False, verbose_name="Дата создания"
@@ -803,21 +808,49 @@ class Reservation(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     def __str__(self):
-        return f"{self.user} - {self.place.name} - {self.date} {self.time}"
+        return f"{self.user or self.customer_name} - {self.place.name} - {self.date} {self.time}"
 
     def get_absolute_url(self):
         return reverse("users:reservation-detail", kwargs={"pk": self.pk})
 
     def save(self, *args, **kwargs):
         if not self.number:
-            self.number = self.generate_reservation_number()
+            with transaction.atomic():
+                self.number = self.generate_reservation_number()
         super().save(*args, **kwargs)
 
     def generate_reservation_number(self):
-        while True:
-            number = "".join([str(random.randint(0, 9)) for _ in range(6)])
-            if not Reservation.objects.filter(number=number).exists():
-                return number
+        max_number = (
+            Reservation.objects.aggregate(models.Max("number"))["number__max"] or 0
+        )
+        return max_number + 1
+
+    def send_status_notification(self):
+        subject = "Обновление статуса бронирования"
+        html_message = render_to_string(
+            "status_update_email.html",
+            {
+                "user_name": self.user.name if self.user else "Пользователь",
+                "place_name": self.place.name,
+                "reservation_date": format(self.date, "d.m.Y"),
+                "reservation_time": self.time.strftime("%H:%M"),
+                "guests_count": self.guests,
+                "customer_phone": self.customer_phone,
+                "status": dict(self.STATUS_CHOICES).get(self.status, "Неизвестно"),
+            },
+        )
+        plain_message = strip_tags(html_message)
+        from_email = "oashiryaev@yandex.ru"
+        to_email = self.customer_email
+
+        email = EmailMessage(
+            subject,
+            plain_message,
+            from_email,
+            [to_email],
+        )
+        email.content_subtype = "html"
+        email.send()
 
     class Meta:
         verbose_name = "Бронирование"

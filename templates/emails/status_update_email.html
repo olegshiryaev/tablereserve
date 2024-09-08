@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Обновление статуса бронирования</title>
+</head>
+<body>
+    <h2>Обновление статуса бронирования</h2>
+    <p>Здравствуйте {{ user_name }},</p>
+    <p>Статус вашего бронирования в "{{ place_name }}" изменился.</p>
+    <p><strong>Дата:</strong> {{ reservation_date }}</p>
+    <p><strong>Время:</strong> {{ reservation_time }}</p>
+    <p><strong>Количество гостей:</strong> {{ guests_count }}</p>
+    <p><strong>Телефон:</strong> {{ customer_phone }}</p>
+    <p><strong>Новый статус:</strong> {{ status }}</p>
+    <p>Спасибо, что выбрали наше заведение!</p>
+    <p>С уважением,<br>
+    Команда {{ place_name }}</p>
+</body>
+</html>

@@ -71,6 +71,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_hosts.middleware.HostsResponseMiddleware",
+    "users.middleware.ActiveUserMiddleware",
     "reservations.middleware.CityMiddleware",
 ]
 
@@ -95,6 +96,13 @@ TEMPLATES = [
         },
     },
 ]
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": (BASE_DIR / "cache"),
+    }
+}
 
 
 # django-allauth

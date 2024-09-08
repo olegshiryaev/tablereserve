@@ -37,3 +37,4 @@ env/
 venv/
 docker/*
 logs/*
+cache/*

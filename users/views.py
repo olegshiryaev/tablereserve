@@ -17,6 +17,7 @@ from django.views.generic import DetailView, UpdateView
 from reservations.models import Place, Reservation
 from users.forms import ProfileForm
 from users.models import CustomUser, Favorite, Profile
+from users.utils import time_since_last_seen
 
 User = get_user_model()
 
@@ -42,21 +43,33 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
     """
 
     model = CustomUser
-    context_object_name = "user"
+    context_object_name = "profile_user"
     template_name = "users/profile_detail.html"
 
     def get_object(self, queryset=None):
-        # Возвращает текущего пользователя
-        return get_object_or_404(CustomUser, pk=self.request.user.pk)
+        # Получаем пользователя по id из URL
+        user_id = self.kwargs.get("id")
+        return get_object_or_404(CustomUser, id=user_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.get_object()
-        # Добавляем дополнительные данные в контекст
-        context["reservations"] = user.reservations.all()
-        context["favorites"] = user.favorites.all()
-        context["reviews"] = user.reviews.all()
-        context["title"] = f"Страница пользователя: {user.profile.name}"
+        profile_user = self.get_object()
+        context["profile_user"] = profile_user
+        current_user = self.request.user
+
+        # Проверяем, является ли текущий пользователь владельцем профиля
+        is_owner = profile_user == current_user
+        context["is_owner"] = is_owner
+
+        # Показываем бронирования и избранное только владельцу профиля
+        if is_owner:
+            context["reservations"] = profile_user.reservations.all()
+            context["favorites"] = profile_user.favorites.all()
+
+        # Всегда показываем отзывы (их могут видеть все)
+        context["reviews"] = profile_user.reviews.all()
+        context["title"] = f"Страница пользователя: {profile_user.profile.name}"
+        context["last_seen_message"] = time_since_last_seen(profile_user)
         return context
 
 

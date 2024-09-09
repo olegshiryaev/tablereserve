@@ -17,7 +17,7 @@ import environ
 # Работа с env.dev
 env = environ.Env()
 
-environ.Env.read_env(env_file=Path("./docker/env/.env.dev"))
+environ.Env.read_env(env_file=Path("./docker/env/.env.prod"))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -99,8 +99,8 @@ TEMPLATES = [
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": (BASE_DIR / "cache"),
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": env("REDIS_LOCATION"),
     }
 }
 

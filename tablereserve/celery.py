@@ -1,17 +1,17 @@
 import os
-
 from celery import Celery
 
-# Set the default Django settings module for the 'celery' program.
+# Устанавливаем переменную окружения для настройки Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tablereserve.settings")
 
+# Инициализация Celery приложения
 app = Celery("tablereserve")
 
-# Using a string here means the worker doesn't have to serialize
-# the configuration object to child processes.
-# - namespace='CELERY' means all celery-related configuration keys
-#   should have a `CELERY_` prefix.
+# Загрузка конфигурации Celery из настроек Django с префиксом CELERY_
 app.config_from_object("django.conf:settings", namespace="CELERY")
 
-# Load task modules from all registered Django apps.
+# Автоматическое обнаружение задач из всех зарегистрированных Django приложений
 app.autodiscover_tasks()
+
+# Повторные попытки подключения к брокеру при старте (Celery 6.0+)
+app.conf.broker_connection_retry_on_startup = True

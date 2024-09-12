@@ -4,6 +4,7 @@ volumes:
   pgdata:
   static:
   media:
+  celery_logs:
 
 services:
 
@@ -25,7 +26,7 @@ services:
     command: sh -c "python manage.py collectstatic --no-input &&
                     python manage.py makemigrations &&
                     python manage.py migrate &&
-                    gunicorn --workers=4 --reload --max-requests=1000 tablereserve.wsgi -b 0.0.0.0:8000""
+                    gunicorn --workers=3 --reload --max-requests=1000 tablereserve.wsgi -b 0.0.0.0:8000"
 
   nginx:
     container_name: nginx
@@ -74,6 +75,7 @@ services:
     volumes:
       - ./:/app
       - media:/app/media
+      - celery_logs:/app/docker/logs
     command: celery -A tablereserve worker --loglevel=info --logfile=./docker/logs/celery-worker.log
     depends_on:
       - redis
@@ -89,6 +91,7 @@ services:
       volumes:
           - media:/app/media
           - ./:/app
+          - celery_logs:/app/docker/logs
 
   certbot:
       image: certbot/certbot
@@ -96,6 +99,6 @@ services:
       volumes:
           - ./docker/certbot/conf:/etc/letsencrypt:rw
           - ./docker/certbot/www:/var/www/certbot:rw
-      command: certonly --webroot --webroot-path=/var/www/certbot/ --email mail@reserve.cafe --agree-tos --no-eff-email -d reserve.cafe -d www.reserve.cafe
+      # command: certonly --webroot --webroot-path=/var/www/certbot/ --email mail@reserve.cafe --agree-tos --no-eff-email -d reserve.cafe -d www.reserve.cafe
       depends_on:
         - nginx

@@ -1,0 +1,24 @@
+{% csrf_token %}
+<h2 id="loginModalTitle">Вход</h2>
+<input type="hidden" name="next" value="{{ request.GET.next }}">
+<label for="email">Email</label>
+<input type="email" id="email" name="login" required>
+<label for="password">Пароль</label>
+<input type="password" id="password" name="password" required>
+<div class="show-password">
+    <input type="checkbox" id="showPasswordLogin">
+    <label for="showPasswordLogin">Показать пароль</label>
+</div>
+{% if form.errors %}
+    <div id="loginFormErrors" class="form-errors">
+        {% for field in form %}
+            {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <div class="error-message">{{ error }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+<button type="submit" class="login-modal-btn">Войти</button>

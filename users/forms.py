@@ -7,12 +7,35 @@ from .models import CustomUser, Profile
 from django.contrib.auth.forms import SetPasswordForm
 
 
+class CustomLoginForm(LoginForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["login"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Email"}
+        )
+        self.fields["password"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Пароль"}
+        )
+
+
 class CustomSignupForm(SignupForm):
     name = forms.CharField(max_length=50, label="Имя", required=True)
     email = forms.EmailField(label="Email", required=True)
     password1 = forms.CharField(
         widget=forms.PasswordInput(), label="Пароль", required=True
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Имя"}
+        )
+        self.fields["email"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Email"}
+        )
+        self.fields["password1"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Пароль"}
+        )
 
     def save(self, request):
         # Сначала сохраняем пользователя
@@ -62,17 +85,6 @@ class CustomUserChangeForm(UserChangeForm):
                 "unique": "Пользователь с таким адресом электронной почты уже существует.",
             },
         }
-
-
-class CustomLoginForm(LoginForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["login"].widget.attrs.update(
-            {"class": "form-control", "placeholder": "Email"}
-        )
-        self.fields["password"].widget.attrs.update(
-            {"class": "form-control", "placeholder": "Пароль"}
-        )
 
 
 class ProfileForm(forms.ModelForm):

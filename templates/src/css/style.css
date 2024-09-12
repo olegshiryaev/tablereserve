@@ -213,6 +213,7 @@ header.scrolled {
 
 .social-login {
     margin-top: 20px;
+    text-align: center;
 }
 
 .social-login img.social-icon {
@@ -375,8 +376,10 @@ header.scrolled {
 }
 
 .login-modal-btn {
+    display: block;
+    width: 100%;
     background-color: #007bff;
-    color: #fff;
+    color: white;
 }
 
 .login-modal-btn:hover {
@@ -393,12 +396,12 @@ header.scrolled {
 }
 
 .register-modal-btn {
-    background-color: #008CBA; /* Синий цвет фона */
+    background-color: #ff9800; /* Синий цвет фона */
     color: white; /* Белый цвет текста */
 }
 
 .register-modal-btn:hover {
-    background-color: #007bb5; /* Темнее при наведении */
+    background-color: #e65500; /* Темнее при наведении */
 }
 
 .popular-restaurants, .upcoming-events, .special-offers, .how-it-works, .reviews {

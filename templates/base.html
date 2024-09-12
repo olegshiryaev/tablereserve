@@ -35,6 +35,33 @@
     <!-- Bootstrap JS and dependencies -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем, есть ли ошибки
+            const loginErrors = document.querySelectorAll('.error-message');
+            
+            if (loginErrors.length > 0) {
+                // Открываем модальное окно
+                const modal = document.getElementById('loginModal');
+                modal.style.display = 'block';
+                
+                // Функция для закрытия модального окна
+                function closeModal() {
+                    modal.style.display = 'none';
+                }
+        
+                // Закрытие модального окна при клике на крестик
+                document.querySelector('.close').addEventListener('click', closeModal);
+        
+                // Закрытие модального окна при клике вне модального окна
+                window.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        closeModal();
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
             const cityDropdownToggle = document.getElementById('cityDropdownToggle');
             const cityDropdownMenu = document.getElementById('cityDropdownMenu');
             const userDropdownToggle = document.getElementById('userDropdownToggle');
@@ -46,7 +73,11 @@
             const modalCloseButtons = document.querySelectorAll('.modal .close');
             const registerLink = document.getElementById('registerLink');
             const loginLink = document.getElementById('loginLink');
-        
+            const emailInput = document.getElementById('email'); // Поле ввода email для входа
+            const regNameInput = document.getElementById('regName'); // Поле ввода имени для регистрации
+            const switchToLogin = document.getElementById('switchToLogin');
+            const switchToRegister = document.getElementById('switchToRegister');
+
             // Обработчик для раскрывающегося меню города
             if (cityDropdownToggle && cityDropdownMenu) {
                 cityDropdownToggle.addEventListener('click', function(event) {
@@ -172,6 +203,12 @@
                         regPasswordInput.type = 'password';
                     }
                 });
+            }
+
+            // Открытие модального окна при наличии ошибок в URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('error')) {
+                toggleModal(loginModal, 'block');
             }
         });
     </script>

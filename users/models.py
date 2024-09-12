@@ -22,8 +22,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Поле "Электронная почта" должно быть заполнено')
         email = self.normalize_email(email)
         email = email.lower()
-        phone_number = extra_fields.pop("phone_number", None)
-        user = self.model(email=email, phone_number=phone_number, **extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
 

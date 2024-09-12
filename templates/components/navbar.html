@@ -106,79 +106,10 @@
 </nav>
 
 <!-- Модальное окно входа -->
-<div id="loginModal" class="modal" aria-hidden="true" aria-labelledby="loginModalTitle">
-    <div class="modal-content">
-        <span class="close" aria-label="Закрыть">&times;</span>
-        <form method="POST" action="{% url 'account_login' %}" id="loginForm">
-            {% csrf_token %}
-            <h2 id="loginModalTitle">Вход</h2>
-            <input type="hidden" name="next" value="{{ request.GET.next }}">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="login" required>
-            <label for="password">Пароль</label>
-            <input type="password" id="password" name="password" required>
-            <div class="show-password">
-                <input type="checkbox" id="showPasswordLogin">
-                <label for="showPasswordLogin">Показать пароль</label>
-            </div>
-            {% if login_form.errors %}
-                <div id="loginFormErrors" class="form-errors">
-                    {% for field in login_form %}
-                        {% for error in field.errors %}
-                            <div class="error-message">{{ error }}</div>
-                        {% endfor %}
-                    {% endfor %}
-                    {% for error in login_form.non_field_errors %}
-                        <div class="error-message">{{ error }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-            <button type="submit" class="login-modal-btn">Войти</button>
-        </form>
-        <!-- Кнопки входа через социальные сети -->
-        <div class="social-login">
-            <p>Войти с помощью:</p>
-            <a href="#"><img src="{% static 'images/vk_icon.png' %}" alt="VK" class="social-icon"></a>
-            <a href="#"><img src="{% static 'images/yandex_icon.png' %}" alt="Yandex" class="social-icon"></a>
-        </div>
-        <p class="switch-to-register">Впервые на сайте? <a href="#" id="switchToRegister">Регистрация</a></p>
-    </div>
-</div>
+{% include 'account/login_modal.html' %}
 
 <!-- Модальное окно регистрации -->
-<div id="registerModal" class="modal" aria-hidden="true" aria-labelledby="registerModalTitle" style="display: none;">
-    <div class="modal-content">
-        <span class="close" aria-label="Закрыть">&times;</span>
-        <form method="POST" action="{% url 'account_signup' %}" id="registerForm">
-            {% csrf_token %}
-            <h2 id="registerModalTitle">Регистрация</h2>
-            <label for="regName">Имя</label>
-            <input type="text" id="regName" name="name" required>
-            <label for="regEmail">Email</label>
-            <input type="email" id="regEmail" name="email" required>
-            <label for="regPassword">Пароль</label>
-            <input type="password" id="regPassword" name="password1" required>
-            <div class="show-password">
-                <input type="checkbox" id="showPasswordRegister">
-                <label for="showPasswordRegister">Показать пароль</label>
-            </div>
-            {% if register_form.errors %}
-                <div id="registerFormErrors" class="form-errors">
-                    {% for field in register_form %}
-                        {% for error in field.errors %}
-                            <div class="error-message">{{ error }}</div>
-                        {% endfor %}
-                    {% endfor %}
-                    {% for error in register_form.non_field_errors %}
-                        <div class="error-message">{{ error }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-            <button type="submit" class="register-modal-btn">Зарегистрироваться</button>
-        </form>
-        <p class="switch-to-login">Уже есть аккаунт? <a href="#" id="switchToLogin">Войти</a></p>
-    </div>
-</div>
+{% include 'account/register_modal.html' %}
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

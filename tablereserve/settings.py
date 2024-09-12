@@ -17,7 +17,7 @@ import environ
 # Работа с env.dev
 env = environ.Env()
 
-environ.Env.read_env(env_file=Path("./docker/env/.env.prod"))
+environ.Env.read_env(env_file=Path("./docker/env/.env.dev"))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=True)
 
 ALLOWED_HOSTS = env("ALLOWED_HOSTS").split()
 
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "django_hosts",
+    "django_celery_beat",
     "dashboard",
     "users",
     "reservations",
@@ -54,7 +55,6 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.vk",
-    "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.yandex",
 ]
 
@@ -100,9 +100,11 @@ TEMPLATES = [
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": env("REDIS_LOCATION"),
+        "LOCATION": "redis://localhost:6379",
     }
 }
+
+CSRF_COOKIE_HTTPONLY = False
 
 
 # django-allauth
@@ -117,11 +119,17 @@ AUTH_USER_MODEL = "users.CustomUser"
 # Настройки Django Allauth
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_UNIQUE = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/"
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_PASSWORD_MIN_LENGTH = 6
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "Reserve | "
 LOGIN_REDIRECT_URL = "/"  # URL для перенаправления после входа в систему
 LOGOUT_REDIRECT_URL = "/"  # URL для перенаправления после выхода из системы
 
@@ -135,21 +143,10 @@ ACCOUNT_FORMS = {
 SOCIALACCOUNT_PROVIDERS = {
     "vk": {
         "APP": {
-            "client_id": "YOUR_VK_CLIENT_ID",
-            "secret": "YOUR_VK_CLIENT_SECRET",
+            "client_id": "52301791",
+            "secret": "ZAxjry22GnsdeEzh639U",
             "key": "",
         }
-    },
-    "google": {
-        "APP": {
-            "client_id": "YOUR_GOOGLE_CLIENT_ID",
-            "secret": "YOUR_GOOGLE_CLIENT_SECRET",
-            "key": "",
-        },
-        "SCOPE": ["profile", "email"],
-        "AUTH_PARAMS": {
-            "access_type": "online",
-        },
     },
     "yandex": {
         "APP": {
@@ -268,8 +265,8 @@ CELERY_TIMEZONE = "Europe/Moscow"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = env("EMAIL_HOST")
-EMAIL_PORT = env("EMAIL_PORT")
-EMAIL_USE_SSL = int(env("EMAIL_USE_SSL", default=1))
+EMAIL_PORT = env.int("EMAIL_PORT")
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=True)
 
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")

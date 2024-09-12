@@ -1,0 +1,51 @@
+{% load static %}
+{% load socialaccount %}
+<!-- Модальное окно входа -->
+<div id="loginModal" class="modal" aria-hidden="true" aria-labelledby="loginModalTitle">
+    <div class="modal-content">
+        <span class="close" aria-label="Закрыть">&times;</span>
+        <form method="POST" action="{% url 'account_login' %}" id="loginForm">
+            {% csrf_token %}
+            <h2 id="loginModalTitle">Вход</h2>
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <input type="hidden" name="error" value="{{ request.GET.error }}">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="login" required>
+            {% if login_form.login.errors %}
+                <div class="error-message">
+                    {% for error in login_form.login.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password" required>
+            {% if login_form.password.errors %}
+                <div class="error-message">
+                    {% for error in login_form.password.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="show-password">
+                <input type="checkbox" id="showPasswordLogin">
+                <label for="showPasswordLogin">Показать пароль</label>
+            </div>
+            {% if login_form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in login_form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <button type="submit" class="login-modal-btn">Войти</button>
+        </form>
+        <!-- Кнопки входа через социальные сети -->
+        <div class="social-login">
+            <p>Войти с помощью:</p>
+            <a href="{% provider_login_url 'vk' %}"><img src="{% static 'images/vk_icon.png' %}" alt="VK" class="social-icon"></a>
+            <a href="#"><img src="{% static 'images/yandex_icon.png' %}" alt="Yandex" class="social-icon"></a>
+        </div>
+        <p class="switch-to-register">Впервые на сайте? <a href="#" id="switchToRegister">Регистрация</a></p>
+    </div>
+</div>

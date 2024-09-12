@@ -13,6 +13,21 @@
                 <div class="card-body">
                     <form method="post" action="{% url 'account_login' %}">
                         {% csrf_token %}
+                        
+                        <!-- Вывод ошибок формы -->
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <div class="error-message">{{ error }}</div>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <div class="error-message">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
                         <div class="form-group mb-3">
                             {{ form.login.label_tag }}
                             {{ form.login }}

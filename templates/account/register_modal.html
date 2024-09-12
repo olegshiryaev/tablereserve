@@ -1,0 +1,34 @@
+{% load static %}
+<div id="registerModal" class="modal" aria-hidden="true" aria-labelledby="registerModalTitle" style="display: none;">
+    <div class="modal-content">
+        <span class="close" aria-label="Закрыть">&times;</span>
+        <form method="POST" action="{% url 'account_signup' %}" id="registerForm">
+            {% csrf_token %}
+            <h2 id="registerModalTitle">Регистрация</h2>
+            <label for="regName">Имя</label>
+            <input type="text" id="regName" name="name" required>
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" name="email" required>
+            <label for="regPassword">Пароль</label>
+            <input type="password" id="regPassword" name="password1" required>
+            <div class="show-password">
+                <input type="checkbox" id="showPasswordRegister">
+                <label for="showPasswordRegister">Показать пароль</label>
+            </div>
+            {% if register_form.errors %}
+                <div id="registerFormErrors" class="form-errors">
+                    {% for field in register_form %}
+                        {% for error in field.errors %}
+                            <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in register_form.non_field_errors %}
+                        <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <button type="submit" class="register-modal-btn">Зарегистрироваться</button>
+        </form>
+        <p class="switch-to-login">Уже есть аккаунт? <a href="#" id="switchToLogin">Войти</a></p>
+    </div>
+</div>

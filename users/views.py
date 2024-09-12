@@ -19,8 +19,28 @@ from users.forms import ProfileForm
 from users.models import CustomUser, Favorite, Profile
 from users.utils import time_since_last_seen
 from collections import defaultdict
+from django.template.loader import render_to_string
+from allauth.account.views import LoginView
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from .forms import LoginForm
+from django.core.mail import send_mail
 
 User = get_user_model()
+
+
+class CustomLoginView(LoginView):
+    template_name = "account/login_modal.html"
+    redirect_field_name = "next"
+
+    def form_invalid(self, form):
+        response = super().form_invalid(form)
+
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            errors = {field: error[0] for field, error in form.errors.items()}
+            return JsonResponse({"errors": errors}, status=400)
+
+        return response
 
 
 def activate(request, uidb64, token):

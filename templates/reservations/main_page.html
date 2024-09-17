@@ -14,8 +14,8 @@
 
 {% block content %}
 <!-- Секция с изображением города -->
-<section class="city-hero-section">
-    <div class="container">
+<section class="section">
+    <div class="container pb-4 pt-5">
         <div class="city-hero">
             <picture>
                 <source media="(min-width: 768px)" srcset="{% if selected_city.image %}{{ selected_city.image.url }} 1x, {{ selected_city.image.url }} 2x{% else %}{% static 'images/city_images/default.jpg' %} 1x, {% static 'images/city_images/default.jpg' %} 2x{% endif %}">
@@ -26,7 +26,7 @@
             <div class="city-content">
                 <h1 class="city-title">Рестораны и кафе в {{ city_name_locative|capfirst }}</h1>
                 <form class="city-search-form" action="{% url 'place_list' selected_city.slug %}" method="GET">
-                    <input type="text" name="search" class="search-input" placeholder="Поиск ресторанов, кафе и баров" value="{{ request.GET.search }}">
+                    <input type="text" name="search" class="search-input" placeholder="Поиск ресторанов, кафе и баров" value="{{ search }}">
                     <button type="submit" class="search-button">Найти</button>
                 </form>
             </div>

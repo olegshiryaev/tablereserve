@@ -4,6 +4,21 @@ import pymorphy2
 
 # from reservations.models import WorkSchedule
 
+MONTHS_IN_LOCATIVE = {
+    1: "января",
+    2: "февраля",
+    3: "марта",
+    4: "апреля",
+    5: "мая",
+    6: "июня",
+    7: "июля",
+    8: "августа",
+    9: "сентября",
+    10: "октября",
+    11: "ноября",
+    12: "декабря",
+}
+
 morph = pymorphy2.MorphAnalyzer()
 
 
@@ -19,6 +34,17 @@ def inflect_word(word, case):
     if inflected_word:
         return inflected_word.word
     return word
+
+
+def format_russian_date(date):
+    """
+    Форматирует дату в формате '17 сентября'.
+    :param date: Объект даты.
+    :return: Отформатированная строка.
+    """
+    day = date.day
+    month = MONTHS_IN_LOCATIVE[date.month]
+    return f"{day} {month}"
 
 
 # def get_available_booking_times(date, place_id):

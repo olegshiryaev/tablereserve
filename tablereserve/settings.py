@@ -54,8 +54,6 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    "allauth.socialaccount.providers.vk",
-    "allauth.socialaccount.providers.yandex",
 ]
 
 SITE_ID = 1
@@ -97,13 +95,6 @@ TEMPLATES = [
     },
 ]
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://localhost:6379",
-    }
-}
-
 CSRF_COOKIE_HTTPONLY = False
 
 
@@ -129,9 +120,16 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_PASSWORD_MIN_LENGTH = 6
-ACCOUNT_EMAIL_SUBJECT_PREFIX = "Reserve | "
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_EMAIL_CONFIRMATION_HTML_EMAIL = True
+ACCOUNT_EMAIL_CONFIRMATION_HTML_TEMPLATE = (
+    "account/email/email_confirmation_signup_message.html"
+)
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT = True
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "Reserve.cafe | "
 LOGIN_REDIRECT_URL = "/"  # URL для перенаправления после входа в систему
 LOGOUT_REDIRECT_URL = "/"  # URL для перенаправления после выхода из системы
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 
 ACCOUNT_ADAPTER = "users.adapters.CustomAccountAdapter"
 
@@ -140,27 +138,49 @@ ACCOUNT_FORMS = {
     "login": "users.forms.CustomLoginForm",
 }
 
-SOCIALACCOUNT_PROVIDERS = {
-    "vk": {
-        "APP": {
-            "client_id": "52301791",
-            "secret": "ZAxjry22GnsdeEzh639U",
-            "key": "",
-        }
-    },
-    "yandex": {
-        "APP": {
-            "client_id": "YOUR_YANDEX_CLIENT_ID",
-            "secret": "YOUR_YANDEX_CLIENT_SECRET",
-            "key": "",
-        }
-    },
-}
-
 # end django-allauth
+
+SESSION_COOKIE_AGE = 1209600  # 2 недели
+SESSION_SAVE_EVERY_REQUEST = True  # Обновление сессии при каждом запросе
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 WSGI_APPLICATION = "tablereserve.wsgi.application"
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,  # Оставить существующие логгеры включенными
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "WARNING",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",  # Формат вывода в консоль
+        },
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "docker/logs/django.log",  # Путь к файлу логов
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": "ERROR",  # Уровень логирования
+            "propagate": True,  # Распространение логов вверх по иерархии логеров
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

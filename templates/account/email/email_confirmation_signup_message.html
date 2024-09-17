@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение email</title>
+</head>
+<body>
+    <p>Привет, {{ user.profile.name }}!</p>
+    <p>Вы получили это письмо, потому что ваш адрес электронной почты был использован для регистрации на сайте {{ site.name }}.</p>
+    <p>Чтобы подтвердить ваш аккаунт, пожалуйста, нажмите на кнопку ниже:</p>
+    
+    <p>
+        <a href="{{ activate_url }}" class="button" style="color:#fff;font-family:'arial';font-size:15px;padding:10px 20px;text-decoration:none;background-color:#007BFF;border-radius:5px;display:inline-block;" target="_blank" rel="noopener noreferrer">Подтвердить email</a>
+    </p>
+    
+    <p>Если вы не регистрировались на сайте, проигнорируйте это письмо.</p>
+    <p>С уважением,<br>{{ site.name }}</p>
+</body>
+</html>

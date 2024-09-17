@@ -39,6 +39,9 @@ def main_page(request, city_slug):
     city_name_genitive = inflect_word(city.name, "gent")
     city_name_locative = inflect_word(city.name, "loct")
 
+    # Получение значения поиска из GET-запроса
+    search_query = request.GET.get("search", "")
+
     # Популярные места
     popular_places = (
         Place.objects.filter(city=city, is_active=True)
@@ -99,6 +102,7 @@ def main_page(request, city_slug):
         "total_places_count": total_places_count,
         "features_on_card": features_on_card,
         "city_name_locative": city_name_locative,
+        "search": search_query,
     }
 
     return render(request, "reservations/main_page.html", context)
@@ -120,7 +124,7 @@ def place_list(request, city_slug):
 
     # Получаем параметры из GET-запроса
     search_query = request.GET.get("search", "")
-    sort_by = request.GET.get("sort", "name")  # По умолчанию сортируем по имени
+    sort_by = request.GET.get("sort", "rating")  # По умолчанию сортируем по имени
     place_type_filters = request.GET.getlist("place_type")  # Фильтр по типу заведения
     cuisine_filters = request.GET.getlist("cuisine")  # Фильтры по кухням
     average_check_filters = request.GET.getlist(
@@ -192,10 +196,12 @@ def place_list(request, city_slug):
 
     # Сортировка заведений
     sort_options = {
-        "name": "name",
-        "rating": "-rating",
-        "average_check": "average_check",
+        "name": "name",  # По названию
+        "rating": "-rating",  # По рейтингу (от максимального к минимальному)
+        "low_to_high": "average_check",  # Сначала недорогие
+        "high_to_low": "-average_check",  # Сначала дорогие
     }
+
     if sort_by in sort_options:
         places = places.order_by(sort_options[sort_by])
 

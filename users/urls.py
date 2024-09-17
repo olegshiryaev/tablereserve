@@ -7,7 +7,6 @@ from .views import (
     custom_email_verification,
     ProfileUpdateView,
     ProfileDetailView,
-    send_real_email_view,
     toggle_favorite,
 )
 
@@ -31,5 +30,4 @@ urlpatterns = [
         ReservationDetailView.as_view(),
         name="reservation-detail",
     ),
-    path("send-email/", send_real_email_view, name="send_real_email"),
 ]

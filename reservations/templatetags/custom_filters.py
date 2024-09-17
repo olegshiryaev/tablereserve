@@ -55,8 +55,10 @@ def split_list(value, chunk_size):
 
 
 @register.filter
-def range(value, arg):
-    """Returns a list containing range made from `value` to `arg`"""
+def range_filter(value, arg):
+    """
+    Возвращает диапазон от `value` до `arg`
+    """
     return range(value, arg)
 
 

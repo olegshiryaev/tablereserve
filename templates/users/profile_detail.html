@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
+{% load floattags %}
+{% load custom_filters %}
 
 {% block navbar %}
     {% include 'components/navbar.html' %}
@@ -34,6 +36,12 @@
                     <!-- Кнопка редактирования профиля только для владельца -->
                     {% if is_owner %}
                         <a href="{% url 'users:profile-edit' %}" class="btn btn-primary">Редактировать профиль</a>
+
+                        <!-- Кнопка для подтверждения email, если он не подтверждён -->
+                        {% if not email_verified %}
+                            <p class="text-warning">Ваш email не подтверждён.</p>
+                            <a href="{% url 'account_email_verification_sent' %}" class="btn btn-warning">Подтвердить email</a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -49,7 +57,7 @@
                 <!-- Избранное и бронирования только для владельца профиля -->
                 {% if is_owner %}
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="reservations-tab" data-bs-toggle="tab" data-bs-target="#reservations" type="button" role="tab" aria-controls="reservations" aria-selected="false">Бронирования</button>
+                        <button class="nav-link" id="reservations-tab" data-bs-toggle="tab" data-bs-target="#reservations" type="button" role="tab" aria-controls="reservations" aria-selected="false">Заказы</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="favorites-tab" data-bs-toggle="tab" data-bs-target="#favorites" type="button" role="tab" aria-controls="favorites" aria-selected="false">Избранное</button>
@@ -59,12 +67,29 @@
             <div class="tab-content" id="profileTabsContent">
                 <!-- Список отзывов -->
                 <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                    <div class="list-group mt-3">
+                    <div class="mt-3">
                         {% for review in profile_user.reviews.all %}
-                            <div class="list-group-item">
-                                <h5 class="mb-1">{{ review.place.name }}</h5>
-                                <p class="mb-1">{{ review.text }}</p>
-                                <small>Рейтинг: {{ review.rating }}</small>
+                            <div class="review-item mb-3 d-flex justify-content-between">
+                                <div>
+                                    <h5 class="mb-1">Отзыв о {{ place_type_phrase }} <a href="{{ review.place.get_absolute_url }}">"{{ review.place.name }}"</a></h5>
+                                    <small class="text-muted">Добавлен: {{ review.created_at|date:"j E Y г." }}</small>
+                                    <div class="review-text">
+                                        {{ review.text }}
+                                    </div>
+                                </div>
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                    {% if i <= review.rating|stringformat:"d" %}
+                                    <svg class="star-icon filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                        <path d="M12 17.27l6.18 3.73-1.64-7.03 5.46-4.73-7.1-.61L12 2 9.1 8.63l-7.1.61 5.46 4.73-1.64 7.03z"/>
+                                    </svg>
+                                    {% else %}
+                                    <svg class="star-icon empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
+                                        <path d="M12 17.27l6.18 3.73-1.64-7.03 5.46-4.73-7.1-.61L12 2 9.1 8.63l-7.1.61 5.46 4.73-1.64 7.03z"/>
+                                    </svg>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>                     
                             </div>
                         {% empty %}
                             <p class="mt-3">Нет отзывов.</p>
@@ -72,7 +97,7 @@
                     </div>
                 </div>
 
-                <!-- Список бронирований только для владельца -->
+                <!-- Список заказов только для владельца -->
                 {% if is_owner %}
                     <div class="tab-pane fade" id="reservations" role="tabpanel" aria-labelledby="reservations-tab">
                         <div class="list-group mt-3">
@@ -83,19 +108,34 @@
                                     <small>{{ reservation.get_status_display }}</small>
                                 </a>
                             {% empty %}
-                                <p class="mt-3">Нет активных бронирований.</p>
+                                <p class="mt-3">Нет активных заказов.</p>
                             {% endfor %}
                         </div>
                     </div>
 
                     <!-- Список избранного -->
                     <div class="tab-pane fade" id="favorites" role="tabpanel" aria-labelledby="favorites-tab">
-                        <div class="list-group mt-3">
+                        <div class="favorites-list mt-3">
                             {% for favorite in profile_user.favorites.all %}
-                                <a href="{{ favorite.place.get_absolute_url }}" class="list-group-item list-group-item-action">
-                                    <h5 class="mb-1">{{ favorite.place.name }}</h5>
-                                    <p class="mb-1">{{ favorite.place.description }}</p>
-                                </a>
+                                <div class="favorite-item mb-3">
+                                    <div class="favorite-image">
+                                        <img src="{{ favorite.place.get_cover_image }}" alt="{{ favorite.place.name }}" class="img-fluid" />
+                                    </div>
+                                    <div class="favorite-info">
+                                        <h5 class="place-name">
+                                            <a href="{{ favorite.place.get_absolute_url }}">{{ favorite.place.name }}</a>
+                                        </h5>
+                                        <p class="place-description">{{ favorite.place.short_description }}</p>
+                                        <p class="place-address">{{ favorite.place.address }}</p>
+                                        <p class="place-average-check">Средний чек: {{ favorite.place.average_check }} руб.</p>
+                                        <p class="place-cuisines">Кухни: {{ favorite.place.cuisines.all|join:", " }}</p>
+                                    </div>
+                                    {% if favorite.place.rating > 1 %}
+                                        <div class="place-rating {{ favorite.place.rating|rating_color }} address-rating">
+                                            {{ favorite.place.rating|formatted_float }}
+                                        </div>
+                                    {% endif %}
+                                </div>
                             {% empty %}
                                 <p class="mt-3">Нет избранных заведений.</p>
                             {% endfor %}

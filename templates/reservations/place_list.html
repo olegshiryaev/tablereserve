@@ -160,14 +160,15 @@
 
     <div class="places-container">
         <div class="places-header">
-            <div>Найдено {{ shown_places }} {{ place_word }}</div>
+            <div>Найдено {{ total_places }} {{ place_word }}</div>
             <form method="get" class="sorting-form">
                 <select name="sort" id="sort">
-                    <option value="name" {% if sort_by == "name" %}selected{% endif %}>По названию</option>
                     <option value="rating" {% if sort_by == "rating" %}selected{% endif %}>По рейтингу</option>
-                    <option value="average_check" {% if sort_by == "average_check" %}selected{% endif %}>По среднему чеку</option>
+                    <option value="name" {% if sort_by == "name" %}selected{% endif %}>По названию</option>
+                    <option value="low_to_high" {% if sort_by == "low_to_high" %}selected{% endif %}>Сначала недорогие</option>
+                    <option value="high_to_low" {% if sort_by == "high_to_low" %}selected{% endif %}>Сначала дорогие</option>
                 </select>
-                <!-- Include hidden inputs for current filters to retain them -->
+                <!-- Скрытые поля для сохранения текущих фильтров -->
                 {% if search_query %}
                     <input type="hidden" name="search" value="{{ search_query }}">
                 {% endif %}

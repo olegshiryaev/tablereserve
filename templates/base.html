@@ -16,12 +16,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{% static 'css/style.css' %}" rel="stylesheet" />
     {% block extra_head %}{% endblock %}
 </head>
 
 <body>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast-container top-0 end-0 p-3">
+                <div class="toast text-bg-{{ message.tags }}" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body ">
+                            {{message}}
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
     {% block navbar %}
     {% endblock %}
     <main>
@@ -33,6 +50,19 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Lightbox JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $(".toast").toast('show');
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Проверяем, есть ли ошибки
@@ -70,6 +100,8 @@
             const loginButtonMobile = document.getElementById('loginButtonMobile');
             const loginModal = document.getElementById('loginModal');
             const registerModal = document.getElementById('registerModal');
+            const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+            const resetPasswordDoneModal = document.getElementById('resetPasswordDoneModal');
             const modalCloseButtons = document.querySelectorAll('.modal .close');
             const registerLink = document.getElementById('registerLink');
             const loginLink = document.getElementById('loginLink');
@@ -77,6 +109,8 @@
             const regNameInput = document.getElementById('regName'); // Поле ввода имени для регистрации
             const switchToLogin = document.getElementById('switchToLogin');
             const switchToRegister = document.getElementById('switchToRegister');
+            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 
             // Обработчик для раскрывающегося меню города
             if (cityDropdownToggle && cityDropdownMenu) {
@@ -151,12 +185,24 @@
                     }
                 });
             }
+
+            // Обработчик для ссылки "Забыли пароль?"
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    loginModal.style.display = 'none'; // Закрываем окно входа
+                    forgotPasswordModal.style.display = 'block'; // Открываем окно восстановления пароля
+                    document.getElementById('resetEmail').focus();
+                });
+            }
         
             // Обработчики для закрытия модальных окон
             modalCloseButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     loginModal.style.display = 'none';
                     registerModal.style.display = 'none';
+                    forgotPasswordModal.style.display = 'none';
+                    resetPasswordDoneModal.style.display = 'none';
                 });
             });
         
@@ -168,6 +214,12 @@
                 if (event.target === registerModal) {
                     registerModal.style.display = 'none';
                 }
+                if (event.target === forgotPasswordModal) {
+                    forgotPasswordModal.style.display = 'none';
+                }
+                if (event.target === resetPasswordDoneModal) {
+                    resetPasswordDoneModal.style.display = 'none';
+                }
             });
         
             // Закрытие модальных окон по нажатию клавиши Esc
@@ -175,6 +227,8 @@
                 if (event.key === 'Escape') {
                     loginModal.style.display = 'none';
                     registerModal.style.display = 'none';
+                    forgotPasswordModal.style.display = 'none';
+                    resetPasswordDoneModal.style.display = 'none';
                 }
             });
 
@@ -232,12 +286,6 @@
             });
         });
     </script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Lightbox JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     {% block extra_js %} {% endblock %}
 </body>
 

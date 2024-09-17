@@ -15,6 +15,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import DetailView, UpdateView
 
 from reservations.models import Place, Reservation
+from reservations.utils import inflect_word
 from users.forms import ProfileForm
 from users.models import CustomUser, Favorite, Profile
 from users.utils import time_since_last_seen
@@ -88,9 +89,28 @@ class ProfileDetailView(DetailView):
             context["favorites"] = profile_user.favorites.all()
 
         # Всегда показываем отзывы (их могут видеть все)
-        context["reviews"] = profile_user.reviews.all()
+        reviews = profile_user.reviews.all()
+        for review in reviews:
+            if review.place.type:  # Проверяем, что тип заведения существует
+                place_type_str = str(
+                    review.place.type.name
+                )  # Получаем название типа заведения
+                review.place_type_phrase = inflect_word(
+                    place_type_str, "loct"
+                )  # Склоняем тип заведения
+
+        context["reviews"] = reviews
+        context["place_type_phrase"] = review.place_type_phrase
+
         context["title"] = f"Страница пользователя: {profile_user.profile.name}"
         context["last_seen_message"] = time_since_last_seen(profile_user)
+
+        # Проверяем, подтверждён ли email пользователя
+        email_address = EmailAddress.objects.filter(
+            user=profile_user, email=profile_user.email
+        ).first()
+        context["email_verified"] = email_address.verified if email_address else False
+
         return context
 
 

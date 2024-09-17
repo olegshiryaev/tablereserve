@@ -27,9 +27,14 @@
                     {% endfor %}
                 </div>
             {% endif %}
-            <div class="show-password">
-                <input type="checkbox" id="showPasswordLogin">
-                <label for="showPasswordLogin">Показать пароль</label>
+            <div class="form-options">
+                <div class="show-password">
+                    <input type="checkbox" id="showPasswordLogin">
+                    <label for="showPasswordLogin">Показать пароль</label>
+                </div>
+                <div class="forgot-password">
+                    <a href="#" id="forgotPasswordLink">Забыли пароль?</a>
+                </div>
             </div>
             {% if login_form.non_field_errors %}
                 <div class="error-message">
@@ -43,7 +48,7 @@
         <!-- Кнопки входа через социальные сети -->
         <div class="social-login">
             <p>Войти с помощью:</p>
-            <a href="{% provider_login_url 'vk' %}"><img src="{% static 'images/vk_icon.png' %}" alt="VK" class="social-icon"></a>
+            <a href="#"><img src="{% static 'images/vk_icon.png' %}" alt="VK" class="social-icon"></a>
             <a href="#"><img src="{% static 'images/yandex_icon.png' %}" alt="Yandex" class="social-icon"></a>
         </div>
         <p class="switch-to-register">Впервые на сайте? <a href="#" id="switchToRegister">Регистрация</a></p>

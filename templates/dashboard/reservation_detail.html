@@ -18,7 +18,7 @@
 <div class="container-fluid p-0">
         <!-- Кнопка "Назад" -->
         <a href="{% url 'dashboard:all_reservations' %}" class="btn btn-secondary mb-3">Назад</a>
-    <h1 class="h3 mb-3">Бронирование #{{ reservation.id }}</h1>
+    <h1 class="h3 mb-3">Заказ #{{ reservation.id }}</h1>
 
     <!-- Форма редактирования информации о заведении -->
     <div class="card">
@@ -71,7 +71,8 @@
                     <select class="form-select" name="status" disabled>
                         <option value="pending" {% if reservation.status == 'pending' %}selected{% endif %}>В ожидании</option>
                         <option value="confirmed" {% if reservation.status == 'confirmed' %}selected{% endif %}>Подтверждено</option>
-                        <option value="cancelled" {% if reservation.status == 'cancelled' %}selected{% endif %}>Отменено</option>
+                        <option value="cancelled_by_restaurant" {% if reservation.status == 'cancelled_by_restaurant' %}selected{% endif %}>Отменен рестораном</option>
+                        <option value="cancelled_by_customer" {% if reservation.status == 'cancelled_by_customer' %}selected{% endif %}>Отменен клиентом</option>
                     </select>
                 </div>
 

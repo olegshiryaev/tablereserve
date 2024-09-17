@@ -825,33 +825,6 @@ class Reservation(models.Model):
         )
         return max_number + 1
 
-    def send_status_notification(self):
-        subject = "Обновление статуса бронирования"
-        html_message = render_to_string(
-            "status_update_email.html",
-            {
-                "user_name": self.user.name if self.user else "Пользователь",
-                "place_name": self.place.name,
-                "reservation_date": format(self.date, "d.m.Y"),
-                "reservation_time": self.time.strftime("%H:%M"),
-                "guests_count": self.guests,
-                "customer_phone": self.customer_phone,
-                "status": dict(self.STATUS_CHOICES).get(self.status, "Неизвестно"),
-            },
-        )
-        plain_message = strip_tags(html_message)
-        from_email = "oashiryaev@yandex.ru"
-        to_email = self.customer_email
-
-        email = EmailMessage(
-            subject,
-            plain_message,
-            from_email,
-            [to_email],
-        )
-        email.content_subtype = "html"
-        email.send()
-
     class Meta:
         verbose_name = "Бронирование"
         verbose_name_plural = "Бронирования"

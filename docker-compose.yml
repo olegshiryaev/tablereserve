@@ -5,6 +5,7 @@ volumes:
   static:
   media:
   celery_logs:
+  django_logs:
 
 services:
 
@@ -20,6 +21,7 @@ services:
       - ./:/app
       - static:/app/static
       - media:/app/media
+      - django_logs:/app/docker/logs
     depends_on:
       - postgres
       - redis

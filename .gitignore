@@ -38,6 +38,7 @@ venv/
 docker/*
 logs/*
 cache/*
+.dockerignore
 
 # celery beat schedule file
 celerybeat-schedule

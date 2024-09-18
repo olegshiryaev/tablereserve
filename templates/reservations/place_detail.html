@@ -378,11 +378,7 @@
                                     <div class="review-author">
                                         <strong>
                                             <a href="{% url 'users:profile' id=review.user.id %}">
-                                                {% if review.user.profile.name %}
-                                                    {{ review.user.profile.name }}
-                                                {% else %}
-                                                    {{ review.user.username }}
-                                                {% endif %}
+                                                {{ review.user.profile }}
                                             </a>
                                         </strong>
                                         <span class="review-date">{{ review.created_at|date:"j E Y г." }}</span>

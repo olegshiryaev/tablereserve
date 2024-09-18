@@ -85,31 +85,33 @@ class ProfileDetailView(DetailView):
 
         # Показываем бронирования и избранное только владельцу профиля
         if is_owner:
-            context["reservations"] = profile_user.reservations.all()
-            context["favorites"] = profile_user.favorites.all()
+            context["reservations"] = profile_user.reservations.select_related(
+                "place"
+            ).all()
+            context["favorites"] = profile_user.favorites.prefetch_related(
+                "place"
+            ).all()
 
         # Всегда показываем отзывы (их могут видеть все)
-        reviews = profile_user.reviews.all()
+        reviews = profile_user.reviews.select_related("place", "place__type").all()
         for review in reviews:
-            if review.place.type:  # Проверяем, что тип заведения существует
-                place_type_str = str(
-                    review.place.type.name
-                )  # Получаем название типа заведения
-                review.place_type_phrase = inflect_word(
-                    place_type_str, "loct"
-                )  # Склоняем тип заведения
+            if review.place and review.place.type:
+                review.place_type_phrase = inflect_word(review.place.type.name, "loct")
 
         context["reviews"] = reviews
-        context["place_type_phrase"] = review.place_type_phrase
 
-        context["title"] = f"Страница пользователя: {profile_user.profile.name}"
+        # Добавляем название страницы
+        context["title"] = f"Страница пользователя: {profile_user.profile}"
+
+        # Добавляем сообщение о последнем визите
         context["last_seen_message"] = time_since_last_seen(profile_user)
 
         # Проверяем, подтверждён ли email пользователя
-        email_address = EmailAddress.objects.filter(
-            user=profile_user, email=profile_user.email
-        ).first()
-        context["email_verified"] = email_address.verified if email_address else False
+        context["email_verified"] = (
+            EmailAddress.objects.filter(user=profile_user, email=profile_user.email)
+            .first()
+            .verified
+        )
 
         return context
 
@@ -132,12 +134,8 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Используем getattr для получения имени, если оно есть, или username
-        name_or_username = (
-            getattr(self.request.user.profile, "name", None)
-            or self.request.user.username
-        )
-        context["title"] = f"Редактирование профиля пользователя: {name_or_username}"
+
+        context["title"] = f"Редактирование профиля пользователя: {self.object}"
         return context
 
 

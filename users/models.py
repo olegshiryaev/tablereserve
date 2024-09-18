@@ -173,16 +173,19 @@ class Profile(models.Model):
 
     def __str__(self):
         """
-        Возвращение строки
+        Возвращает отображаемое имя:
+        1. Если в профиле есть имя, возвращает его.
+        2. Иначе возвращает username пользователя.
         """
-        return self.user.email
+        return self.name if self.name else self.user.username
 
     def save(self, *args, **kwargs):
         # Deleting the previous avatar when updating an object
         if self.pk:
             old_instance = Profile.objects.get(pk=self.pk)
-            if old_instance.avatar and self.avatar != old_instance.avatar:
-                old_instance.avatar.delete(save=False)
+            if old_instance.avatar and old_instance.avatar != self.avatar:
+                if default_storage.exists(old_instance.avatar.path):
+                    old_instance.avatar.delete(save=False)
         super().save(*args, **kwargs)
 
     def get_avatar_url(self):

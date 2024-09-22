@@ -128,10 +128,7 @@ ACCOUNT_EMAIL_CONFIRMATION_HTML_TEMPLATE = (
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT = True
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "Reserve.cafe | "
 LOGIN_REDIRECT_URL = "/"  # URL для перенаправления после входа в систему
-LOGOUT_REDIRECT_URL = "/"  # URL для перенаправления после выхода из системы
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-
-ACCOUNT_ADAPTER = "users.adapters.CustomAccountAdapter"
+LOGOUT_REDIRECT_URL = None  # URL для перенаправления после выхода из системы
 
 ACCOUNT_FORMS = {
     "signup": "users.forms.CustomSignupForm",

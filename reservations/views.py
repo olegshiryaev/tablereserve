@@ -1,9 +1,10 @@
 from datetime import date, datetime, timedelta
 from django.utils import timezone
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 import calendar
+from django.core.exceptions import PermissionDenied
 
 from reservations.utils import calculate_available_time_slots
 from users.models import CustomUser, Favorite
@@ -12,13 +13,16 @@ from .models import (
     Cuisine,
     Feature,
     Place,
+    PlaceFeature,
     PlaceType,
     Reservation,
     Event,
     Discount,
+    Review,
+    ReviewResponse,
     WorkSchedule,
 )
-from .forms import BookingForm, ReservationForm, ReviewForm
+from .forms import BookingForm, ReservationForm, ReviewForm, ReviewResponseForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
@@ -120,6 +124,7 @@ def get_place_word(count):
 
 
 def place_list(request, city_slug):
+    current_time = timezone.now()
     city = get_object_or_404(City, slug=city_slug)
 
     # Получаем параметры из GET-запроса
@@ -138,7 +143,9 @@ def place_list(request, city_slug):
         Place.objects.active()
         .filter(city=city)
         .annotate(
-            approved_reviews_count=Count("reviews", filter=Q(reviews__is_approved=True))
+            approved_reviews_count=Count(
+                "reviews", filter=Q(reviews__status="approved")
+            )
         )
         .select_related("type")  # Загрузка связанных данных о типе заведения
     )
@@ -254,9 +261,12 @@ def place_list(request, city_slug):
 
     # Подготовка данных для отображения особенностей в контексте каждого заведения
     for place in places:
+        place.status = place.get_status()
+        place.features_list = place.features.all()
         place.features_on_card = place.features.filter(
             place_features__display_on_card=True
         )
+        place.review_word = get_review_word(place.approved_reviews_count)
 
     # Склоняем название города в предложный падеж (например, 'loct')
     city_name = city.name
@@ -316,12 +326,16 @@ def handle_reservation(request, place, form_class):
 
 
 def get_review_word(count):
-    if count % 100 in [11, 12, 13, 14]:
+    # Если число заканчивается на 11, 12, 13, 14 — всегда "отзывов"
+    if 11 <= count % 100 <= 14:
         return "отзывов"
+    # Если число заканчивается на 1 (кроме 11) — "отзыв"
     elif count % 10 == 1:
         return "отзыв"
+    # Если число заканчивается на 2, 3, 4 (кроме 12, 13, 14) — "отзыва"
     elif 2 <= count % 10 <= 4:
         return "отзыва"
+    # В остальных случаях — "отзывов"
     else:
         return "отзывов"
 
@@ -338,7 +352,9 @@ def get_guest_word(count):
 def place_detail(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(
-        Place.objects.select_related("city").prefetch_related("work_schedule"),
+        Place.objects.select_related("city").prefetch_related(
+            "images", "work_schedule"
+        ),
         slug=place_slug,
     )
     user = request.user
@@ -353,8 +369,14 @@ def place_detail(request, city_slug, place_slug):
         (schedule for schedule in schedules if schedule.day == today_weekday), None
     )
 
-    reviews = place.reviews.filter(is_approved=True)
+    reviews = (
+        place.reviews.filter(status="approved")
+        .select_related("user")
+        .order_by("-created_at")
+    )
     review_count = reviews.count()
+    positive_review_count = reviews.filter(rating__gte=4).count()
+    negative_review_count = reviews.filter(rating__lt=4).count()
     average_rating = place.rating
 
     # Получаем особенности заведения вместе с описаниями
@@ -445,6 +467,8 @@ def place_detail(request, city_slug, place_slug):
             "average_rating": average_rating,
             "reviews": reviews,
             "review_count": review_count,
+            "positive_review_count": positive_review_count,
+            "negative_review_count": negative_review_count,
             "review_word": review_word,
             "is_favorited": is_favorited,
             "similar_places": similar_places,
@@ -533,21 +557,28 @@ def reserve_table(request, city_slug, place_slug):
 
 
 @require_POST
+@login_required
 def add_review(request, city_slug, place_slug):
     city = get_object_or_404(City, slug=city_slug)
     place = get_object_or_404(Place, slug=place_slug, city=city)
     review = None
 
-    # A comment was posted
     form = ReviewForm(data=request.POST)
     if form.is_valid():
-        # Create a Comment object without saving it to the database
+        # Создаем объект отзыва без сохранения в базу данных
         review = form.save(commit=False)
-        # Assign the post to the comment
         review.place = place
         review.user = request.user
-        # Save the comment to the database
+        # Сохраняем отзыв в базу данных
         review.save()
+
+        # Добавляем сообщение об успешной отправке отзыва
+        messages.success(request, "Ваш отзыв был успешно добавлен.")
+
+        # Перенаправляем на страницу заведения
+        return redirect("place_detail", city_slug=city.slug, place_slug=place.slug)
+
+    # Если форма невалидна, оставляем пользователя на той же странице
     return render(
         request,
         "reservations/place_detail.html",
@@ -556,9 +587,29 @@ def add_review(request, city_slug, place_slug):
             "selected_city": city,
             "place": place,
             "form": form,
-            "review": review,
         },
     )
+
+
+@login_required
+@require_POST
+def add_review_response(request, city_slug, place_slug, review_id):
+    review = get_object_or_404(Review, id=review_id)
+    place = get_object_or_404(Place, slug=place_slug)
+
+    if request.method == "POST":
+        response_text = request.POST.get("response_text")
+        if response_text:
+            response = ReviewResponse.objects.create(
+                review=review,
+                place=place,
+                user=request.user,  # пользователь, оставляющий ответ
+                text=response_text,
+            )
+            return redirect(
+                "place_detail", city_slug=city_slug, place_slug=place_slug
+            )  # Перенаправление на страницу места
+    return render(request, "add_review_response.html", {"review": review})
 
 
 # def place_detail(request, city_slug, place_slug):

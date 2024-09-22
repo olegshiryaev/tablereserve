@@ -15,35 +15,30 @@
 {% block content %}
 <div class="container pt-5 mb-5">
     <!-- Профиль пользователя -->
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <!-- Аватар пользователя -->
-                <img src="{{ profile_user.profile.get_avatar_url }}" class="card-img-top" alt="{% if profile_user.profile.name %}{{ profile_user.profile.name }}{% else %}{{ profile_user.username }}{% endif %}">
-                <div class="card-body text-center">
-                    <h5 class="card-title">
-                        {{ profile_user.profile }}
-                    </h5>
-                    <!-- Email пользователя -->
-                    <p class="card-text">{{ profile_user.email }}</p>
-                    <!-- Статус активности пользователя (онлайн/оффлайн) -->
-                    <p class="card-text text-muted">{{ last_seen_message }}</p>
-                    
-                    <!-- Кнопка редактирования профиля только для владельца -->
-                    {% if is_owner %}
-                        <a href="{% url 'users:profile-edit' %}" class="btn btn-primary">Редактировать профиль</a>
-
-                        <!-- Кнопка для подтверждения email, если он не подтверждён -->
-                        {% if not email_verified %}
-                            <p class="text-warning">Ваш email не подтверждён.</p>
-                            <a href="{% url 'account_email_verification_sent' %}" class="btn btn-warning">Подтвердить email</a>
-                        {% endif %}
-                    {% endif %}
-                </div>
-            </div>
+    <div class="user-info-block bg-white p-4 rounded d-flex align-items-center shadow">
+        <!-- Аватар пользователя -->
+        <div class="user-avatar me-4">
+            <img src="{{ profile_user.profile.get_avatar_url }}" class="rounded-circle" style="max-width: 120px;" alt="{{ profile_user.profile }}">
         </div>
         
-        <div class="col-md-8">
+        <!-- Основная информация -->
+        <div class="user-details">
+            <h4 class="mb-1">{{ profile_user.profile }}</h4>
+            <!-- Статус активности пользователя -->
+            <p class="text-muted mb-2">{{ last_seen_message }}</p>
+            <!-- Время с момента регистрации -->
+            <p class="text-muted mb-3">На сайте уже <strong>{{ profile_user.date_joined|timesince }}</strong></p>
+
+            <!-- Кнопка редактирования профиля только для владельца -->
+            {% if is_owner %}
+                <a href="{% url 'users:profile-edit' %}" class="btn btn-primary">Редактировать профиль</a>
+            {% endif %}
+        </div>
+    </div>
+        
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <!-- Содержимое вкладок (Отзывы, Заказы, Избранное) -->
             <ul class="nav nav-tabs" id="profileTabs" role="tablist">
                 <!-- Отзывы всегда видимы -->
                 <li class="nav-item" role="presentation">
@@ -65,13 +60,16 @@
                 <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
                     <div class="mt-3">
                         {% for review in reviews %}
-                            <div class="review-item mb-3 d-flex justify-content-between">
+                            <div class="review-item  {% if review.rating >= 4 %}positive{% else %}negative{% endif %} mb-3 d-flex justify-content-between">
                                 <div>
                                     <h5 class="mb-1">Отзыв о {{ review.place_type_phrase }} <a href="{{ review.place.get_absolute_url }}">"{{ review.place.name }}"</a></h5>
                                     <small class="text-muted">Добавлен: {{ review.created_at|date:"j E Y г." }}</small>
-                                    <div class="review-text">
-                                        {{ review.text }}
+                                    <div class="review-text mt-2">
+                                        {{ review.text|truncatewords:50 }}
                                     </div>
+                                    {% if review.text|length > 150 %}
+                                    <a href="javascript:void(0)" class="read-more" onclick="toggleReview({{ review.id }})">Читать дальше</a>
+                                    {% endif %}
                                 </div>
                                 <div class="rating-stars">
                                     {% for i in "12345" %}
@@ -142,4 +140,15 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const reviews = document.querySelectorAll('.review-item');
+    
+        // Показать все отзывы сразу при загрузке
+        reviews.forEach(review => {
+            review.style.display = 'block'; // Убедись, что все отзывы показаны
+            review.classList.add('show');   // Добавляем класс "show" для анимации
+        });
+    });
+</script>
 {% endblock %}

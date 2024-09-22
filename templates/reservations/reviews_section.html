@@ -1,0 +1,240 @@
+{% load floattags %}
+{% load custom_filters %}
+
+<!-- Модальное окно входа -->
+{% include 'account/login_modal.html' %}
+
+<!-- Модальное окно регистрации -->
+{% include 'account/register_modal.html' %}
+
+<!-- Модальное окно восстановления пароля -->
+{% include 'account/forgot_password_modal.html' %}
+
+<div id="reviews" class="reviews-section">
+    <h2>
+        Отзывы
+        <span class="rating-display">
+            {% if place.rating > 1 %}
+            <div class="place-rating {{ place.rating|rating_color }} address-rating">
+                {{ place.rating|formatted_float }}
+            </div>
+            {% endif %}
+        </span>
+    </h2>
+    
+    <!-- Фильтрация отзывов по оценке -->
+    {% if reviews.count > 0 %}
+        <div class="filter-reviews mt-3 mb-3">
+            <a href="#" data-filter="all" class="text-secondary">Все ({{ review_count }})</a>
+            <a href="#" data-filter="positive" class="text-success mx-3">Положительные ({{ positive_review_count }})</a>
+            <a href="#" data-filter="negative" class="text-danger">Отрицательные ({{ negative_review_count }})</a>
+        </div>
+    {% endif %}
+
+
+    <!-- Секция отзывов -->
+    <div class="reviews-container">
+        {% for review in reviews %}
+        <div class="review-item {% if review.rating >= 4 %}positive{% else %}negative{% endif %}">
+            <div class="d-flex justify-content-between">
+                <div class="review-author">
+                    <img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.profile }}" class="review-avatar">
+                    <strong>
+                        <a href="{% url 'users:profile' id=review.user.id %}">
+                            {{ review.user.profile }}
+                        </a>
+                    </strong>
+                    <span class="review-date">{{ review.created_at|date:"j E Y г." }}</span>
+                </div>
+                {% with "12345" as star_range %}
+                <div class="rating-stars">
+                    {% for i in star_range %}
+                    <svg class="star-icon {% if i|add:0 <= review.rating %}filled{% else %}empty{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
+                        <path d="M12 17.27l6.18 3.73-1.64-7.03 5.46-4.73-7.1-.61L12 2 9.1 8.63l-7.1.61 5.46 4.73-1.64 7.03z"/>
+                    </svg>
+                    {% endfor %}
+                </div>
+                {% endwith %}
+            </div>
+            
+            <div class="review-text" id="review-text-{{ review.id }}">
+                {{ review.text }}
+            </div>
+
+            <!-- Кнопка для разворачивания длинных отзывов -->
+            {% if review.text|length > 150 %}
+            <a href="javascript:void(0)" class="read-more" onclick="toggleReview({{ review.id }})">Читать дальше</a>
+            {% endif %}
+
+            <!-- Кнопка для открытия формы ответа -->
+            {% if user in place.manager.all %}
+            <div class="response-toggle mt-2">
+                {% if not review.response %}
+                <a href="javascript:void(0);" onclick="toggleResponseForm({{ review.id }})">
+                    Ответить на отзыв
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Форма для ответа на отзыв (по умолчанию скрыта) -->
+            <div class="response-form" id="response-form-{{ review.id }}" style="display:none">
+                <form method="POST" action="{% url 'add_review_response' city_slug=place.city.slug place_slug=place.slug review_id=review.id %}">
+                    {% csrf_token %}
+                    <textarea name="response_text" rows="4" placeholder="Ваш ответ..." required></textarea>
+                    <button type="submit" class="submit-response">Отправить</button>
+                </form>
+            </div>
+
+            <!-- Ответ представителя заведения -->
+            {% if review.response %}
+            <div class="review-response" style="margin-left: 60px; padding-left: 10px;">
+                <div>
+                    <div class="review-author">
+                        <img src="{{ review.response.user.profile.avatar.url }}" alt="{{ review.response.user.profile }}" class="review-avatar">
+                        <strong>
+                            <a href="{% url 'users:profile' id=review.response.user.id %}">
+                                {{ review.response.user.profile }}
+                            </a>
+                        </strong>
+                        <span class="review-date">{{ review.response.created_at|date:"j E Y г." }}</span>
+                    </div>
+                    <div class="review-text">
+                        {{ review.response.text }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="no-reviews">
+            <p>Отзывов пока нет. Будьте первым, кто оставит отзыв!</p>
+            <a href="#add-review" class="btn btn-primary">Написать отзыв</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Пагинация -->
+    {% if reviews.paginator.num_pages > 1 %}
+    <div class="pagination">
+        {% if reviews.has_previous %}
+            <a href="?page={{ reviews.previous_page_number }}">Назад</a>
+        {% endif %}
+        <span>Страница {{ reviews.number }} из {{ reviews.paginator.num_pages }}</span>
+        {% if reviews.has_next %}
+            <a href="?page={{ reviews.next_page_number }}">Вперед</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Форма для добавления отзыва -->
+    <div id="add-review" class="add-review-form">
+        <h3>Добавить отзыв</h3>
+        <form method="POST" action="{% url 'add_review' city_slug=place.city.slug place_slug=place.slug %}">
+            {% csrf_token %}
+            <div class="rating-input">
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5"><label for="star5" title="5 звезд"></label>
+                    <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 звезды"></label>
+                    <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 звезды"></label>
+                    <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 звезды"></label>
+                    <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 звезда"></label>
+                </div>
+            </div>
+
+            <textarea name="text" rows="5" placeholder="Напишите ваш отзыв..." required></textarea>
+            
+            <button type="submit" class="btn btn-success mt-3">Отправить отзыв</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleResponseForm(reviewId) {
+        const form = document.getElementById(`response-form-${reviewId}`);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const reviewForm = document.getElementById('reviewForm');
+        const loginModal = document.getElementById('loginModal'); // Your existing login modal
+    
+        if (reviewForm) {
+            reviewForm.addEventListener('submit', function(event) {
+                // Check if the user needs to log in before submitting the form
+                if (reviewForm.getAttribute('data-require-login') === 'true') {
+                    event.preventDefault(); // Prevent form submission
+                    loginModal.style.display = 'block'; // Show the login modal
+                    // Optionally, focus on the email input field in the modal
+                    const emailInput = document.getElementById('email');
+                    if (emailInput) {
+                        emailInput.focus();
+                    }
+                }
+            });
+        }
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const reviews = document.querySelectorAll('.review-item');
+    
+        // Показать все отзывы сразу при загрузке
+        reviews.forEach(review => {
+            review.style.display = 'block'; // Убедись, что все отзывы показаны
+            review.classList.add('show');   // Добавляем класс "show" для анимации
+        });
+    });
+</script>
+<script>
+    // Фильтрация отзывов по типу (все, положительные, отрицательные)
+    document.querySelectorAll('.filter-reviews a').forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault(); // Предотвращаем переход по ссылке
+            const filter = this.getAttribute('data-filter');
+            const reviews = document.querySelectorAll('.review-item');
+
+            reviews.forEach(review => {
+                review.classList.remove('show'); // Сначала скрываем все отзывы
+
+                setTimeout(() => {
+                    if (filter === 'all') {
+                        review.style.display = 'block';
+                    } else if (filter === 'positive' && review.classList.contains('positive')) {
+                        review.style.display = 'block';
+                    } else if (filter === 'negative' && review.classList.contains('negative')) {
+                        review.style.display = 'block';
+                    } else {
+                        review.style.display = 'none';
+                    }
+
+                    setTimeout(() => {
+                        if (review.style.display === 'block') {
+                            review.classList.add('show'); // Показываем отфильтрованные отзывы
+                        }
+                    }, 10); // Небольшая задержка для плавности
+                }, 300); // Задержка перед скрытием для плавной анимации
+            });
+        });
+    });
+</script>
+<script>
+function toggleReview(reviewId) {
+    var reviewText = document.getElementById('review-text-' + reviewId);
+    reviewText.classList.toggle('show-full');
+}
+</script>
+<script>
+    document.querySelectorAll('.star-rating input').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const allLabels = document.querySelectorAll('.star-rating label');
+            allLabels.forEach(label => label.style.color = "#ddd");
+    
+            const selected = this.value;
+            for (let i = 0; i <script selected; i++) {
+                allLabels[i].style.color = "#ff9900";
+            }
+        });
+    });
+</script>

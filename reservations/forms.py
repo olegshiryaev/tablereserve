@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 from django.utils import timezone
 from django import forms
-from .models import Place, Reservation, Review, WorkSchedule
+from .models import Place, Reservation, Review, ReviewResponse, WorkSchedule
 
 
 class WorkScheduleForm(forms.ModelForm):
@@ -55,6 +55,17 @@ class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
         fields = ["rating", "text"]
+
+
+class ReviewResponseForm(forms.ModelForm):
+    class Meta:
+        model = ReviewResponse
+        fields = ["text"]  # Поле для текста ответа
+        widgets = {
+            "text": forms.Textarea(
+                attrs={"rows": 4, "placeholder": "Напишите ваш ответ..."}
+            ),
+        }
 
 
 class ReservationForm(forms.ModelForm):

@@ -22,7 +22,7 @@ from users.utils import time_since_last_seen
 from collections import defaultdict
 from django.template.loader import render_to_string
 from allauth.account.views import LoginView
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import LoginForm
 from django.core.mail import send_mail
@@ -93,7 +93,9 @@ class ProfileDetailView(DetailView):
             ).all()
 
         # Всегда показываем отзывы (их могут видеть все)
-        reviews = profile_user.reviews.select_related("place", "place__type").all()
+        reviews = profile_user.reviews.select_related("place", "place__type").filter(
+            status="approved"
+        )
         for review in reviews:
             if review.place and review.place.type:
                 review.place_type_phrase = inflect_word(review.place.type.name, "loct")

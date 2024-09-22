@@ -10,9 +10,8 @@ from django.utils import timezone
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.templatetags.static import static
-
+from django.core.files.storage import default_storage
 from reservations.models import City, Place
-
 from users.utils import get_avatar_upload_path
 
 
@@ -130,7 +129,6 @@ class Profile(models.Model):
     )
     avatar = models.ImageField(
         upload_to=get_avatar_upload_path,
-        default="images/avatars/default_profile.png",
         blank=True,
         verbose_name="Аватар",
         help_text="Не больше 5 Мб, форматы: jpg, jpeg, png",

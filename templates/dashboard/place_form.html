@@ -378,8 +378,8 @@
                     {% for schedule in place.work_schedule.all %}
                         <div class="col-xl-2">
                             <label>{{ schedule.get_day_display }}</label>
-                            <input type="time" name="open_time_{{ schedule.day }}" value="{{ schedule.open_time }}" class="form-control" {% if not is_edit_mode %}disabled{% endif %}>
-                            <input type="time" name="close_time_{{ schedule.day }}" value="{{ schedule.close_time }}" class="form-control" {% if not is_edit_mode %}disabled{% endif %}>
+                            <input type="time" name="open_time_{{ schedule.day }}" value="{{ schedule.open_time|time:'H:i' }}" class="form-control" {% if not is_edit_mode %}disabled{% endif %}>
+                            <input type="time" name="close_time_{{ schedule.day }}" value="{{ schedule.close_time|time:'H:i' }}" class="form-control" {% if not is_edit_mode %}disabled{% endif %}>
                             <input type="checkbox" name="is_closed_{{ schedule.day }}" value="1" {% if schedule.is_closed %}checked{% endif %} {% if not is_edit_mode %}disabled{% endif %}> Закрыто
                         </div>
                     {% endfor %}

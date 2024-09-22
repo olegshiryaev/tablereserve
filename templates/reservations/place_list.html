@@ -162,7 +162,8 @@
         <div class="places-header">
             <div>Найдено {{ total_places }} {{ place_word }}</div>
             <form method="get" class="sorting-form">
-                <select name="sort" id="sort">
+                <label for="sort">Показать:</label>
+                <select name="sort" id="sort" class="border">
                     <option value="rating" {% if sort_by == "rating" %}selected{% endif %}>По рейтингу</option>
                     <option value="name" {% if sort_by == "name" %}selected{% endif %}>По названию</option>
                     <option value="low_to_high" {% if sort_by == "low_to_high" %}selected{% endif %}>Сначала недорогие</option>
@@ -190,101 +191,154 @@
             </form>
         </div>
 
-        <div class="places-cards">
+        <div class="restaurant-cards">
             {% for place in places %}
-            <div class="place-card">
-                <span class="favorite-button {% if place.id in favorite_places %}favorited{% endif %}" data-place-id="{{ place.id }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </span>
-                <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" class="place-card-link">
-                    <div class="place-card-image">
-                        <div class="place-features">
-                            {% for feature in place.features_on_card.all %}
-                                <span class="feature">{{ feature.name }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="place-details">
-                            <div class="place-type">
-                                {{ place.type.name }}
-                            </div>
-                            <div class="place-name">
-                                {{ place.name }}
-                            </div>
-                        </div>
-                        {% if place.rating > 0 %}
-                        <div class="place-rating {{ place.rating|rating_color }} image-rating">
-                            {{ place.rating|formatted_float }}
+                <div class="restaurant-card border" data-slug="" data-href="{{ place.get_absolute_url }}" data-name="">
+                    <div class="restaurant-card__main-image">
+                        <span class="favorite-button {% if place.id in favorite_places %}favorited{% endif %}" data-place-id="{{ place.id }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </span>
+                        {% if place.get_cover_image %}
+                        <a href="{{ place.get_absolute_url }}" class="restaurant-image _cover">
+                            <picture>
+                                <img src="{{ place.get_cover_image }}" alt="{{ place.name }}">
+                            </picture>
+                        </a>
+                        {% else %}
+                        <div class="no-images-placeholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="96px" viewBox="0 -960 960 960" width="96px" fill="#888" class="no-images-icon">
+                                <path d="M479.5-267q72.5 0 121.5-49t49-121.5q0-72.5-49-121T479.5-607q-72.5 0-121 48.5t-48.5 121q0 72.5 48.5 121.5t121 49Zm0-60q-47.5 0-78.5-31.5t-31-79q0-47.5 31-78.5t78.5-31q47.5 0 79 31t31.5 78.5q0 47.5-31.5 79t-79 31.5ZM140-120q-24 0-42-18t-18-42v-513q0-23 18-41.5t42-18.5h147l73-87h240l73 87h147q23 0 41.5 18.5T880-693v513q0 24-18.5 42T820-120H140Zm0-60h680v-513H645l-73-87H388l-73 87H140v513Zm340-257Z"/>
+                            </svg>
+                            <a href="{{ place.get_absolute_url }}">
+                                <p class="no-images-message">Скоро здесь будет фото – интерьер уже позирует</p>
+                            </a>
                         </div>
                         {% endif %}
-                        <img src="{{ place.get_cover_image }}" alt="{{ place.name }}" class="place-image">
                     </div>
-                </a>
-                <div class="place-card-content">
-                    {% if place.address %}
-                    <p class="place-address">
-                        <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="bi bi-geo-alt">
-                            <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/>
-                            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                        </svg>
-                        {{ place.address }}
-                    </p>
+            
+                    <div class="restaurant-card__main">
+                        <div class="restaurant-card__decription">
+                            <div class="restaurant-card__decription-text">
+                                <div class="restaurant-card__title">
+                                    <div class="restaurant-title">
+                                        <div class="restaurant-title__main">
+                                            <a class="restaurant-title__link" href="{{ place.get_absolute_url }}">
+                                                <div class="restaurant-title__name">
+                                                    <span>{{ place.name }}</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if place.short_description %}
+                                <div class="restaurant-card__about">
+                                    {{ place.short_description|default_if_none:"" |truncatewords:50 }}
+                                </div>
+                                {% endif %}
+                                <div class="restaurant-card__info">
+                                    <ul class="restaurant-card__info-list">
+                                        {% with status_data=place.get_status %}
+                                            <li class="restaurant-card__info-item _status">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="bi bi-clock gray-icon">
+                                                    <path d="M8 3.5a.5.5 0 0 1 .5.5v4h3a.5.5 0 0 1 0 1h-3.5a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z"/>
+                                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 1a7 7 0 0 1 0 14z"/>
+                                                </svg>
+                                                <span style="color: {% if status_data.status == 'closed' %}red{% else %}gray{% endif %};">
+                                                    {{ status_data.message }}
+                                                </span>
+                                            </li>
+                                        {% endwith %}
+                                        {% if place.address %}
+                                        <li class="restaurant-card__info-item _address gray-text">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="bi bi-geo-alt">
+                                                <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/>
+                                                <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                            </svg>     
+                                                <span>{{ place.address }}</span>
+                                        </li>
+                                        {% endif %}
+                                        {% with cuisines_list=place.cuisines.all %}
+                                            {% if cuisines_list %}
+                                                <li class="restaurant-card__info-item _cuisines gray-text">
+                                                    <svg width="16" height="16" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M256 410.304V96a32 32 0 0 1 64 0v314.304a96 96 0 0 0 64-90.56V96a32 32 0 0 1 64 0v223.744a160 160 0 0 1-128 156.8V928a32 32 0 1 1-64 0V476.544a160 160 0 0 1-128-156.8V96a32 32 0 0 1 64 0v223.744a96 96 0 0 0 64 90.56zM672 572.48C581.184 552.128 512 446.848 512 320c0-141.44 85.952-256 192-256s192 114.56 192 256c0 126.848-69.184 232.128-160 252.48V928a32 32 0 1 1-64 0V572.48zM704 512c66.048 0 128-82.56 128-192s-61.952-192-128-192-128 82.56-128 192 61.952 192 128 192z"/>
+                                                    </svg>
+                                                    {% if cuisines_list|length > 2 %}
+                                                        {% for cuisine in cuisines_list|slice:":2" %}
+                                                            <span>{{ cuisine.name }}</span>{% if not forloop.last %},&nbsp;{% endif %}
+                                                        {% endfor %}
+                                                        и ещё {{ cuisines_list|length|add:"-2" }}
+                                                    {% else %}
+                                                        {% for cuisine in cuisines_list %}
+                                                            <span>{{ cuisine.name }}</span>{% if not forloop.last %},&nbsp;{% endif %}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </li>
+                                            {% endif %}
+                                        {% endwith %}
+                                        {% if place.average_check %}
+                                            <li class="restaurant-card__info-item _average_check gray-text">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" id="ruble-2" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color"><path id="primary" d="M14,12A5,5,0,0,0,14,2H9A1,1,0,0,0,8,3v7H6a1,1,0,0,0,0,2H8v2H6a1,1,0,0,0,0,2H8v5a1,1,0,0,0,2,0V16h5a1,1,0,0,0,0-2H10V12ZM10,4h4a3,3,0,0,1,0,6H10Z"></path></svg>
+                                                <span>{{ place.average_check }}</span>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                            {% if place.rating > 0 %}
+                            <div class="restaurant-card__decription-rating">
+                                <div class="restaurant-rating {{ place.rating|rating_color }}">
+                                    {{ place.rating|formatted_float }}
+                                </div>
+                                <a class="restaurant-rating__reviews" href="{{ place.get_absolute_url }}#reviews">
+                                    {{ place.approved_reviews_count }} {{ place.review_word }}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <!-- Особенности заведения в виде облака тегов -->
+                        {% if place.features_list %}
+                            <div class="restaurant-card__tags">
+                                {% with features_list=place.features_list|slice:":7" %}
+                                    {% for feature in features_list %}
+                                        <span class="restaurant-tag">{{ feature.name }}</span>
+                                    {% endfor %}
+                                    {% if place.features_list|length > 7 %}
+                                        <span class="restaurant-tag more-tags">+{{ place.features_list|length|add:"-7" }}</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>        
+        {% if places.paginator.num_pages > 1 %}
+            <!-- Секция пагинации -->
+            <div class="pagination">
+                <span class="step-links">
+                    {% if places.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo;</a>
+                        <a href="?page={{ places.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&lsaquo;</a>
                     {% endif %}
 
-                    {% with cuisines_list=place.cuisines.all %}
-                        {% if cuisines_list %}
-                        <p class="place-cuisines">
-                            <svg width="16" height="16" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M256 410.304V96a32 32 0 0 1 64 0v314.304a96 96 0 0 0 64-90.56V96a32 32 0 0 1 64 0v223.744a160 160 0 0 1-128 156.8V928a32 32 0 1 1-64 0V476.544a160 160 0 0 1-128-156.8V96a32 32 0 0 1 64 0v223.744a96 96 0 0 0 64 90.56zM672 572.48C581.184 552.128 512 446.848 512 320c0-141.44 85.952-256 192-256s192 114.56 192 256c0 126.848-69.184 232.128-160 252.48V928a32 32 0 1 1-64 0V572.48zM704 512c66.048 0 128-82.56 128-192s-61.952-192-128-192-128 82.56-128 192 61.952 192 128 192z"/></svg>
-                            {% if cuisines_list|length > 2 %}
-                                {% for cuisine in cuisines_list|slice:":2" %}
-                                    {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                                и ещё {{ cuisines_list|length|add:"-2" }}
-                            {% else %}
-                                {% for cuisine in cuisines_list %}
-                                    {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                        </p>
+                    {% for num in places.paginator.page_range %}
+                        {% if places.number == num %}
+                            <span class="current">{{ num }}</span>
+                        {% elif num > places.number|add:'-3' and num < places.number|add:'3' %}
+                            <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
                         {% endif %}
-                    {% endwith %}
-                    {% if place.average_check %}
-                    <p class="place-average-check">
-                        <svg width="16" height="16" viewBox="0 0 24 24" id="ruble-2" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color"><path id="primary" d="M14,12A5,5,0,0,0,14,2H9A1,1,0,0,0,8,3v7H6a1,1,0,0,0,0,2H8v2H6a1,1,0,0,0,0,2H8v5a1,1,0,0,0,2,0V16h5a1,1,0,0,0,0-2H10V12ZM10,4h4a3,3,0,0,1,0,6H10Z"></path></svg>
-                        {{ place.average_check }}
-                    </p>
+                    {% endfor %}
+
+                    {% if places.has_next %}
+                        <a href="?page={{ places.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&rsaquo;</a>
+                        <a href="?page={{ places.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&raquo;</a>
                     {% endif %}
-                    {% if place.short_description %}
-                    <p class="place-short-description">{{ place.short_description|default_if_none:"" |truncatewords:15 }}</p>
-                    {% endif %}
-                    <a href="{% url 'place_detail' city_slug=selected_city.slug place_slug=place.slug %}" class="btn">Заказать столик</a>
-                </div>
+                </span>
             </div>
-            {% endfor %}
-        </div>
-        <!-- Секция пагинации -->
-        <div class="pagination">
-            <span class="step-links">
-                {% if places.has_previous %}
-                    <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo;</a>
-                    <a href="?page={{ places.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&lsaquo;</a>
-                {% endif %}
-        
-                {% for num in places.paginator.page_range %}
-                    {% if places.number == num %}
-                        <span class="current">{{ num }}</span>
-                    {% elif num > places.number|add:'-3' and num < places.number|add:'3' %}
-                        <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-        
-                {% if places.has_next %}
-                    <a href="?page={{ places.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&rsaquo;</a>
-                    <a href="?page={{ places.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&raquo;</a>
-                {% endif %}
-            </span>
-        </div>
+        {% endif %}
     </div>
 </section>
 <script>
@@ -372,6 +426,20 @@
                 }
     
                 this.setAttribute('aria-expanded', !isExpanded);
+            });
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Для каждой карточки заведения
+        document.querySelectorAll('.restaurant-card').forEach(card => {
+            // Обработчик клика для всей карточки
+            card.addEventListener('click', function(e) {
+                // Если клик произошел на кнопке избранного, то предотвращаем действия
+                if (!e.target.closest('a') && !e.target.closest('button') && !e.target.closest('.favorite-button')) {
+                    window.location.href = card.getAttribute('data-href');
+                }
             });
         });
     });

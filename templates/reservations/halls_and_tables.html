@@ -1,0 +1,83 @@
+{% if halls.exists %}
+<div id="place-halls" class="place-halls-section mt-3 mb-3">
+    <div class="place-halls-inner">
+        <h2>Зоны и столики</h2>
+        <div class="halls-grid">
+            {% for hall in halls %}
+            <div class="hall-card">
+                <div class="hall-details">
+                    <h3 class="hall-name">{{ hall.name }}</h3>
+                    <p class="hall-description">{{ hall.description }}</p>
+                    <p class="hall-seats">Посадочных мест: {{ hall.number_of_seats }}</p>
+                    <p class="hall-kind">Тип: {{ hall.get_hall_type_display }}</p>
+                    <div class="button-wrapper">
+                        <button class="view-tables-button" data-hall-id="{{ hall.id }}">Посмотреть столики</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Модальное окно для столиков -->
+            <div id="hall-modal-{{ hall.id }}" class="hall-modal">
+                <div class="hall-modal-content">
+                    <span class="hall-close-button" data-hall-id="{{ hall.id }}">&times;</span>
+                    <h3>Столики в {{ hall.name }}</h3>
+                    <div class="hall-tables-grid">
+                        {% for table in hall.tables.all %}
+                        <div class="hall-table-card">
+                            {% if table.photo %}
+                            <img src="{{ table.photo.url }}" alt="{{ table.name }}" class="hall-table-image">
+                            {% else %}
+                            <div class="hall-table-placeholder">
+                                Скоро здесь будет фото – интерьер уже позирует
+                            </div>
+                            {% endif %}
+                            <div class="hall-table-details">
+                                <h4 class="hall-table-name">{{ table.name }}</h4>
+                                <p class="hall-table-seats">Мест: {{ table.seats }}</p>
+                                <p class="hall-table-quantity">Кол-во столиков: {{ table.quantity }}</p>
+                            </div>
+                            <a href="#" class="hall-book-button">Забронировать</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.view-tables-button').forEach(button => {
+        button.addEventListener('click', function () {
+            const hallId = this.dataset.hallId;
+            document.getElementById('hall-modal-' + hallId).style.display = 'block';
+        });
+    });
+    
+    document.querySelectorAll('.hall-close-button').forEach(button => {
+        button.addEventListener('click', function () {
+            const hallId = this.dataset.hallId;
+            document.getElementById('hall-modal-' + hallId).style.display = 'none';
+        });
+    });
+    
+    // Закрытие модального окна при клике вне модального контента
+    window.addEventListener('click', function(event) {
+        document.querySelectorAll('.hall-modal').forEach(modal => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+    
+    // Закрытие модального окна при нажатии на клавишу Esc
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            document.querySelectorAll('.hall-modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    });    
+</script>
+{% endif %}

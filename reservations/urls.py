@@ -25,6 +25,11 @@ urlpatterns = [
         name="add_review",
     ),
     path(
+        "<str:city_slug>/places/<slug:place_slug>/reviews/<int:review_id>/response/",
+        views.add_review_response,
+        name="add_review_response",
+    ),
+    path(
         "place/<int:place_id>/available-time-slots/",
         views.get_available_time_slots,
         name="get_available_time_slots",

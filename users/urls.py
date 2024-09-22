@@ -1,4 +1,5 @@
 from django.urls import path
+from allauth.account.views import logout
 from allauth.account.views import SignupView
 from .views import (
     CustomLoginView,

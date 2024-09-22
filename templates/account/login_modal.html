@@ -7,7 +7,7 @@
         <form method="POST" action="{% url 'account_login' %}" id="loginForm">
             {% csrf_token %}
             <h2 id="loginModalTitle">Вход</h2>
-            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <input type="hidden" name="next" value="{{ request.path }}">
             <input type="hidden" name="error" value="{{ request.GET.error }}">
             <label for="email">Email</label>
             <input type="email" id="email" name="login" required>

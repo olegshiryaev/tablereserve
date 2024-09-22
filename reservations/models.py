@@ -28,6 +28,9 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import EmailMessage
 from django.db import transaction
+from PIL import Image as PILImage
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 
 def upload_to_city_image(instance, filename):
@@ -45,9 +48,22 @@ class City(models.Model):
         default="images/city_images/default.jpg",
         verbose_name="Изображение",
     )
-    slug = models.SlugField(
-        max_length=100, unique=True, blank=True, verbose_name="Уникальный идентификатор"
+    description = models.TextField(blank=True, verbose_name="Описание города")
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True, verbose_name="Широта"
     )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, blank=True, null=True, verbose_name="Долгота"
+    )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        blank=True,
+        verbose_name="Уникальный идентификатор",
+        db_index=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     def __str__(self):
         return self.name
@@ -60,15 +76,23 @@ class City(models.Model):
 
 class Cuisine(models.Model):
     name = models.CharField(
-        max_length=100, unique=True, verbose_name="Наименование кухни"
+        max_length=100, unique=True, verbose_name="Наименование кухни", db_index=True
     )
+    description = models.TextField(blank=True, null=True, verbose_name="Описание кухни")
     slug = models.SlugField(
-        max_length=100, blank=True, verbose_name="Уникальный идентификатор"
+        max_length=100,
+        unique=True,
+        blank=True,
+        verbose_name="Уникальный идентификатор",
+        db_index=True,
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     class Meta:
         verbose_name = "Кухня"
         verbose_name_plural = "Кухни"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -79,6 +103,8 @@ class Feature(models.Model):
     slug = models.SlugField(
         max_length=100, blank=True, verbose_name="Уникальный идентификатор"
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     def __str__(self):
         return self.name
@@ -86,11 +112,16 @@ class Feature(models.Model):
     class Meta:
         verbose_name = "Особенность"
         verbose_name_plural = "Особенности"
+        ordering = ["name"]
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=50, unique=True, verbose_name="Название тега")
-    slug = models.SlugField(max_length=50, unique=True, verbose_name="Слаг тега")
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название тега")
+    slug = models.SlugField(
+        max_length=100, unique=True, verbose_name="Уникальный идентификатор"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     class Meta:
         verbose_name = "Тег"
@@ -106,6 +137,8 @@ class PlaceType(models.Model):
     slug = models.SlugField(
         max_length=50, unique=True, blank=True, verbose_name="Уникальный идентификатор"
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     class Meta:
         verbose_name = "Тип заведения"
@@ -211,9 +244,13 @@ def delete_image_file(sender, instance, **kwargs):
 
 class PlaceManager(models.Manager):
     def active(self):
-        return self.filter(is_active=True).prefetch_related("cuisines", "images")
+        return (
+            self.filter(is_active=True)
+            .select_related("type", "city")
+            .prefetch_related("cuisines", "images")
+        )
 
-    def get_popular_places(self, limit=5):
+    def get_popular_places(self, limit=8):
         return (
             self.filter(is_active=True)
             .annotate(avg_rating=Avg("reviews__rating"), review_count=Count("reviews"))
@@ -241,6 +278,7 @@ class Place(models.Model):
         blank=True,
         null=True,
         verbose_name="Тип",
+        db_index=True,
     )
     name = models.CharField(
         max_length=100, unique=True, db_index=True, verbose_name="Название"
@@ -250,6 +288,7 @@ class Place(models.Model):
         on_delete=models.CASCADE,
         related_name="places",
         verbose_name="Город",
+        db_index=True,
     )
     street_type = models.CharField(
         max_length=50,
@@ -379,9 +418,7 @@ class Place(models.Model):
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(5)],
         verbose_name="Рейтинг",
-    )
-    is_active = models.BooleanField(
-        default=True, db_index=True, verbose_name="Активное заведение"
+        db_index=True,
     )
     slug = models.SlugField(
         max_length=100,
@@ -402,7 +439,13 @@ class Place(models.Model):
     booking_interval = models.PositiveIntegerField(
         default=30, verbose_name="Интервал между бронированиями (минуты)"
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
+    is_active = models.BooleanField(
+        default=True, db_index=True, verbose_name="Активное заведение"
+    )
+    is_verified = models.BooleanField(default=False, verbose_name="Проверено")
+    is_popular = models.BooleanField(default=False, verbose_name="Популярное")
+    is_featured = models.BooleanField(default=False, verbose_name="Рекомендуемое")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     objects = PlaceManager()
@@ -430,7 +473,7 @@ class Place(models.Model):
         )
 
     def update_rating(self):
-        reviews = self.reviews.filter(is_approved=True)
+        reviews = self.reviews.select_related("user").filter(status="approved")
         if reviews.exists():
             average_rating = reviews.aggregate(Avg("rating"))["rating__avg"]
             self.rating = round(average_rating, 2) if average_rating is not None else 0
@@ -442,20 +485,14 @@ class Place(models.Model):
         cover_image = self.images.filter(is_cover=True).first()
         if cover_image:
             return cover_image.image.url
-        return settings.STATIC_URL + "images/default_place_image.jpg"
+        return None
 
     def get_similar_places(self):
-        # Поиск похожих заведений по типу и городу
         similar_places = Place.objects.filter(type=self.type, city=self.city).exclude(
             id=self.id
-        )  # Исключаем текущее заведение
-
-        # Получение всех похожих заведений
-        all_similar_places = list(similar_places)
-
-        # Перемешивание и ограничение до 3 заведений
-        random.shuffle(all_similar_places)
-        return all_similar_places[:3]
+        )
+        limited_places = similar_places[:20]
+        return random.sample(list(limited_places), k=min(4, len(limited_places)))
 
     def get_place_features(self):
         return PlaceFeature.objects.filter(place=self).select_related("feature")
@@ -468,7 +505,27 @@ class Place(models.Model):
         return self.favorited_by.filter(user=user).exists()
 
     def approved_reviews(self):
-        return self.reviews.filter(is_approved=True)
+        return self.reviews.filter(status="approved")
+
+    def get_status(self):
+        current_time = datetime.now()
+        if self.is_open_for_booking(current_time):
+            closing_time = self.get_working_hours(current_time.strftime("%a").upper())
+            if closing_time:
+                return {
+                    "status": "open",
+                    "message": f"Открыто до {closing_time[-1][1].strftime('%H:%M')}",
+                }
+        else:
+            opening_time = self.get_working_hours(
+                (current_time + timedelta(days=1)).strftime("%a").upper()
+            )
+            if opening_time:
+                return {
+                    "status": "closed",
+                    "message": f"Закрыто до {opening_time[0][0].strftime('%H:%M')}",
+                }
+        return {"status": "closed", "message": "Закрыто"}
 
     def get_working_hours(self, day=None):
         """
@@ -478,7 +535,9 @@ class Place(models.Model):
         if day is None:
             day = datetime.now().strftime("%a").upper()
 
-        schedules = self.work_schedule.filter(day=day, is_closed=False)
+        schedules = self.work_schedule.prefetch_related("place").filter(
+            day=day, is_closed=False
+        )
         if schedules.exists():
             return [(schedule.open_time, schedule.close_time) for schedule in schedules]
         return []
@@ -514,13 +573,12 @@ class Place(models.Model):
             open_time = schedule.open_time
             close_time = schedule.close_time
 
-            if open_time < close_time:
-                current_time = datetime.combine(date, open_time)
-                end_time = datetime.combine(date, close_time)
-            else:
-                # Пересечение полуночи
-                current_time = datetime.combine(date, open_time)
-                end_time = datetime.combine(date + timedelta(days=1), close_time)
+            current_time = datetime.combine(date, open_time)
+            end_time = (
+                datetime.combine(date, close_time)
+                if open_time < close_time
+                else datetime.combine(date + timedelta(days=1), close_time)
+            )
 
             while current_time < end_time:
                 slots.append(current_time.time())
@@ -530,7 +588,7 @@ class Place(models.Model):
 
     @property
     def review_count(self):
-        return self.reviews.filter(is_approved=True).count()
+        return self.reviews.filter(status="approved").count()
 
     @property
     def address(self):
@@ -744,7 +802,7 @@ class Table(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} ({self.hall.name})"
+        return f"{self.name} ({self.hall.name}, {self.seats} мест)"
 
 
 class Reservation(models.Model):
@@ -889,6 +947,12 @@ class MenuItem(models.Model):
 
 
 class Review(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Ожидает модерации"),
+        ("approved", "Одобрен"),
+        ("spam", "Спам"),
+        ("inappropriate", "Неуместный"),
+    ]
     place = models.ForeignKey("Place", on_delete=models.CASCADE, related_name="reviews")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews"
@@ -899,13 +963,14 @@ class Review(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-    is_approved = models.BooleanField(default=False, verbose_name="Одобрен")
-    is_spam = models.BooleanField(default=False, verbose_name="Спам")
-    is_inappropriate = models.BooleanField(default=False, verbose_name="Неуместный")
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending", verbose_name="Статус"
+    )
 
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
+        unique_together = ["user", "place"]
         ordering = ["-created_at"]
 
     def __str__(self):
@@ -922,12 +987,51 @@ def recalculate_rating_on_delete(sender, instance, **kwargs):
     instance.place.update_rating()
 
 
+def save_resized_image(self, image, size=(800, 800)):
+    img = PILImage.open(image)
+    img.thumbnail(size, PILImage.ANTIALIAS)
+    img_io = BytesIO()
+    img.save(img_io, format="JPEG", quality=85)
+    return ContentFile(img_io.getvalue(), name=image.name)
+
+
 class ReviewImage(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="review_images/", verbose_name="Изображение")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
+
+    def save(self, *args, **kwargs):
+        if self.image:
+            self.image = save_resized_image(self.image)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Image for review by {self.review.user.username}"
+
+
+class ReviewResponse(models.Model):
+    review = models.OneToOneField(
+        Review, on_delete=models.CASCADE, related_name="response"
+    )
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name="responses")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="review_responses",
+    )
+    text = models.TextField(verbose_name="Текст ответа")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата ответа")
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Дата обновления ответа"
+    )
+
+    class Meta:
+        verbose_name = "Ответ на отзыв"
+        verbose_name_plural = "Ответы на отзывы"
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Ответ на отзыв {self.review.id} для {self.place.name} от {self.user.username}"
 
 
 class Event(models.Model):

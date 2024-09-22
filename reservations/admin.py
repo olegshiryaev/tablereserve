@@ -313,22 +313,48 @@ class ReviewAdmin(admin.ModelAdmin):
         "place",
         "rating",
         "created_at",
-        "is_approved",
-        "is_spam",
-        "is_inappropriate",
+        "status",
+        "short_text",
     ]
-    list_filter = ["is_approved", "is_spam", "is_inappropriate"]
+    list_filter = ["status", "rating", "created_at"]
     search_fields = ["user__username", "place__name", "text"]
-    actions = ["approve_reviews", "mark_as_spam", "mark_as_inappropriate"]
+    actions = [
+        "approve_reviews",
+        "mark_as_spam",
+        "mark_as_inappropriate",
+        "reset_status",
+    ]
 
+    # Краткий текст отзыва (первые 50 символов)
+    def short_text(self, obj):
+        return obj.text[:50] + "..." if len(obj.text) > 50 else obj.text
+
+    short_text.short_description = "Текст отзыва"
+
+    # Действия для изменения статуса
     def approve_reviews(self, request, queryset):
-        queryset.update(is_approved=True)
+        queryset.update(status="approved")
+        self.message_user(request, "Выбранные отзывы были одобрены.")
 
     def mark_as_spam(self, request, queryset):
-        queryset.update(is_spam=True)
+        queryset.update(status="spam")
+        self.message_user(request, "Выбранные отзывы помечены как спам.")
 
     def mark_as_inappropriate(self, request, queryset):
-        queryset.update(is_inappropriate=True)
+        queryset.update(status="inappropriate")
+        self.message_user(request, "Выбранные отзывы помечены как неуместные.")
+
+    def reset_status(self, request, queryset):
+        queryset.update(status="pending")
+        self.message_user(
+            request, "Статус выбранных отзывов был сброшен на 'Ожидает модерации'."
+        )
+
+    # Название для действий в админке
+    approve_reviews.short_description = "Одобрить выбранные отзывы"
+    mark_as_spam.short_description = "Пометить как спам"
+    mark_as_inappropriate.short_description = "Пометить как неуместные"
+    reset_status.short_description = "Сбросить статус на 'Ожидает модерации'"
 
 
 @admin.register(ReviewImage)

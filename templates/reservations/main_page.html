@@ -24,7 +24,7 @@
             </picture>
             <div class="city-overlay"></div>
             <div class="city-content">
-                <h1 class="city-title">Рестораны и кафе в {{ city_name_locative|capfirst }}</h1>
+                <h1 class="city-title">Лучшие заведения в {{ city_name_locative|capfirst }}</h1>
                 <form class="city-search-form" action="{% url 'place_list' selected_city.slug %}" method="GET">
                     <input type="text" name="search" class="search-input" placeholder="Поиск ресторанов, кафе и баров" value="{{ search }}">
                     <button type="submit" class="search-button">Найти</button>

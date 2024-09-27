@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 ]
 
 SITE_ID = 1
+SITE_NAME = "Reserve.cafe"
 
 MIDDLEWARE = [
     "django_hosts.middleware.HostsRequestMiddleware",
@@ -96,6 +97,10 @@ TEMPLATES = [
 ]
 
 CSRF_COOKIE_HTTPONLY = False
+
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+SESSION_COOKIE_AGE = 1209600  # 2 недели
 
 
 # django-allauth

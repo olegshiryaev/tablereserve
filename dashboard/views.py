@@ -1,5 +1,10 @@
 from django.dispatch import receiver
-from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
+from django.http import (
+    Http404,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
@@ -66,6 +71,12 @@ from django.utils.crypto import get_random_string
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
+from django.views.generic import TemplateView
+
+
+@login_required
+def dashboard_home(request):
+    return render(request, "dashboard/home.html")
 
 
 class PlaceListView(LoginRequiredMixin, ListView):
@@ -86,26 +97,37 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "place"
 
     def dispatch(self, request, *args, **kwargs):
-        place = self.get_object()
+        # Получаем объект заведения, если не найдено - автоматически выбрасывается 404
+        place = get_object_or_404(Place, slug=kwargs.get("slug"))
 
-        # Check if the user is an admin or the owner of the establishment
-        if not request.user.is_admin and request.user not in place.manager.all():
+        # Проверяем права доступа
+        if not request.user.is_admin and place.manager != request.user:
             return HttpResponseForbidden("У вас нет прав на просмотр этой страницы.")
 
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        place = self.object
         context["form"] = kwargs.get(
             "form", PlaceForm(instance=self.object, user=self.request.user)
         )
-        context["created"] = self.request.GET.get("created", False)
-        context["is_edit_mode"] = self.request.GET.get(
-            "edit", False
-        )  # Флаг режима редактирования
+        # Добавляем связанные объекты и расписание работы
         context["work_schedule"] = WorkSchedule.get_sorted_schedules(self.object.id)
         context["halls"] = self.object.halls.all().prefetch_related("tables")
         context["tables"] = Table.objects.filter(hall__place=self.object)
+
+        # Генерация абсолютного URL
+        context["absolute_url"] = self.request.build_absolute_uri(
+            self.object.get_absolute_url()
+        )
+
+        # Сначала обложка, затем остальные изображения
+        media_list = list(place.images.filter(is_cover=True)) + list(
+            place.images.filter(is_cover=False)
+        )
+        context["media_list"] = media_list
+        context["has_images"] = bool(media_list)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -115,58 +137,92 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
         )
         if form.is_valid():
             place = form.save(commit=False)
+
+            # Проверяем, изменилось ли название заведения для обновления slug
             if place.name != self.object.name:
                 place.slug = slugify(place.name)
             place.save()
             form.save_m2m()  # Сохранение полей ManyToMany
 
-            # Обновление расписания работы
-            for schedule in place.work_schedule.all():
-                open_time = request.POST.get(f"open_time_{schedule.day}")
-                close_time = request.POST.get(f"close_time_{schedule.day}")
-                is_closed = request.POST.get(f"is_closed_{schedule.day}") == "1"
-
-                if is_closed:
-                    schedule.open_time = None
-                    schedule.close_time = None
-                    schedule.is_closed = True
-                else:
-                    schedule.open_time = open_time
-                    schedule.close_time = close_time
-                    schedule.is_closed = False
-                schedule.save()
+            # Обновляем расписание работы
+            self.update_work_schedule(request, place)
 
             return redirect("dashboard:place_detail", slug=place.slug)
         else:
             context = self.get_context_data(form=form)
             return self.render_to_response(context)
 
+    def update_work_schedule(self, request, place):
+        """Обновление расписания работы заведения"""
+        for schedule in place.work_schedule.all():
+            open_time = request.POST.get(f"open_time_{schedule.day}")
+            close_time = request.POST.get(f"close_time_{schedule.day}")
+            is_closed = request.POST.get(f"is_closed_{schedule.day}") == "1"
 
-class PlaceCreateView(LoginRequiredMixin, CreateView):
+            if is_closed:
+                schedule.open_time = None
+                schedule.close_time = None
+                schedule.is_closed = True
+            else:
+                schedule.open_time = open_time
+                schedule.close_time = close_time
+                schedule.is_closed = False
+
+            schedule.save()
+
+
+class PlaceCreateView(CreateView):
     model = Place
     form_class = PlaceForm
     template_name = "dashboard/place_form.html"
-    success_url = reverse_lazy("dashboard:place_list")
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_admin:
-            return HttpResponseForbidden(
-                "У вас нет прав на добавление нового заведения."
-            )
-        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
-        # Передаем пользователя в kwargs формы
+        # Передаем пользователя и request в kwargs формы
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
+        kwargs["request"] = self.request
         return kwargs
 
     def form_valid(self, form):
+        # Генерируем slug для заведения
         form.instance.slug = slugify(form.instance.name)
-        return super().form_valid(form)
+
+        # Проверка роли пользователя
+        if self.request.user.is_authenticated and self.request.user.is_admin:
+            # Автоматическая верификация для администраторов
+            form.instance.is_active = True
+        else:
+            # Для обычных пользователей и незалогиненных is_active = False
+            form.instance.is_active = False
+
+        # Сохраняем объект
+        response = super().form_valid(form)
+
+        # Возвращаем редирект после успешного сохранения
+        return response
 
     def get_success_url(self):
-        return reverse_lazy("dashboard:place_detail", kwargs={"slug": self.object.slug})
+        # Проверяем, является ли пользователь администратором
+        if self.request.user.is_authenticated and self.request.user.is_admin:
+            # Администраторы перенаправляются на детальную страницу заведения
+            return reverse_lazy(
+                "dashboard:place_detail", kwargs={"slug": self.object.slug}
+            )
+
+        # Для обычных пользователей или менеджеров добавляем email в URL
+        email = self.object.manager.email if self.object.manager else ""
+        success_url = reverse_lazy("dashboard:place_submission_success")
+        return f"{success_url}?email={email}" if email else success_url
+
+
+class PlaceSubmissionSuccessView(TemplateView):
+    template_name = "dashboard/place_submission_success.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["email"] = self.request.GET.get("email")
+
+        return context
 
 
 class PlaceDeleteView(LoginRequiredMixin, DeleteView):
@@ -184,6 +240,22 @@ class PlaceDeleteView(LoginRequiredMixin, DeleteView):
         context = super().get_context_data(**kwargs)
         context["place"] = self.get_object()
         return context
+
+
+class ToggleVerifiedView(UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_admin  # Только администратор может менять статус
+
+    def post(self, request, *args, **kwargs):
+        place_id = kwargs.get("pk")
+        place = get_object_or_404(Place, pk=place_id)
+
+        # Переключение статуса проверки
+        place.is_active = not place.is_active
+        place.save()
+
+        # Перенаправление обратно на страницу заведения
+        return redirect(reverse("dashboard:place_detail", kwargs={"slug": place.slug}))
 
 
 @login_required
@@ -297,8 +369,7 @@ class PlaceImageCreateView(CreateView):
     template_name = "dashboard/placeimage_form.html"
 
     def form_valid(self, form):
-        place_id = self.kwargs.get("place_id")
-        place = get_object_or_404(Place, id=place_id)
+        place = get_object_or_404(Place, id=self.kwargs["place_id"])
         form.instance.place = place
         return super().form_valid(form)
 
@@ -321,12 +392,22 @@ class PlaceImageUpdateView(UpdateView):
 
 class PlaceImageDeleteView(DeleteView):
     model = PlaceImage
-    template_name = "dashboard/placeimage_confirm_delete.html"
 
-    def get_success_url(self):
-        return reverse_lazy(
-            "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
-        )
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return JsonResponse({"success": True})
+
+
+def set_cover_image(request, pk):
+    image = get_object_or_404(PlaceImage, pk=pk)
+
+    # Установим текущее изображение обложкой, сбросив предыдущие
+    PlaceImage.objects.filter(place=image.place).update(is_cover=False)
+    image.is_cover = True
+    image.save()
+
+    return redirect("dashboard:place_detail", slug=image.place.slug)
 
 
 # Представление для списка городов
@@ -850,8 +931,8 @@ class HallCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_place(self):
-        place_slug = self.kwargs.get("slug")
-        return Place.objects.get(slug=place_slug)
+        place_id = self.kwargs.get("place_id")
+        return Place.objects.get(id=place_id)
 
     def get_success_url(self):
         return reverse_lazy(
@@ -861,9 +942,19 @@ class HallCreateView(LoginRequiredMixin, CreateView):
 
 class HallUpdateView(LoginRequiredMixin, UpdateView):
     model = Hall
-    fields = ["name", "kind", "hall_type", "description", "number_of_seats", "area"]
+    form_class = HallForm
     template_name = "dashboard/hall_form.html"
     context_object_name = "hall"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = kwargs.get("form", HallForm(instance=self.object))
+        return context
+
+    def form_valid(self, form):
+        # При редактировании зала, не нужно привязывать его к заведению повторно,
+        # так как он уже привязан через внешний ключ.
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse_lazy(

@@ -104,7 +104,7 @@ def format_russian_date(date):
 
 
 def calculate_available_time_slots(place, selected_date):
-    if place is None:
+    if place is None or selected_date is None:
         return []
 
     day_name = selected_date.strftime("%a").upper()  # Получаем название дня недели
@@ -132,22 +132,33 @@ def calculate_available_time_slots(place, selected_date):
     now = datetime.now()
     if selected_date == now.date():
         # Рассчитываем ближайший 30-минутный интервал
-        if now.minute < 30:
-            next_half_hour = now.replace(minute=30, second=0, microsecond=0)
-        else:
-            next_half_hour = (now + timedelta(hours=1)).replace(
-                minute=0, second=0, microsecond=0
+        minutes = now.minute
+        next_interval = now.replace(
+            minute=(minutes // place.booking_interval + 1)
+            * place.booking_interval
+            % 60,
+            hour=(
+                now.hour
+                + (minutes // place.booking_interval + 1)
+                // (60 // place.booking_interval)
             )
+            % 24,
+            second=0,
+            microsecond=0,
+        )
 
         current_time = max(
-            current_time, next_half_hour
+            current_time, next_interval
         )  # Берём максимальное из времени открытия или ближайшего интервала
 
     end_time = datetime.combine(selected_date, close_time)
 
+    # Используем интервал бронирования из поля заведения
+    interval = timedelta(minutes=place.booking_interval)
+
     while current_time <= end_time:
         time_slots.append(current_time.strftime("%H:%M"))
-        current_time += timedelta(minutes=30)  # Интервал в 30 минут
+        current_time += interval
 
     # Если заведение закрывается после полуночи, добавляем слоты следующего дня
     if next_day_close_time:
@@ -157,6 +168,6 @@ def calculate_available_time_slots(place, selected_date):
 
         while current_time <= end_time:
             time_slots.append(current_time.strftime("%H:%M"))
-            current_time += timedelta(minutes=30)
+            current_time += interval
 
     return time_slots

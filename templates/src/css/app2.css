@@ -90,3 +90,46 @@
 .form-control {
     margin-bottom: 0.5rem;
 }
+
+/* Стиль для бейджа "Обложка" */
+.cover-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    border-radius: 3px;
+    z-index: 10;
+}
+
+/* Стиль для бейджа "Сделать обложкой" */
+.make-cover-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: #6c757d; /* Цвет серого бейджа */
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    border-radius: 3px;
+    z-index: 10;
+    text-decoration: none; /* Убираем подчеркивание ссылки */
+}
+
+.make-cover-badge:hover {
+    background-color: #5a6268; /* Более тёмный цвет при наведении */
+    text-decoration: none;
+}
+
+.btn-danger {
+    background-color: #dc3545; /* Красный цвет */
+    border: none; /* Убираем границы */
+}
+
+.btn-danger:hover {
+    background-color: #c82333; /* Темнее при наведении */
+}

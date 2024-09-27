@@ -4,8 +4,14 @@ from . import views
 app_name = "dashboard"
 
 urlpatterns = [
+    path("dashboard/", views.dashboard_home, name="main"),
     path("dashboard/places/", views.PlaceListView.as_view(), name="place_list"),
     path("dashboard/places/add/", views.PlaceCreateView.as_view(), name="place_create"),
+    path(
+        "dashboard/places/success/",
+        views.PlaceSubmissionSuccessView.as_view(),
+        name="place_submission_success",
+    ),
     path(
         "dashboard/places/requests/",
         views.review_place_requests,
@@ -21,7 +27,12 @@ urlpatterns = [
         views.PlaceDeleteView.as_view(),
         name="place_delete",
     ),
-    path("dashboard/reservations/", views.all_reservations, name="all_reservations"),
+    path(
+        "place/<int:pk>/toggle-verified/",
+        views.ToggleVerifiedView.as_view(),
+        name="toggle_verified",
+    ),
+    path("dashboard/reservations/", views.all_reservations, name="reservation_list"),
     path(
         "dashboard/reservations/<int:reservation_id>/",
         views.reservation_detail,
@@ -48,6 +59,11 @@ urlpatterns = [
         "dashboard/places/images/<int:pk>/delete/",
         views.PlaceImageDeleteView.as_view(),
         name="placeimage_delete",
+    ),
+    path(
+        "place/image/<int:pk>/set_cover/",
+        views.set_cover_image,
+        name="placeimage_set_cover",
     ),
     # City URLs
     path("dashboard/cities/", views.CityListView.as_view(), name="city_list"),
@@ -136,20 +152,34 @@ urlpatterns = [
         name="reject_place_request",
     ),
     path(
-        "place/<slug:slug>/hall/add/",
+        "dashboard/places/<int:place_id>/hall/add/",
         views.HallCreateView.as_view(),
         name="hall_create",
     ),
-    path("hall/<int:pk>/edit/", views.HallUpdateView.as_view(), name="hall_edit"),
-    path("hall/<int:pk>/delete/", views.HallDeleteView.as_view(), name="hall_delete"),
     path(
-        "place/<int:place_id>/table/add/",
+        "dashboard/places/<int:place_id>/hall/<int:pk>/edit/",
+        views.HallUpdateView.as_view(),
+        name="hall_edit",
+    ),
+    path(
+        "dashboard/places/<int:place_id>/hall/<int:pk>/delete/",
+        views.HallDeleteView.as_view(),
+        name="hall_delete",
+    ),
+    path(
+        "dashboard/places/<int:place_id>/table/add/",
         views.TableCreateView.as_view(),
         name="table_create",
     ),
-    path("table/<int:pk>/edit/", views.TableUpdateView.as_view(), name="table_edit"),
     path(
-        "table/<int:pk>/delete/", views.TableDeleteView.as_view(), name="table_delete"
+        "dashboard/places/<int:place_id>/table/<int:pk>/edit/",
+        views.TableUpdateView.as_view(),
+        name="table_edit",
+    ),
+    path(
+        "dashboard/places/<int:place_id>/table/<int:pk>/delete/",
+        views.TableDeleteView.as_view(),
+        name="table_delete",
     ),
     path(
         "place/<int:place_id>/feature/add/",

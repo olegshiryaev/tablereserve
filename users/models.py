@@ -159,7 +159,7 @@ class Profile(models.Model):
         default=timezone.now, verbose_name="Дата регистрации"
     )
     email_notifications = models.BooleanField(
-        default=False,
+        default=True,
         verbose_name="Получать уведомления по электронной почте",
         help_text="Включите этот флажок, чтобы получать уведомления на электронную почту.",
     )
@@ -174,11 +174,12 @@ class Profile(models.Model):
         Возвращает отображаемое имя:
         1. Если в профиле есть имя, возвращает его.
         2. Иначе возвращает username пользователя.
+        3. Если username отсутствует, возвращает email.
         """
-        return self.name if self.name else self.user.username
+        return self.name or self.user.username or self.user.email
 
     def save(self, *args, **kwargs):
-        # Deleting the previous avatar when updating an object
+        # Удаление предыдущего аватара, если был загружен новый
         if self.pk:
             old_instance = Profile.objects.get(pk=self.pk)
             if old_instance.avatar and old_instance.avatar != self.avatar:

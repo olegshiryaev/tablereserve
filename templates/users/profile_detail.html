@@ -15,14 +15,14 @@
 {% block content %}
 <div class="container pt-5 mb-5">
     <!-- Профиль пользователя -->
-    <div class="user-info-block bg-white p-4 rounded d-flex align-items-center shadow">
+    <div class="user-info-block bg-white p-4 rounded d-flex flex-column flex-md-row align-items-center shadow">
         <!-- Аватар пользователя -->
-        <div class="user-avatar me-4">
-            <img src="{{ profile_user.profile.get_avatar_url }}" class="rounded-circle" style="max-width: 120px;" alt="{{ profile_user.profile }}">
+        <div class="user-avatar mb-3 mb-md-0 me-md-4 mx-auto mx-md-0">
+            <img src="{{ profile_user.profile.get_avatar_url }}" class="rounded-circle" alt="{{ profile_user.profile }}">
         </div>
         
         <!-- Основная информация -->
-        <div class="user-details">
+        <div class="user-details text-center text-md-start">
             <h4 class="mb-1">{{ profile_user.profile }}</h4>
             <!-- Статус активности пользователя -->
             <p class="text-muted mb-2">{{ last_seen_message }}</p>
@@ -37,7 +37,7 @@
     </div>
         
     <div class="row mt-5">
-        <div class="col-md-12">
+        <div class="col-12">
             <!-- Содержимое вкладок (Отзывы, Заказы, Избранное) -->
             <ul class="nav nav-tabs" id="profileTabs" role="tablist">
                 <!-- Отзывы всегда видимы -->

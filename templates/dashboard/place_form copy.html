@@ -1,0 +1,581 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid p-0">
+  <a href="{% url 'dashboard:place_list' %}" class="btn btn-secondary mb-4">Назад</a>
+  <h2 class="mb-3">{% if place %}{{ place.name }}{% else %}Добавить заведение{% endif %}</h2>
+  <div class="card">
+    <div class="card-body">
+      {% if place %}
+        <button id="editButton" class="btn btn-primary mb-3">Редактировать</button>
+        <button id="cancelButton" class="btn btn-danger mb-3" style="display:none;">Отменить</button>
+      {% endif %}
+      
+      <form id="placeForm" method="post" enctype="multipart/form-data" class="form-horizontal needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <!-- Общие ошибки формы -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ form.non_field_errors|join:" " }}
+            </div>
+        {% endif %}
+        
+        <!-- Навигация по вкладкам -->
+        <ul class="nav nav-tabs" id="placeFormTabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="basic-info-tab" data-bs-toggle="tab" href="#basic-info" role="tab" aria-controls="basic-info" aria-selected="true">Основная информация</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="contact-info-tab" data-bs-toggle="tab" href="#contact-info" role="tab" aria-controls="contact-info" aria-selected="false">Контактные данные</a>
+          </li>
+          {% if place %}
+          <li class="nav-item">
+            <a class="nav-link" id="images-tab" data-bs-toggle="tab" href="#images" role="tab" aria-controls="images" aria-selected="false">Изображения</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="features-tab" data-bs-toggle="tab" href="#features" role="tab" aria-controls="features" aria-selected="false">Особенности</a>
+        </li>
+          <li class="nav-item">
+            <a class="nav-link" id="halls-tab" data-bs-toggle="tab" href="#halls" role="tab" aria-controls="halls" aria-selected="false">Зоны</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tables-tab" data-bs-toggle="tab" href="#tables" role="tab" aria-controls="tables" aria-selected="false">Столики</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="work-schedule-tab" data-bs-toggle="tab" href="#work-schedule" role="tab" aria-controls="work-schedule" aria-selected="false">Время работы</a>
+          </li>
+          {% endif %}
+        </ul>
+
+        <!-- Содержимое вкладок -->
+        <div class="tab-content" id="placeFormTabsContent">
+            <!-- Основная информация -->
+            <div class="tab-pane fade show active" id="basic-info" role="tabpanel" aria-labelledby="basic-info-tab">
+                <div class="row mb-3 mt-3">
+                    <div class="col-xl-2">
+                        {{ form.type.label_tag }}
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.type.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-3">
+                        {{ form.name.label_tag }}
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.name.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-3">
+                        {{ form.city.label_tag }}
+                        {{ form.city }}
+                        {% if form.city.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.city.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-2">
+                        {{ form.average_check.label_tag }}
+                        {{ form.average_check }}
+                        {% if form.average_check.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.average_check.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-2">
+                        {{ form.capacity.label_tag }}
+                        {{ form.capacity }}
+                        {% if form.capacity.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.capacity.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-3 mt-3">
+                    <div class="col-xl-2">
+                        {{ form.street_type.label_tag }}
+                        {{ form.street_type }}
+                        {% if form.street_type.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.street_type.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-3">
+                        {{ form.street_name.label_tag }}
+                        {{ form.street_name }}
+                        {% if form.street_name.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.street_name.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-2">
+                        {{ form.house_number.label_tag }}
+                        {{ form.house_number }}
+                        {% if form.house_number.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.house_number.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-2">
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.phone.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-xl-3">
+                        {{ form.website.label_tag }}
+                        {{ form.website }}
+                        {% if form.website.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.website.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.description.label_tag }}
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.description.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.short_description.label_tag }}
+                    {{ form.short_description }}
+                    {% if form.short_description.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.short_description.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="id_cuisines" class="form-label">Особенности:</label>
+                    </div>
+                    {% for option in form.features.field.choices %}
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="{{ form.features.name }}" value="{{ option.0 }}" {% if option.0 in form.features.value %}checked{% endif %}>
+                                    {{ option.1 }}
+                                </label>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="id_cuisines" class="form-label">Кухни:</label>
+                    </div>
+                    {% for option in form.cuisines.field.choices %}
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="{{ form.cuisines.name }}" value="{{ option.0 }}" {% if option.0 in form.cuisines.value %}checked{% endif %}>
+                                    {{ option.1 }}
+                                </label>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if user.is_admin %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="id_tags" class="form-label">Теги:</label>
+                    </div>
+                    {% for option in form.tags.field.choices %}
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="{{ form.tags.name }}" value="{{ option.0 }}" {% if option.0 in form.tags.value %}checked{% endif %}>
+                                    {{ option.1 }}
+                                </label>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        {{ form.manager.label_tag }}
+                        {{ form.manager }}
+                        {% if form.manager.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.manager.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    {{ form.is_active.label_tag }}
+                    {{ form.is_active }}
+                    {% if form.is_active.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.is_active.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    {{ form.logo.label_tag }}
+                    {{ form.logo }}
+                    {% if form.logo.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.logo.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>          
+            <!-- Контактные данные -->
+            <div class="tab-pane fade" id="contact-info" role="tabpanel" aria-labelledby="contact-info-tab">
+                <div class="row mb-3 mt-3">
+                    <div class="col-md-4">
+                        {{ form.vkontakte.label_tag }}
+                        {{ form.vkontakte }}
+                        {% if form.vkontakte.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.vkontakte.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.odnoklassniki.label_tag }}
+                        {{ form.odnoklassniki }}
+                        {% if form.odnoklassniki.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.odnoklassniki.errors|join:" " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.instagram.label_tag }}
+                        {{ form.instagram }}
+                        {% if form.instagram.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.instagram.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        {{ form.telegram.label_tag }}
+                        {{ form.telegram }}
+                        {% if form.telegram.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.telegram.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.whatsapp.label_tag }}
+                        {{ form.whatsapp }}
+                        {% if form.whatsapp.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.whatsapp.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.facebook.label_tag }}
+                        {{ form.facebook }}
+                        {% if form.facebook.errors %}
+                        <div class="text-danger mt-1">
+                                {{ form.facebook.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                    {{ form.contact_email.label_tag }}
+                    {{ form.contact_email }}
+                    {% if form.contact_email.errors %}
+                    <div class="text-danger mt-1">
+                            {{ form.contact_email.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                    {{ form.service_email.label_tag }}
+                    {{ form.service_email }}
+                    {% if form.service_email.errors %}
+                    <div class="text-danger mt-1">
+                            {{ form.service_email.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+
+          <!-- Изображения -->
+          {% if place %}
+            <div class="tab-pane fade" id="images" role="tabpanel" aria-labelledby="images-tab">
+                <h3 class="mt-3">Изображения</h3>
+                <a href="{% url 'dashboard:placeimage_add' place_id=place.id %}" class="btn btn-primary mb-3">Добавить изображение</a>
+                <div class="row">
+                    {% for media in place.images.all %}
+                    <div class="col-md-3 d-flex flex-column align-items-center">
+                        <div class="image-container">
+                            {% if media.embed_code %}
+                                {{ media.get_media_display|safe }}
+                            {% elif media.video_url %}
+                                <iframe width="240" height="160" src="{{ media.video_url }}" frameborder="0" allowfullscreen></iframe>
+                            {% elif media.image %}
+                                <img src="{{ media.image.url }}" alt="{{ media }}" class="img-thumbnail image-fit">
+                            {% else %}
+                                <img src="{% static 'images/default_image.jpg' %}" alt="No Media Available" class="img-thumbnail image-fit">
+                            {% endif %}
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'dashboard:placeimage_edit' pk=media.pk %}" class="btn btn-secondary btn-sm">Редактировать</a>
+                            <a href="{% url 'dashboard:placeimage_delete' pk=media.pk %}" class="btn btn-danger btn-sm">Удалить</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="tab-pane fade" id="work-schedule" role="tabpanel" aria-labelledby="work-schedule-tab">
+                <!-- Содержимое вкладки с временем работы -->
+                <div class="row mb-3 mt-3">
+                    {% for schedule in place.work_schedule.all %}
+                        <div class="col-xl-2">
+                            <label>{{ schedule.get_day_display }}</label>
+                            <input type="time" name="open_time_{{ schedule.day }}" value="{{ schedule.open_time|time:'H:i' }}" class="form-control" {% if not is_edit_mode %}disabled{% endif %}>
+                            <input type="time" name="close_time_{{ schedule.day }}" value="{{ schedule.close_time|time:'H:i' }}" class="form-control" {% if not is_edit_mode %}disabled{% endif %}>
+                            <input type="checkbox" name="is_closed_{{ schedule.day }}" value="1" {% if schedule.is_closed %}checked{% endif %} {% if not is_edit_mode %}disabled{% endif %}> Закрыто
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Особенности -->
+            <div class="tab-pane fade" id="features" role="tabpanel" aria-labelledby="features-tab">
+                <a href="{% url 'dashboard:place_feature_add' place.id %}" class="btn btn-sm btn-success mb-3">Добавить особенность</a>
+        
+                <table class="table table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th>Особенность</th>
+                            <th>Описание</th>
+                            <th>Отображать на карточке</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for feature in place.place_features.all %}
+                            <tr>
+                                <td>{{ feature.feature.name }}</td>
+                                <td>{{ feature.description }}</td>
+                                <td>
+                                    {% if feature.display_on_card %}
+                                        <span class="text-success">Да</span>
+                                    {% else %}
+                                        <span class="text-danger">Нет</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'dashboard:place_feature_edit' pk=feature.id %}" class="btn btn-sm btn-primary">Редактировать</a>
+                                    <a href="{% url 'dashboard:place_feature_delete' pk=feature.id %}" class="btn btn-sm btn-danger">Удалить</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Halls Tab -->
+            <div class="tab-pane fade" id="halls" role="tabpanel" aria-labelledby="halls-tab">
+                <a href="{% url 'dashboard:hall_create' slug=place.slug %}" class="btn btn-sm btn-success mb-3">Добавить зону</a>
+                <table class="table table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Вид</th>
+                            <th>Тип</th>
+                            <th>Количество мест</th>
+                            <th>Площадь (м²)</th>
+                            <th>Описание</th>
+                            <th>Действия</th> <!-- Actions column -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hall in halls %}
+                        <tr>
+                            <td>{{ hall.name }}</td>
+                            <td>{{ hall.get_kind_display }}</td>
+                            <td>{{ hall.get_hall_type_display }}</td>
+                            <td>{{ hall.number_of_seats|default_if_none:"" }}</td>
+                            <td>{{ hall.area|default_if_none:""}}</td>
+                            <td>{{ hall.description|default_if_none:"" }}</td>
+                            <td>
+                                <a href="{% url 'dashboard:hall_edit' hall.pk %}" class="btn btn-sm btn-primary">Редактировать</a>
+                                <a href="{% url 'dashboard:hall_delete' hall.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('Вы уверены, что хотите удалить эту зону?');">Удалить</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Tables Tab -->
+            <div class="tab-pane fade" id="tables" role="tabpanel" aria-labelledby="tables-tab">
+                <a href="{% url 'dashboard:table_create' place_id=place.id %}" class="btn btn-sm btn-success mb-3">Добавить столик</a>
+                
+                {% if place.halls.all %}
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Зал</th>
+                                <th>Название столика</th>
+                                <th>Мест</th>
+                                <th>Фото</th>
+                                <th>Количество</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hall in place.halls.all %}
+                                {% for table in hall.tables.all %}
+                                    <tr>
+                                        <td>{{ hall.name }}</td>
+                                        <td>{{ table.name }}</td>
+                                        <td>{{ table.seats }}</td>
+                                        <td>
+                                            {% if table.photo %}
+                                                <img src="{{ table.photo.url }}" alt="Фото столика" style="width: 100px; height: auto;">
+                                            {% else %}
+                                                Нет фото
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ table.quantity }}</td>
+                                        <td>
+                                            <a href="{% url 'dashboard:table_edit' pk=table.id %}" class="btn btn-sm btn-primary">Редактировать</a>
+                                            <a href="{% url 'dashboard:table_delete' pk=table.id %}" class="btn btn-sm btn-danger">Удалить</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>В этом заведении нет доступных залов и столиков.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary" id="saveButton">Сохранить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно подтверждения -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Заявка принята</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Ваша заявка принята и будет рассмотрена в течение 2 часов. После этого заведение станет активным.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% if place %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Открываем модальное окно, если пользователь только что создал заведение
+        {% if created %}
+        var confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        confirmationModal.show();
+        {% endif %}
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var formElements = document.getElementById('placeForm').elements;
+        var hasErrors = {{ form.errors|yesno:"true,false" }};
+        
+        if (!hasErrors) {
+            for (var i = 0; i < formElements.length; i++) {
+                formElements[i].disabled = true;
+            }
+            document.getElementById('saveButton').style.display = 'none';
+        }
+
+        document.getElementById('editButton').addEventListener('click', function() {
+            for (var i = 0; i < formElements.length; i++) {
+                formElements[i].disabled = false;
+            }
+            document.getElementById('saveButton').style.display = 'block';
+            document.getElementById('cancelButton').style.display = 'block';
+            this.style.display = 'none';
+        });
+
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            for (var i = 0; i < formElements.length; i++) {
+                formElements[i].disabled = true;
+            }
+            document.getElementById('saveButton').style.display = 'none';
+            document.getElementById('editButton').style.display = 'block';
+            this.style.display = 'none';
+        });
+
+        // Добавляем красную обводку полям с ошибками
+        if (hasErrors) {
+            for (var i = 0; i < formElements.length; i++) {
+                var field = formElements[i];
+                if (field.closest('.form-group') && field.closest('.form-group').querySelector('.text-danger')) {
+                    field.classList.add('is-invalid');
+                    formElements[i].disabled = false;  // Оставляем редактируемыми поля с ошибками
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}
+

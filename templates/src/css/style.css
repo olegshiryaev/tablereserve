@@ -1190,20 +1190,20 @@ footer a:hover {
         display: none;
     }
 
-    .nav {
+    /* .nav {
         display: none;
         position: fixed;
-        top: 70px; /* Положение под навбаром, измените значение в зависимости от высоты навбара */
-        right: -250px; /* Начальное положение за пределами экрана */
+        top: 70px;
+        right: -250px;
         width: 250px;
-        height: calc(100% - 70px); /* Высота экрана минус высота навбара */
+        height: calc(100% - 70px);
         background-color: white;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         transition: right 0.3s ease;
-        z-index: 1000; /* Убедитесь, что меню всегда сверху */
+        z-index: 1000;
         flex-direction: column;
         padding: 20px;
-    }
+    } */
 
     .nav.active {
         right: 0; /* Положение, когда меню открыто */
@@ -1211,6 +1211,16 @@ footer a:hover {
 
     .nav-item {
         margin: 10px 0;
+    }
+
+    /* .nav-tabs {
+        display: flex;
+        flex-direction: column;
+    } */
+
+    .nav-link {
+        width: 100%;
+        margin-bottom: 5px;
     }
 
     .popular-restaurants .places-cards {
@@ -1352,6 +1362,20 @@ footer a:hover {
         margin-top: 1rem;
     }
 
+    .user-info-block {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .user-avatar {
+        margin-bottom: 15px;
+    }
+
+    .user-details {
+        text-align: center;
+    }
+
     footer .container {
         flex-direction: column;
         align-items: center;
@@ -1360,6 +1384,29 @@ footer a:hover {
 
     footer .footer-info, .social-media, .contact-info {
         margin: 20px 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .user-avatar img {
+        width: 80px;
+        height: 80px;
+    }
+
+    .user-info-block {
+        padding: 15px;
+    }
+
+    .user-details h4 {
+        font-size: 1.25rem;
+    }
+
+    .btn-primary {
+        width: 100%;
+    }
+
+    .rating-stars {
+        flex-wrap: wrap;
     }
 }
 
@@ -2775,6 +2822,7 @@ a.place-detail-item-value:hover {
     top: 8px;
     width: 28px; /* Ширина иконки */
     height: 28px; /* Высота иконки */
+    object-fit: cover;
     border-radius: 50%; /* Круглая иконка */
     margin-right: 8px; /* Отступ справа от иконки */
     vertical-align: middle; /* Выравнивание по центру */
@@ -3147,6 +3195,7 @@ User Profile
     width: 120px;
     height: 120px;
     object-fit: cover;
+    border-radius: 50%;
     box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
 }
 

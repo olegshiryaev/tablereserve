@@ -1,0 +1,67 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <h1 class="h1 mb-3">Дашборд</h1>
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 text-center d-flex flex-column">
+                <div class="card-body flex-grow-1">
+                    <h5 class="card-title">Заведения</h5>
+                    <p class="card-text">Управляйте заведениями на сайте</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'dashboard:place_list' %}" class="btn btn-primary w-100">Перейти</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 text-center d-flex flex-column">
+                <div class="card-body flex-grow-1">
+                    <h5 class="card-title">Отзывы</h5>
+                    <p class="card-text">Просмотр и управление отзывами</p>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-primary w-100">Перейти</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 text-center d-flex flex-column">
+                <div class="card-body flex-grow-1">
+                    <h5 class="card-title">Акции</h5>
+                    <p class="card-text">Управляйте акциями и предложениями</p>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-primary w-100">Перейти</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 text-center d-flex flex-column">
+                <div class="card-body flex-grow-1">
+                    <h5 class="card-title">Бронирования</h5>
+                    <p class="card-text">Просмотр и управление бронированиями</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'dashboard:reservation_list' %}" class="btn btn-primary w-100">Перейти</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -135,6 +135,7 @@ class PlaceAdmin(admin.ModelAdmin):
         "is_active",
         "cover_image_display",
         "logo_display",
+        "manager",
     )
     search_fields = ("name", "city__name", "address", "phone", "tags__name")
     list_filter = ("city", "type", "is_active")
@@ -172,8 +173,7 @@ class PlaceAdmin(admin.ModelAdmin):
                     "odnoklassniki",
                     "instagram",
                     "facebook",
-                    "contact_email",
-                    "service_email",
+                    "email",
                     "website",
                 )
             },
@@ -191,6 +191,7 @@ class PlaceAdmin(admin.ModelAdmin):
                     "booking_interval",
                     "logo",
                     "rating",
+                    "manager",
                 )
             },
         ),

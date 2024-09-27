@@ -1,0 +1,27 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="alert alert-success" role="alert">
+    <h2>Заведение добавлено!</h2>
+    <p>Ваше заведение будет опубликовано после модерации.</p>
+    {% if email %}
+    <p>На электронную почту <strong>{{ email }}</strong> мы отправим данные для доступа к личному кабинету.</p>
+    {% endif %}
+    <a href="{% url 'dashboard:place_create' %}" class="btn btn-success">Добавить ещё</a>
+</div>
+{% endblock %}

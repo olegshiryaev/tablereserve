@@ -12,7 +12,7 @@ class CityMiddleware:
             "secure-admin/",
             "profile/",
             "accounts/",
-            "dashboard/",
+            "dashboard",
             "place/",
             "welcome/",
             "user/",

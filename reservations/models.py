@@ -168,7 +168,7 @@ class PlaceImage(models.Model):
         "Hall",
         on_delete=models.SET_NULL,
         related_name="images",
-        verbose_name="Зал",
+        verbose_name="Зона",
         null=True,
         blank=True,
     )
@@ -201,21 +201,21 @@ class PlaceImage(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
-            img = Image.open(self.image.path)
-            max_width, max_height = 1200, 800
+            try:
+                img = Image.open(self.image.path)
+                max_width, max_height = 1200, 800
 
-            # Изменение размера изображения, если оно превышает заданные параметры
-            if img.width > max_width or img.height > max_height:
-                img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+                # Изменение размера изображения, если оно превышает заданные параметры
+                if img.width > max_width or img.height > max_height:
+                    img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
 
-            # Сжатие изображения
-            img = ImageOps.exif_transpose(
-                img
-            )  # Учитываем EXIF-данные для правильной ориентации
-            img.save(
-                self.image.path, quality=85, optimize=True
-            )  # Качество 85%, включаем оптимизацию
+                # Сжатие изображения и учёт ориентации EXIF
+                img = ImageOps.exif_transpose(img)
+                img.save(self.image.path, quality=85, optimize=True)
+            except Exception as e:
+                raise ValidationError(f"Ошибка при обработке изображения: {e}")
 
+        # Устанавливаем только одно изображение обложки
         if self.is_cover:
             self.place.images.exclude(id=self.id).update(is_cover=False)
 
@@ -237,9 +237,9 @@ class PlaceImage(models.Model):
 
 @receiver(post_delete, sender=PlaceImage)
 def delete_image_file(sender, instance, **kwargs):
-    if instance.image:
-        if os.path.exists(instance.image.path):
-            os.remove(instance.image.path)
+    """Удаляем файл изображения при удалении модели."""
+    if instance.image and os.path.exists(instance.image.path):
+        os.remove(instance.image.path)
 
 
 class PlaceManager(models.Manager):
@@ -296,12 +296,13 @@ class Place(models.Model):
         blank=True,
         null=True,
         verbose_name="Тип улицы",
+        default="",
     )
     street_name = models.CharField(
         max_length=255, blank=True, null=True, verbose_name="Название улицы"
     )
     house_number = models.CharField(
-        max_length=10, blank=True, null=True, verbose_name="Номер дома"
+        max_length=5, blank=True, null=True, verbose_name="Номер дома"
     )
     phone = models.CharField(
         max_length=12,
@@ -312,35 +313,30 @@ class Place(models.Model):
             )
         ],
         verbose_name="Телефон",
-        blank=True,
-        null=True,
     )
+    # Социальные сети
     facebook = models.URLField(
         max_length=255,
         blank=True,
         null=True,
-        verbose_name="Facebook",
         validators=[URLValidator],
     )
     instagram = models.URLField(
         max_length=255,
         blank=True,
         null=True,
-        verbose_name="Instagram",
         validators=[URLValidator],
     )
     telegram = models.URLField(
         max_length=255,
         blank=True,
         null=True,
-        verbose_name="Telegram",
         validators=[URLValidator],
     )
     whatsapp = models.CharField(
         max_length=12,
         blank=True,
         null=True,
-        verbose_name="WhatsApp",
         validators=[
             RegexValidator(
                 regex=r"^\+?1?\d{9,15}$",
@@ -354,7 +350,6 @@ class Place(models.Model):
         max_length=12,
         blank=True,
         null=True,
-        verbose_name="Viber",
         validators=[
             RegexValidator(
                 regex=r"^\+?1?\d{9,15}$",
@@ -376,18 +371,11 @@ class Place(models.Model):
         verbose_name="Одноклассники",
         validators=[URLValidator],
     )
-    contact_email = models.EmailField(
+    email = models.EmailField(
         max_length=255,
         blank=True,
         null=True,
-        verbose_name="Эл. почта для связи с пользователями",
-        validators=[EmailValidator],
-    )
-    service_email = models.EmailField(
-        max_length=255,
-        blank=True,
-        null=True,
-        verbose_name="Эл. почта для связи сервиса с рестораном",
+        verbose_name="Эл. почта",
         validators=[EmailValidator],
     )
     website = models.URLField(blank=True, verbose_name="Веб-сайт")
@@ -427,11 +415,12 @@ class Place(models.Model):
         db_index=True,
         verbose_name="Уникальный идентификатор",
     )
-    manager = models.ManyToManyField(
+    manager = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name="managed_places",
-        verbose_name="Представитель",
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
+        verbose_name="Представитель",
     )
     logo = models.ImageField(
         upload_to=upload_logo_to, verbose_name="Логотип", null=True, blank=True
@@ -440,9 +429,8 @@ class Place(models.Model):
         default=30, verbose_name="Интервал между бронированиями (минуты)"
     )
     is_active = models.BooleanField(
-        default=True, db_index=True, verbose_name="Активное заведение"
+        default=True, db_index=True, verbose_name="Активное"
     )
-    is_verified = models.BooleanField(default=False, verbose_name="Проверено")
     is_popular = models.BooleanField(default=False, verbose_name="Популярное")
     is_featured = models.BooleanField(default=False, verbose_name="Рекомендуемое")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
@@ -456,13 +444,16 @@ class Place(models.Model):
         ordering = ["name"]
 
     def save(self, *args, **kwargs):
+        # Генерация slug, если его нет или изменено название
         if not self.slug or self.slug != slugify(self.name):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+        # Обработка логотипа: изменение размера изображения до 100x100
         if self.logo:
             img = Image.open(self.logo.path)
             if img.width > 100 or img.height > 100:
+                # Ресайз изображения для оптимизации
                 img.thumbnail((100, 100), Image.Resampling.LANCZOS)
                 img.save(self.logo.path)
 
@@ -473,7 +464,11 @@ class Place(models.Model):
         )
 
     def update_rating(self):
-        reviews = self.reviews.select_related("user").filter(status="approved")
+        reviews = (
+            self.reviews.select_related("user")
+            .filter(status="approved")
+            .annotate(avg_rating=Avg("rating"))
+        )
         if reviews.exists():
             average_rating = reviews.aggregate(Avg("rating"))["rating__avg"]
             self.rating = round(average_rating, 2) if average_rating is not None else 0
@@ -488,11 +483,9 @@ class Place(models.Model):
         return None
 
     def get_similar_places(self):
-        similar_places = Place.objects.filter(type=self.type, city=self.city).exclude(
-            id=self.id
-        )
-        limited_places = similar_places[:20]
-        return random.sample(list(limited_places), k=min(4, len(limited_places)))
+        return Place.objects.filter(type=self.type, city=self.city).exclude(id=self.id)[
+            :4
+        ]
 
     def get_place_features(self):
         return PlaceFeature.objects.filter(place=self).select_related("feature")
@@ -565,24 +558,18 @@ class Place(models.Model):
         """Возвращает доступные временные слоты для бронирования на указанную дату."""
         day = date.strftime("%a").upper()
         schedules = self.work_schedule.filter(day=day, is_closed=False)
+        interval = timedelta(minutes=self.booking_interval)
         slots = []
 
-        interval_minutes = self.booking_interval
-
         for schedule in schedules:
-            open_time = schedule.open_time
-            close_time = schedule.close_time
-
-            current_time = datetime.combine(date, open_time)
-            end_time = (
-                datetime.combine(date, close_time)
-                if open_time < close_time
-                else datetime.combine(date + timedelta(days=1), close_time)
-            )
+            current_time = datetime.combine(date, schedule.open_time)
+            end_time = datetime.combine(date, schedule.close_time)
+            if schedule.open_time > schedule.close_time:
+                end_time += timedelta(days=1)
 
             while current_time < end_time:
                 slots.append(current_time.time())
-                current_time += timedelta(minutes=interval_minutes)
+                current_time += interval
 
         return slots
 
@@ -710,10 +697,10 @@ class WorkSchedule(models.Model):
     )
     open_time = models.TimeField(null=True, blank=True, verbose_name="Время открытия")
     close_time = models.TimeField(null=True, blank=True, verbose_name="Время закрытия")
-    is_closed = models.BooleanField(default=False, verbose_name="Закрыто")
+    is_closed = models.BooleanField(default=False, verbose_name="Выходной")
 
     def __str__(self):
-        return f"{self.place.name} - {self.get_day_display()}: {'Закрыто' if self.is_closed else f'{self.open_time} - {self.close_time}'}"
+        return f"{self.place.name} - {self.get_day_display()}: {'Выходной' if self.is_closed else f'{self.open_time} - {self.close_time}'}"
 
     @staticmethod
     def get_day_order_annotation():
@@ -730,6 +717,7 @@ class WorkSchedule(models.Model):
 
     @staticmethod
     def get_sorted_schedules(place_id):
+        """Возвращает отсортированное расписание для указанного заведения."""
         return (
             WorkSchedule.objects.filter(place_id=place_id)
             .annotate(day_order=WorkSchedule.get_day_order_annotation())
@@ -737,6 +725,7 @@ class WorkSchedule(models.Model):
         )
 
     def clean(self):
+        """Проверяет корректность заполненных полей для модели WorkSchedule."""
         if self.is_closed:
             self.open_time = None
             self.close_time = None

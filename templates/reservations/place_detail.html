@@ -442,36 +442,58 @@
     document.addEventListener("DOMContentLoaded", function () {
         const dateInput = document.getElementById("id_date");
         const timeSelect = document.getElementById("id_time");
-    
-        // Установка текущей даты при загрузке
+        
+        // Установка текущей даты при загрузке страницы
         const today = new Date().toISOString().split("T")[0];
         dateInput.value = today;
-    
-        // Запрос доступных временных слотов для текущей даты
+
+        // Загрузка доступных временных слотов для текущей даты
         updateAvailableTimeSlots(today);
-    
+
         // Обновление временных слотов при изменении даты
         dateInput.addEventListener("change", function () {
             const selectedDate = dateInput.value;
             updateAvailableTimeSlots(selectedDate);
         });
-    
+
         function updateAvailableTimeSlots(date) {
-            const placeId = "{{ place.id }}";
+            const placeId = "{{ place.id }}";  // ID заведения
+
+            // Добавляем индикатор загрузки или блокируем выбор времени
+            timeSelect.disabled = true;
+            timeSelect.innerHTML = '<option>Загрузка...</option>';
+
+            // Выполняем запрос на сервер для получения временных слотов
             fetch(`/place/${placeId}/available-time-slots/?date=${date}`)
                 .then(response => response.json())
                 .then(data => {
                     // Очистка текущих опций времени
                     timeSelect.innerHTML = '';
-                    // Добавление новых доступных временных слотов
-                    data.forEach(timeSlot => {
+                    
+                    if (data.length > 0) {
+                        // Добавляем доступные временные слоты
+                        data.forEach(timeSlot => {
+                            const option = document.createElement("option");
+                            option.value = timeSlot;
+                            option.text = timeSlot;
+                            timeSelect.appendChild(option);
+                        });
+                        timeSelect.disabled = false;  // Разблокируем выбор времени
+                    } else {
+                        // Сообщение, если слоты недоступны
                         const option = document.createElement("option");
-                        option.value = timeSlot;
-                        option.text = timeSlot;
+                        option.value = '';
+                        option.text = 'Закрыто';
                         timeSelect.appendChild(option);
-                    });
+                        timeSelect.disabled = true;  // Блокируем выбор
+                    }
                 })
-                .catch(error => console.error('Error fetching time slots:', error));
+                .catch(error => {
+                    console.error('Ошибка при получении временных слотов:', error);
+                    // В случае ошибки показываем сообщение
+                    timeSelect.innerHTML = '<option>Ошибка загрузки</option>';
+                    timeSelect.disabled = true;  // Блокируем выбор
+                });
         }
     });
 </script>

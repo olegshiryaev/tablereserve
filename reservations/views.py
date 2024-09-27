@@ -64,7 +64,9 @@ def main_page(request, city_slug):
     # Предстоящие события
     upcoming_events = (
         Event.objects.filter(
-            place__city=city, date__gte=timezone.now().date(), is_active=True
+            place__city=city,
+            date__gte=timezone.now().date(),
+            is_active=True,
         )
         .order_by("date", "start_time")
         .select_related("place")[:5]
@@ -231,24 +233,45 @@ def place_list(request, city_slug):
     # Получение доступных типов заведений для фильтрации
     place_types = (
         PlaceType.objects.filter(places__city=city)
-        .annotate(count=Count("places", filter=Q(places__city=city)))
-        .filter(count__gt=0)  # Исключаем типы заведений с 0 заведениями
+        .annotate(
+            count=Count(
+                "places",
+                filter=Q(
+                    places__is_active=True
+                ),  # Подсчитываем только активные заведения
+            )
+        )
+        .filter(count__gt=0)  # Исключаем типы заведений с 0 активными заведениями
         .order_by("-count")
     )
 
     # Получение доступных кухонь для фильтрации
     cuisines = (
         Cuisine.objects.filter(places__city=city)
-        .annotate(count=Count("places", filter=Q(places__city=city)))
-        .filter(count__gt=0)  # Исключаем кухни с 0 заведениями
+        .annotate(
+            count=Count(
+                "places",
+                filter=Q(
+                    places__is_active=True
+                ),  # Подсчитываем только активные заведения
+            )
+        )
+        .filter(count__gt=0)  # Исключаем кухни с 0 активными заведениями
         .order_by("-count")
     )
 
     # Получение доступных особенностей для фильтрации
     features = (
         Feature.objects.filter(places__city=city)
-        .annotate(count=Count("places", filter=Q(places__city=city)))
-        .filter(count__gt=0)  # Исключаем особенности с 0 заведениями
+        .annotate(
+            count=Count(
+                "places",
+                filter=Q(
+                    places__is_active=True
+                ),  # Подсчитываем только активные заведения
+            )
+        )
+        .filter(count__gt=0)  # Исключаем особенности с 0 активными заведениями
         .order_by("-count")
     )
 

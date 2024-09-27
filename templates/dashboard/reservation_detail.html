@@ -17,7 +17,7 @@
 {% block content %}
 <div class="container-fluid p-0">
         <!-- Кнопка "Назад" -->
-        <a href="{% url 'dashboard:all_reservations' %}" class="btn btn-secondary mb-3">Назад</a>
+        <a href="{% url 'dashboard:reservation_list' %}" class="btn btn-secondary mb-3">Назад</a>
     <h1 class="h3 mb-3">Заказ #{{ reservation.id }}</h1>
 
     <!-- Форма редактирования информации о заведении -->

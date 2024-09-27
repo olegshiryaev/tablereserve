@@ -1,8 +1,28 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+
 {% block content %}
-  <h2>{% if object.pk %}Редактировать изображение{% else %}Добавить изображение{% endif %}</h2>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">{% if object.pk %}Сохранить{% else %}Добавить{% endif %}</button>
-  </form>
+<div class="container mt-5">
+    <h2>{% if object %}Редактировать{% else %}Добавить{% endif %} изображение</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% if object %}Сохранить{% else %}Загрузить{% endif %}</button>
+        {% comment %} <a href="{% url 'dashboard:place_detail' slug=form.instance.place.slug %}" class="btn btn-secondary">Отмена</a> {% endcomment %}
+    </form>
+</div>
 {% endblock %}

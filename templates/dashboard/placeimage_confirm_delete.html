@@ -1,9 +1,28 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% load static %}
+{% load custom_filters %}
+
+{% block navbar %}
+    {% include 'dashboard/components/navbar.html' %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/components/sidebar.html' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'dashboard/components/footer.html' %}
+{% endblock %}
+
 {% block content %}
-  <h2>Удалить изображение</h2>
-  <form method="post">
-    {% csrf_token %}
+<div class="container mt-5">
+    <h2>Удалить изображение</h2>
     <p>Вы уверены, что хотите удалить это изображение?</p>
-    <button type="submit" class="btn btn-danger">Удалить</button>
-    <a href="{% url 'dashboard:place_detail' slug=object.place.slug %}" class="btn btn-secondary">Отмена</a>
-  </form>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Удалить</button>
+        <a href="{% url 'dashboard:place_detail' slug=object.place.slug %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
 {% endblock %}

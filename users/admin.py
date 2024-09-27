@@ -17,7 +17,7 @@ class ProfileInline(admin.StackedInline):
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     # Поля, отображаемые в списке пользователей
-    list_display = ("email", "role", "is_staff", "is_active")
+    list_display = ("email", "username", "role", "is_staff", "is_active")
     list_filter = ("is_staff", "is_active", "role")
     search_fields = ("email",)
     ordering = ("email",)
@@ -25,7 +25,15 @@ class CustomUserAdmin(UserAdmin):
     # Настройка форм добавления/редактирования пользователя
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        (_("Personal info"), {"fields": ("role",)}),
+        (
+            _("Personal info"),
+            {
+                "fields": (
+                    "username",
+                    "role",
+                )
+            },
+        ),
         (
             _("Permissions"),
             {
@@ -82,11 +90,11 @@ admin.site.unregister(Profile)
 admin.site.register(Profile, ProfileAdmin)
 
 
-class PlaceInline(admin.TabularInline):
-    model = Place.manager.through  # Use the through model of the ManyToManyField
-    extra = 1  # Number of extra forms to display
-    verbose_name = "Представитель заведения"
-    verbose_name_plural = "Представитель заведений"
+# class PlaceInline(admin.TabularInline):
+#     model = Place.manager.through  # Use the through model of the ManyToManyField
+#     extra = 1  # Number of extra forms to display
+#     verbose_name = "Представитель заведения"
+#     verbose_name_plural = "Представитель заведений"
 
 
 @admin.register(Favorite)

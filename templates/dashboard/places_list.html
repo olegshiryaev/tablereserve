@@ -33,12 +33,7 @@
                             <th>Город</th>
                             <th>Адрес</th>
                             <th>Телефон</th>
-                            <th>Веб-сайт</th>
-                            <th>Кухни</th>
-                            <th>Средний чек, руб.</th>
-                            <th>Особенности</th>
-                            <th>Вместимость, чел.</th>
-                            <th>Рейтинг</th>
+                            <th>Активное</th>
                             <th>Действия</th>
                         </tr>
                     </thead>
@@ -50,12 +45,11 @@
                             <td>{{ place.city.name }}</td>
                             <td>{{ place.address|default_if_none:"" }}</td>
                             <td>{{ place.phone }}</td>
-                            <td><a href="{{ place.website }}" target="_blank">{{ place.website }}</a></td>
-                            <td>{{ place.cuisines.all|join:", " }}</td>
-                            <td>{{ place.average_check|default:"-" }}</td>
-                            <td>{{ place.features.all|join:", " }}</td>
-                            <td>{{ place.capacity|default:"-" }}</td>
-                            <td>{{ place.rating|default:"-" }}</td>
+                            <td>
+                                <span class="badge bg-{{ place.is_active|yesno:'success,danger' }}">
+                                    {{ place.is_active|yesno:'Активное,Неактивное' }}
+                                </span>
+                            </td>
                             <td>
                                 <a href="{% url 'dashboard:place_detail' place.slug %}" class="btn btn-sm btn-info">Подробнее</a>
                             </td>

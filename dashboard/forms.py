@@ -22,11 +22,26 @@ from django.utils.encoding import force_bytes
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import default_token_generator
+from django.utils.crypto import get_random_string
+from django.conf import settings
+from allauth.account.models import EmailAddress
+from allauth.account.utils import send_email_confirmation
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.core.validators import validate_email
 
-from users.models import CustomUser
+from users.models import CustomUser, User
 
 
 class PlaceForm(forms.ModelForm):
+    # Поле для ввода email представителя при создании заведения
+    representative_email = forms.EmailField(
+        label="Эл. почта представителя",
+        required=False,
+        widget=forms.EmailInput(attrs={"class": "form-control"}),
+        help_text="Адрес будет использован для получения доступа к личному кабинету",
+    )
+
     class Meta:
         model = Place
         fields = [
@@ -43,8 +58,7 @@ class PlaceForm(forms.ModelForm):
             "whatsapp",
             "vkontakte",
             "odnoklassniki",
-            "contact_email",
-            "service_email",
+            "email",
             "website",
             "cuisines",
             "description",
@@ -54,6 +68,8 @@ class PlaceForm(forms.ModelForm):
             "tags",
             "capacity",
             "is_active",
+            "is_popular",
+            "is_featured",
             "manager",
         ]
         widgets = {
@@ -62,7 +78,7 @@ class PlaceForm(forms.ModelForm):
             "city": forms.Select(),
             "street_type": forms.Select(),
             "street_name": forms.TextInput(attrs={"maxlength": 255}),
-            "house_number": forms.TextInput(attrs={"maxlength": 10}),
+            "house_number": forms.TextInput(attrs={"maxlength": 5}),
             "phone": forms.TextInput(attrs={"placeholder": "+7", "maxlength": 12}),
             "facebook": forms.URLInput(),
             "instagram": forms.URLInput(),
@@ -70,25 +86,31 @@ class PlaceForm(forms.ModelForm):
             "whatsapp": forms.TextInput(attrs={"maxlength": 12}),
             "vkontakte": forms.URLInput(),
             "odnoklassniki": forms.URLInput(),
-            "contact_email": forms.EmailInput(),
-            "service_email": forms.EmailInput(),
+            "email": forms.EmailInput(),
             "website": forms.URLInput(),
             "cuisines": forms.CheckboxSelectMultiple(),
-            "description": forms.Textarea(attrs={"rows": 3}),
+            "description": forms.Textarea(attrs={"rows": 5}),
             "short_description": forms.TextInput(attrs={"maxlength": 255}),
             "average_check": forms.NumberInput(attrs={"min": 0}),
             "features": forms.CheckboxSelectMultiple(),
             "tags": forms.CheckboxSelectMultiple(),
             "capacity": forms.NumberInput(),
             "is_active": forms.CheckboxInput(),
-            "manager": forms.SelectMultiple(),
+            "is_popular": forms.CheckboxInput(),
+            "is_featured": forms.CheckboxInput(),
+            "manager": forms.Select(),
         }
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user", None)  # Получаем пользователя из kwargs
+        self.user = kwargs.pop("user", None)
+        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
 
-        # Добавление общих классов к виджетам полей формы
+        self.fields["type"].empty_label = "Выберите тип заведения"
+        self.fields["city"].empty_label = "Выберите город"
+        self.fields["street_type"].empty_label = "Выберите тип улицы"
+
+        # Настройки для полей формы
         for field_name, field in self.fields.items():
             if isinstance(field.widget, forms.CheckboxInput):
                 field.widget.attrs["class"] = "form-check-input"
@@ -97,30 +119,21 @@ class PlaceForm(forms.ModelForm):
             elif not isinstance(field.widget, forms.CheckboxSelectMultiple):
                 field.widget.attrs["class"] = "form-control"
 
-        # Если пользователь не администратор, скрываем определенные поля
-        if not self.user.is_admin:
-            self.fields.pop("tags", None)
-            self.fields.pop("manager", None)
-            self.fields.pop("is_active", None)
+            if self.errors.get(field_name):
+                field.widget.attrs["class"] += " is-invalid"
+                field.widget.attrs["aria-describedby"] = f"{field_name}-error"
 
-        # Добавление класса 'is-invalid' к полям с ошибками
-        if self.errors.get(field_name):
-            field.widget.attrs["class"] += " is-invalid"
-
-        # Установка начального значения для нового объекта
-        if not self.instance.pk and not self.initial.get("phone"):
-            self.fields["phone"].initial = "+7"
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        # Проверка, если пользователь не администратор, исключить админские поля
-        if not self.user.is_admin:
-            for field in ["tags", "is_active", "manager"]:
-                if field not in self.data:
-                    cleaned_data.pop(field, None)
-
-        return cleaned_data
+        if self.instance.pk:  # Если редактирование
+            if self.user.is_admin:
+                self.fields["manager"] = forms.ModelChoiceField(
+                    queryset=CustomUser.objects.all(),
+                    label="Выберите менеджера",
+                    required=False,
+                    widget=forms.Select(attrs={"class": "form-control"}),
+                    help_text="Выберите менеджера для заведения",
+                )
+            else:
+                self.fields["manager"].widget = forms.HiddenInput()
 
     def clean_phone(self):
         phone = self.cleaned_data.get("phone", "").strip()
@@ -131,6 +144,76 @@ class PlaceForm(forms.ModelForm):
                 "Номер телефона должен быть не менее 12 символов."
             )
         return phone
+
+    def clean_representative_email(self):
+        email = self.cleaned_data.get("representative_email")
+        if not email:
+            return None
+
+        try:
+            validate_email(email)
+            user, created = CustomUser.objects.get_or_create(email=email)
+            if created:
+                raw_password = get_random_string(8)
+                user.set_password(raw_password)
+                user.username = f"User-{user.id}"
+                user.role = "owner"
+                user.save()
+
+                EmailAddress.objects.create(
+                    user=user, email=email, verified=False, primary=True
+                )
+
+                self.send_welcome_email(
+                    user, self.cleaned_data.get("name"), raw_password
+                )
+                send_email_confirmation(self.request, user)
+            else:
+                # Если пользователь уже существует, обновляем его роль, если она не owner
+                if user.role != "owner":
+                    user.role = "owner"
+                    user.save()  # Сохраняем изменения в роли
+
+            return user
+        except ValidationError:
+            raise forms.ValidationError("Введите корректный email.")
+
+    def send_welcome_email(self, user, place_name, raw_password):
+        message = f"""
+        Добрый день!
+
+        Вы создали заведение "{place_name}" на сайте {settings.SITE_NAME}.
+        Теперь Вам доступен личный кабинет для управления информацией и общения с гостями.
+
+        Для входа в систему используйте логин и пароль ниже:
+        Логин: {user.email}
+        Пароль: {raw_password}
+
+        Ссылка для входа: {self.request.build_absolute_uri(reverse("account_login"))}
+
+        С уважением,
+        Команда {settings.SITE_NAME}
+        """
+        send_mail(
+            f"Ваша учетная запись для управления заведением {place_name}",
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+        )
+
+    @transaction.atomic
+    def save(self, commit=True):
+        place = super().save(commit=False)
+
+        # Присваиваем менеджера заведения, если email не пустой
+        representative_email = self.cleaned_data.get("representative_email")
+        if representative_email:
+            place.manager = CustomUser.objects.get(email=representative_email)
+
+        if commit:
+            place.save()
+
+        return place
 
 
 class PlaceUpdateRequestForm(forms.ModelForm):
@@ -195,7 +278,18 @@ class PlaceCreationForm(forms.ModelForm):
 class PlaceImageForm(forms.ModelForm):
     class Meta:
         model = PlaceImage
-        fields = ["image", "is_cover"]
+        fields = ["image", "video_url", "embed_code", "description", "hall", "is_cover"]
+        widgets = {
+            "image": forms.ClearableFileInput(attrs={"class": "form-control-file"}),
+            "video_url": forms.URLInput(attrs={"class": "form-control"}),
+            "embed_code": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "is_cover": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "hall": forms.Select(attrs={"class": "form-control"}),
+        }
+        help_texts = {
+            "image": "Минимальные размеры изображения: 1200x800 пикселей.",
+        }
 
 
 class CityCreateForm(forms.ModelForm):

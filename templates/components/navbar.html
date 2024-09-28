@@ -50,10 +50,10 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggle">
                         {% if user.is_admin %}
-                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">Админ-панель</a></li>
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}" target="_blank">Админ-панель</a></li>
                         {% endif %}
                         {% if user.is_admin or user.is_owner %}
-                            <li><a class="dropdown-item" href="{% url 'dashboard:main' %}">Дашборд</a></li>
+                            <li><a class="dropdown-item" href="{% url 'dashboard:main' %}" target="_blank">Дашборд</a></li>
                         {% endif %}
                         <li><a class="dropdown-item" href="{% url 'users:profile' id=user.id %}">Профиль</a></li>
                         <li><a class="dropdown-item" href="{% url 'account_logout' %}?next={{ request.path }}">Выйти</a></li>
@@ -74,7 +74,7 @@
         <li class="nav-item"><a class="nav-link" href="#">Акции</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
         <li class="nav-item">
-            <a href="{% url 'dashboard:welcome' %}" class="btn btn-primary add-place-btn">Добавить заведение</a>
+            <a href="{% url 'dashboard:place_create' %}" class="btn btn-primary add-place-btn">Добавить заведение</a>
         </li>
         {% if user.is_authenticated %}
         <li class="nav-item dropdown">
@@ -84,10 +84,10 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggle">
                 {% if user.is_admin %}
-                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">Админ-панель</a></li>
+                    <li><a class="dropdown-item" href="{% url 'admin:index' %}" target="_blank">Админ-панель</a></li>
                 {% endif %}
                 {% if user.is_admin or user.is_owner %}
-                    <li><a class="dropdown-item" href="{% url 'dashboard:main' %}">Дашборд</a></li>
+                    <li><a class="dropdown-item" href="{% url 'dashboard:main' %}" target="_blank">Дашборд</a></li>
                 {% endif %}
                 <li><a class="dropdown-item" href="{% url 'users:profile' id=user.id %}">Профиль</a></li>
                 <li><a class="dropdown-item" href="{% url 'account_logout' %}?next={{ request.path }}">Выйти</a></li>

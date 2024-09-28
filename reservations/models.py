@@ -275,7 +275,7 @@ class Place(models.Model):
         PlaceType,
         on_delete=models.SET_NULL,
         related_name="places",
-        blank=True,
+        blank=False,
         null=True,
         verbose_name="Тип",
         db_index=True,
@@ -303,6 +303,13 @@ class Place(models.Model):
     )
     house_number = models.CharField(
         max_length=5, blank=True, null=True, verbose_name="Номер дома"
+    )
+    floor = models.CharField(
+        max_length=5,
+        blank=True,
+        null=True,
+        verbose_name="Этаж",
+        help_text="Укажите этаж, если заведение находится не на первом этаже",
     )
     phone = models.CharField(
         max_length=12,
@@ -580,7 +587,10 @@ class Place(models.Model):
     @property
     def address(self):
         if self.street_type and self.street_name and self.house_number:
-            return f"{self.get_street_type_display()} {self.street_name}, {self.house_number}"
+            base_address = f"{self.get_street_type_display()} {self.street_name}, {self.house_number}"
+            if self.floor:
+                return f"{base_address}, {self.floor} этаж"
+            return base_address
         return None
 
     def __str__(self):
@@ -953,7 +963,7 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="pending", verbose_name="Статус"
+        max_length=20, choices=STATUS_CHOICES, default="approved", verbose_name="Статус"
     )
 
     class Meta:

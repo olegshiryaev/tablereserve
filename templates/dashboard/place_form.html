@@ -18,14 +18,13 @@
 
 {% block content %}
 <div class="container-fluid p-0">
-  <a href="{% url 'dashboard:place_list' %}" class="btn btn-secondary mb-4">Назад</a>
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">{% if place %}{{ place.name }}{% else %}Добавить заведение{% endif %}</h2>
+    <h2 class="mb-0">{% if place %}{{ place.name }}{% else %}Добавление нового заведения{% endif %}</h2>
 
     {% if user.is_admin and place %}
       <form method="POST" action="{% url 'dashboard:toggle_verified' place.id %}">
         {% csrf_token %}
-        <button type="submit" class="btn btn-{{ place.is_active|yesno:'danger,success' }}">
+        <button type="submit" class="btn btn-{{ place.is_active|yesno:'success,danger' }}">
           {% if place.is_verified %}
             На проверку
           {% else %}
@@ -129,15 +128,7 @@
                                         {{ form.is_active.errors|join:" " }}
                                     </div>
                                 {% endif %}
-                            </div>
-                            <div class="col-xl-2">
-                                {{ form.is_popular.label_tag }}
-                                {{ form.is_popular }}
-                                {% if form.is_popular.errors %}
-                                    <div class="text-danger mt-1">
-                                        {{ form.is_popular.errors|join:" " }}
-                                    </div>
-                                {% endif %}
+                                <small class="form-text text-muted">{{ form.is_active.help_text }}</small>
                             </div>
                             <div class="col-xl-2">
                                 {{ form.is_featured.label_tag }}
@@ -147,6 +138,7 @@
                                         {{ form.is_featured.errors|join:" " }}
                                     </div>
                                 {% endif %}
+                                <small class="form-text text-muted">{{ form.is_featured.help_text }}</small>
                             </div>
                         </div>
                     {% else %}
@@ -189,6 +181,15 @@
                             </div>
                         {% endif %}
                     </div>
+                    <div class="col-xl-2">
+                        {{ form.floor.label_tag }}
+                        {{ form.floor }}
+                        {% if form.floor.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.floor.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                    </div>
                     <div class="col-xl-3">
                         {{ form.phone.label_tag }}
                         {{ form.phone }}
@@ -197,6 +198,7 @@
                                 {{ form.phone.errors|join:" " }}
                             </div>
                         {% endif %}
+                        <small class="form-text text-muted">{{ form.phone.help_text }}</small>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -302,7 +304,8 @@
             </div>
         </div>
 
-        <h3 class="mt-5 mb-3">Особенности</h3>
+        <h3 class="mt-5">Особенности</h3>
+        <small class="form-text text-muted mb-3">{{ form.features.help_text }}</small>
         <div class="card mb-3">
             <div class="card-body">
                 <div class="row">
@@ -320,7 +323,8 @@
             </div>
         </div>
 
-        <h3 class="mt-5 mb-3">Кухня</h3>
+        <h3 class="mt-5">Кухня</h3>
+        <small class="form-text text-muted mb-3">{{ form.cuisines.help_text }}</small>
         <div class="card mb-3">
             <div class="card-body">
                 <div class="row">

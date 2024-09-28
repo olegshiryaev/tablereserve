@@ -38,11 +38,13 @@
                             <td>{{ reservation.special_requests }}</td>
                             <td>
                                 {% if reservation.status == "confirmed" %}
-                                <span class="badge bg-success">{{ reservation.status }}</span>
-                                {% elif reservation.status == "cancelled" %}
-                                <span class="badge bg-danger">{{ reservation.status }}</span>
+                                    <span class="badge bg-success">{{ reservation.status }}</span>
                                 {% elif reservation.status == "pending" %}
-                                <span class="badge bg-warning">{{ reservation.status }}</span>
+                                    <span class="badge bg-warning">{{ reservation.status }}</span>
+                                {% elif reservation.status == "cancelled_by_restaurant" %}
+                                    <span class="badge bg-danger">{{ reservation.status }}</span>
+                                {% elif reservation.status == "cancelled_by_customer" %}
+                                    <span class="badge bg-danger">{{ reservation.status }}</span>
                                 {% endif %}
                             </td>
                             <td>

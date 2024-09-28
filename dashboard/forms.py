@@ -51,6 +51,7 @@ class PlaceForm(forms.ModelForm):
             "street_type",
             "street_name",
             "house_number",
+            "floor",
             "phone",
             "facebook",
             "instagram",
@@ -68,7 +69,6 @@ class PlaceForm(forms.ModelForm):
             "tags",
             "capacity",
             "is_active",
-            "is_popular",
             "is_featured",
             "manager",
         ]
@@ -79,6 +79,9 @@ class PlaceForm(forms.ModelForm):
             "street_type": forms.Select(),
             "street_name": forms.TextInput(attrs={"maxlength": 255}),
             "house_number": forms.TextInput(attrs={"maxlength": 5}),
+            "floor": forms.TextInput(
+                attrs={"placeholder": "Укажите, если не первый", "maxlength": 5}
+            ),
             "phone": forms.TextInput(attrs={"placeholder": "+7", "maxlength": 12}),
             "facebook": forms.URLInput(),
             "instagram": forms.URLInput(),
@@ -99,6 +102,13 @@ class PlaceForm(forms.ModelForm):
             "is_popular": forms.CheckboxInput(),
             "is_featured": forms.CheckboxInput(),
             "manager": forms.Select(),
+        }
+        help_texts = {
+            "phone": "Контактный телефон для связи с заведением",
+            "features": "Укажите, что ваше заведение предлагает гостям",
+            "cuisines": "Укажите основные кухни, которые предлагает заведение",
+            "is_active": "Показывать заведение на сайте",
+            "is_featured": "Показывать заведение в рекомендованных",
         }
 
     def __init__(self, *args, **kwargs):
@@ -134,6 +144,8 @@ class PlaceForm(forms.ModelForm):
                 )
             else:
                 self.fields["manager"].widget = forms.HiddenInput()
+        else:
+            self.fields.pop("manager")  # Убираем поле manager при создании
 
     def clean_phone(self):
         phone = self.cleaned_data.get("phone", "").strip()
@@ -204,15 +216,10 @@ class PlaceForm(forms.ModelForm):
     @transaction.atomic
     def save(self, commit=True):
         place = super().save(commit=False)
-
-        # Присваиваем менеджера заведения, если email не пустой
-        representative_email = self.cleaned_data.get("representative_email")
-        if representative_email:
-            place.manager = CustomUser.objects.get(email=representative_email)
-
+        if self.cleaned_data.get("representative_email"):
+            place.manager = self.cleaned_data.get("representative_email")
         if commit:
             place.save()
-
         return place
 
 

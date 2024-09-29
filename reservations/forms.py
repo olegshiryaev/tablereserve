@@ -115,6 +115,13 @@ class ReservationForm(forms.ModelForm):
         self.place = place
         self.fields["time"].choices = self.get_time_choices()
 
+        # Получаем объект BookingSettings для заведения
+        booking_settings = getattr(place, "booking_settings", None)
+
+        # Устанавливаем количество гостей по умолчанию из BookingSettings, если он существует
+        if booking_settings:
+            self.fields["guests"].initial = booking_settings.default_guest_count
+
         # Установка данных пользователя, если он авторизован
         if user and user.is_authenticated:
             self.fields["customer_name"].initial = user.profile.name or ""

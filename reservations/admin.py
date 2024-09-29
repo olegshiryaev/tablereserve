@@ -4,6 +4,7 @@ from django.utils.html import format_html
 
 from reservations.forms import WorkScheduleForm
 from .models import (
+    BookingSettings,
     City,
     Cuisine,
     Discount,
@@ -89,6 +90,11 @@ class WorkScheduleInline(admin.TabularInline):
         )
 
 
+class BookingSettingsInline(admin.StackedInline):
+    model = BookingSettings
+    extra = 0  # Убираем дополнительные пустые строки
+
+
 class TableInline(admin.TabularInline):
     model = Table
     extra = 0
@@ -133,13 +139,20 @@ class PlaceAdmin(admin.ModelAdmin):
         "capacity",
         "rating",
         "is_active",
+        "can_be_booked",
         "cover_image_display",
         "logo_display",
         "manager",
     )
     search_fields = ("name", "city__name", "address", "phone", "tags__name")
     list_filter = ("city", "type", "is_active")
-    inlines = [WorkScheduleInline, PlaceFeatureInline, HallInline, PlaceImageInline]
+    inlines = [
+        WorkScheduleInline,
+        BookingSettingsInline,
+        PlaceFeatureInline,
+        HallInline,
+        PlaceImageInline,
+    ]
     filter_horizontal = (
         "tags",
         "cuisines",
@@ -188,7 +201,6 @@ class PlaceAdmin(admin.ModelAdmin):
                     "cuisines",
                     "tags",
                     "capacity",
-                    "booking_interval",
                     "logo",
                     "rating",
                     "manager",
@@ -209,6 +221,12 @@ class PlaceAdmin(admin.ModelAdmin):
         return f"{obj.get_street_type_display()} {obj.street_name}, {obj.house_number}"
 
     address.short_description = "Адрес"
+
+    def can_be_booked(self, obj):
+        return getattr(obj.booking_settings, "accepts_bookings", False)
+
+    can_be_booked.boolean = True
+    can_be_booked.short_description = "Доступно для бронирования"
 
     def cover_image_display(self, obj):
         return format_html(

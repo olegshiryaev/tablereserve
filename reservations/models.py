@@ -432,9 +432,6 @@ class Place(models.Model):
     logo = models.ImageField(
         upload_to=upload_logo_to, verbose_name="Логотип", null=True, blank=True
     )
-    booking_interval = models.PositiveIntegerField(
-        default=30, verbose_name="Интервал между бронированиями (минуты)"
-    )
     is_active = models.BooleanField(
         default=True, db_index=True, verbose_name="Активное"
     )
@@ -509,8 +506,11 @@ class Place(models.Model):
 
     def get_status(self):
         current_time = datetime.now()
-        if self.is_open_for_booking(current_time):
-            closing_time = self.get_working_hours(current_time.strftime("%a").upper())
+        work_schedules = self.work_schedule.all()  # Заранее загружаем расписание
+        if self.is_open_for_booking(current_time, work_schedules):
+            closing_time = self.get_working_hours(
+                current_time.strftime("%a").upper(), work_schedules
+            )
             if closing_time:
                 return {
                     "status": "open",
@@ -518,7 +518,8 @@ class Place(models.Model):
                 }
         else:
             opening_time = self.get_working_hours(
-                (current_time + timedelta(days=1)).strftime("%a").upper()
+                (current_time + timedelta(days=1)).strftime("%a").upper(),
+                work_schedules,
             )
             if opening_time:
                 return {
@@ -527,7 +528,7 @@ class Place(models.Model):
                 }
         return {"status": "closed", "message": "Закрыто"}
 
-    def get_working_hours(self, day=None):
+    def get_working_hours(self, day=None, work_schedules=None):
         """
         Возвращает время работы заведения на указанный день недели (или сегодня).
         Если заведению характерны перерывы в течение дня, возвращает все интервалы.
@@ -535,17 +536,22 @@ class Place(models.Model):
         if day is None:
             day = datetime.now().strftime("%a").upper()
 
-        schedules = self.work_schedule.prefetch_related("place").filter(
-            day=day, is_closed=False
+        # Используем предварительно загруженные расписания, если они переданы
+        schedules = (
+            work_schedules if work_schedules is not None else self.work_schedule.all()
         )
-        if schedules.exists():
-            return [(schedule.open_time, schedule.close_time) for schedule in schedules]
+        day_schedules = schedules.filter(day=day, is_closed=False)
+
+        if day_schedules.exists():
+            return [
+                (schedule.open_time, schedule.close_time) for schedule in day_schedules
+            ]
         return []
 
-    def is_open_for_booking(self, booking_time):
+    def is_open_for_booking(self, booking_time, work_schedules=None):
         """Проверяет, открыто ли заведение для бронирования на указанное время."""
         booking_day = booking_time.strftime("%a").upper()
-        working_hours = self.get_working_hours(booking_day)
+        working_hours = self.get_working_hours(booking_day, work_schedules)
 
         for open_time, close_time in working_hours:
             if open_time < close_time:
@@ -565,7 +571,10 @@ class Place(models.Model):
         """Возвращает доступные временные слоты для бронирования на указанную дату."""
         day = date.strftime("%a").upper()
         schedules = self.work_schedule.filter(day=day, is_closed=False)
-        interval = timedelta(minutes=self.booking_interval)
+        # Получаем настройки бронирования для заведения
+        booking_settings = self.booking_settings
+        # Получаем интервал из BookingSettings
+        interval = timedelta(minutes=booking_settings.booking_interval)
         slots = []
 
         for schedule in schedules:
@@ -609,6 +618,12 @@ def create_default_work_schedule(sender, instance, created, **kwargs):
             )
 
 
+@receiver(post_save, sender=Place)
+def create_booking_settings(sender, instance, created, **kwargs):
+    if created:
+        BookingSettings.objects.create(place=instance)
+
+
 @receiver(pre_save, sender=City)
 @receiver(pre_save, sender=Cuisine)
 @receiver(pre_save, sender=Feature)
@@ -624,6 +639,41 @@ def pre_save_slug(sender, instance, *args, **kwargs):
         # Для всех остальных моделей: если слаг не задан или изменен, генерируем новый
         if not instance.slug or instance.slug != slugify(instance.name):
             instance.slug = slugify(instance.name)
+
+
+class BookingSettings(models.Model):
+    place = models.OneToOneField(
+        Place,
+        on_delete=models.CASCADE,
+        related_name="booking_settings",
+        verbose_name="Заведение",
+    )
+    accepts_bookings = models.BooleanField(
+        default=False, verbose_name="Доступно для бронирования"
+    )
+    booking_interval = models.PositiveIntegerField(
+        default=30, verbose_name="Интервал между бронированиями (минуты)"
+    )
+    default_guest_count = models.PositiveIntegerField(
+        default=2, verbose_name="Количество гостей по умолчанию"
+    )
+    allow_table_selection = models.BooleanField(
+        default=False, verbose_name="Выбор столика на форме бронирования"
+    )
+    notification_email = models.EmailField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Email для уведомлений о бронированиях",
+        help_text="Оставьте пустым, чтобы не получать уведомления",
+    )
+
+    class Meta:
+        verbose_name = "Настройки бронирования"
+        verbose_name_plural = "Настройки бронирования"
+
+    def __str__(self):
+        return f"Настройки бронирования для {self.place.name}"
 
 
 class Hall(models.Model):
@@ -872,15 +922,18 @@ class Reservation(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.number:
-            with transaction.atomic():
-                self.number = self.generate_reservation_number()
+            self.number = self.generate_reservation_number()
         super().save(*args, **kwargs)
 
     def generate_reservation_number(self):
-        max_number = (
-            Reservation.objects.aggregate(models.Max("number"))["number__max"] or 0
-        )
-        return max_number + 1
+        with transaction.atomic():
+            max_number = (
+                Reservation.objects.select_for_update().aggregate(models.Max("number"))[
+                    "number__max"
+                ]
+                or 0
+            )
+            return max_number + 1
 
     class Meta:
         verbose_name = "Бронирование"

@@ -529,8 +529,9 @@ def update_time_choices(request, place_id, date):
             - timedelta(hours=1)
         ).time()
 
-        # Интервал времени между временными слотами (30 минут)
-        interval = timedelta(minutes=30)
+        # Получаем интервал времени между временными слотами из BookingSettings
+        booking_settings = place.booking_settings
+        interval = timedelta(minutes=booking_settings.booking_interval)
 
         # Определяем текущее время и следующий полуторачасовой интервал
         now = datetime.now()

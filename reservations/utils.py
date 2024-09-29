@@ -134,13 +134,13 @@ def calculate_available_time_slots(place, selected_date):
         # Рассчитываем ближайший 30-минутный интервал
         minutes = now.minute
         next_interval = now.replace(
-            minute=(minutes // place.booking_interval + 1)
-            * place.booking_interval
+            minute=(minutes // place.booking_settings.booking_interval + 1)
+            * place.booking_settings.booking_interval
             % 60,
             hour=(
                 now.hour
-                + (minutes // place.booking_interval + 1)
-                // (60 // place.booking_interval)
+                + (minutes // place.booking_settings.booking_interval + 1)
+                // (60 // place.booking_settings.booking_interval)
             )
             % 24,
             second=0,
@@ -153,8 +153,8 @@ def calculate_available_time_slots(place, selected_date):
 
     end_time = datetime.combine(selected_date, close_time)
 
-    # Используем интервал бронирования из поля заведения
-    interval = timedelta(minutes=place.booking_interval)
+    # Используем интервал бронирования из связанной модели BookingSettings
+    interval = timedelta(minutes=place.booking_settings.booking_interval)
 
     while current_time <= end_time:
         time_slots.append(current_time.strftime("%H:%M"))

@@ -41,7 +41,7 @@
 
         <!-- Кнопки для авторизованных пользователей -->
         <div class="text-end d-none d-lg-flex align-items-center">
-            <a href="{% url 'dashboard:place_create' %}" class="btn btn-primary add-place-btn me-4">Добавить заведение</a>
+            <a href="{% url 'dashboard:place_create' %}" class="btn add-place-btn me-4">Добавить заведение</a>
             {% if user.is_authenticated %}
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle no-caret" href="#" id="userDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -74,7 +74,7 @@
         <li class="nav-item"><a class="nav-link" href="#">Акции</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
         <li class="nav-item">
-            <a href="{% url 'dashboard:place_create' %}" class="btn btn-primary add-place-btn">Добавить заведение</a>
+            <a href="{% url 'dashboard:place_create' %}" class="btn add-place-btn">Добавить заведение</a>
         </li>
         {% if user.is_authenticated %}
         <li class="nav-item dropdown">

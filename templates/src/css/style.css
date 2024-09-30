@@ -285,6 +285,8 @@ header.scrolled {
 .add-place-btn:hover {
     background-color: #e68900; /* Более темный оранжевый фон при наведении */
     border-color: #e68900; /* Темнее обводка при наведении */
+    color: #fff;
+    text-decoration: none;
 }
 
 .login-popover-btn {
@@ -1077,9 +1079,9 @@ h2 {
 }
 
 footer {
-    background: #1f2124;
-    color: #fff;
-    padding: 20px 0;
+    background: #fff;
+    border-top: 1px solid #f0f0f2;
+    line-height: 22px;
 }
 
 footer .container {

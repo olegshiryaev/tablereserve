@@ -304,6 +304,21 @@
             </div>
         </div>
 
+        <h3 class="mt-5 mb-3">Оплата</h3>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="col-xl-3">
+                    {{ form.average_check.label_tag }}
+                    {{ form.average_check }}
+                    {% if form.average_check.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.average_check.errors|join:" " }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
         <h3 class="mt-5">Особенности</h3>
         <small class="form-text text-muted mb-3">{{ form.features.help_text }}</small>
         <div class="card mb-3">

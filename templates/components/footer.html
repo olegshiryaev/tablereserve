@@ -1,23 +1,23 @@
 <!-- Нижняя часть страницы (Футер) -->
+{% load static %}
+<!-- Нижняя часть страницы (Футер) -->
+{% load static %}
 <footer class="footer mt-auto py-4">
-    <div class="container">
-        <div class="footer-info">
-            <h3>О компании</h3>
-            <p><a href="#">Политика конфиденциальности</a></p>
-            <p><a href="#">Пользовательское соглашение</a></p>
-            <p><a href="#">Часто задаваемые вопросы</a></p>
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="footer-left d-flex align-items-center">
+            <!-- Логотип с ссылкой -->
+            <a href="https://FASIE.RU" target="_blank" class="d-flex align-items-center" style="text-decoration: none;">
+                <img src="{% static 'images/fsi.png' %}" alt="Логотип" style="height: 60px; margin-right: 10px;">
+                <!-- Подпись с переносом строки и тёмным цветом текста -->
+                <p class="mb-0" style="color: #000;">
+                    Проект создан при поддержке<br>
+                    Фонда Содействия Инновациям
+                </p>
+            </a>
         </div>
-        <div class="social-media">
-            <h3>Мы в социальных сетях</h3>
-        </div>
-        <div class="contact-info">
-            <h3>Контакты</h3>
-            {% comment %} <p>Адрес: Улица, Город, Страна</p>
-            <p>Телефон: +123 456 7890</p>
-            <p>Email: info@example.com</p> {% endcomment %}
-        </div>
-        <div class="footer-button">
-            <a href="{% url 'dashboard:place_create' %}" class="btn btn-primary">Добавить заведение</a>
+        <div class="footer-right">
+            <!-- Кнопка "Добавить заведение" -->
+            <a href="{% url 'dashboard:place_create' %}" class="btn add-place-btn me-4">Добавить заведение</a>
         </div>
     </div>
 </footer>

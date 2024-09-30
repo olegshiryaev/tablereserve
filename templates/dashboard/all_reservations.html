@@ -24,14 +24,13 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Номер заказа</th>
+                            <th>№</th>
                             <th>Заведение</th>
                             <th>Дата и время</th>
-                            <th>Количество гостей</th>
+                            <th>Кол-во гостей</th>
                             <th>Имя</th>
                             <th>Телефон</th>
                             <th>Email</th>
-                            <th>Пожелания</th>
                             <th>Статус</th>
                             <th>Действия</th>
                         </tr>
@@ -46,7 +45,6 @@
                             <td>{{ reservation.customer_name }}</td>
                             <td>{{ reservation.customer_phone }}</td>
                             <td>{{ reservation.customer_email }}</td>
-                            <td>{{ reservation.wishes }}</td>
                             <td>
                                 {% if reservation.status == "confirmed" %}
                                     <span class="badge bg-success">{{ reservation.get_status_display }}</span>

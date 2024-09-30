@@ -33,7 +33,10 @@
         
             <li class="sidebar-item {% if request.resolver_match.url_name == 'reservation_list' %}active{% endif %}">
                 <a class="sidebar-link" href="{% url 'dashboard:reservation_list' %}">
-                    <i data-feather="calendar"></i> <span class="align-middle">Бронирования</span>
+                    <i data-feather="calendar"></i> <span class="align-middle">Бронирования </span>
+                    {% if pending_reservations_count > 0 %}
+                        <span class="badge bg-danger ms-1">{{ pending_reservations_count }}</span>
+                    {% endif %}
                 </a>
             </li>
 

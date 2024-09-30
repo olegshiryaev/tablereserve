@@ -1,0 +1,34 @@
+{% if place_features or place.description %}
+<div id="place-description" class="place-description-section">
+    <div class="place-description-inner">
+        <h3>О {{ place_type_phrase }}</h3>
+
+        <!-- Особенности заведения -->
+        {% if place_features %}
+            <div class="features-container">
+                <ul class="features-list">
+                    {% for place_feature in place_features %}
+                        <li class="feature-element {% if place_feature.description %}has-description{% endif %}">
+                            {{ place_feature.feature.name }}
+                            {% if place_feature.description %}
+                                <div class="tooltip">
+                                    {{ place_feature.description|safe }}
+                                </div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Описание заведения -->
+        <div class="description-container">
+            {% if place.description %}
+                <div class="place-description-text">{{ place.description|safe }}</div>
+            {% else %}
+                <div class="place-description-text">Описание заведения отсутствует.</div> <!-- Временная заглушка -->
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}

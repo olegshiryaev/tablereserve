@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 from django.utils import timezone
 from django import forms
-from .models import Place, Reservation, Review, ReviewResponse, WorkSchedule
+from .models import Place, Reservation, Review, ReviewResponse, Table, WorkSchedule
 
 
 class WorkScheduleForm(forms.ModelForm):
@@ -74,6 +74,12 @@ class ReservationForm(forms.ModelForm):
         initial=2,
         widget=forms.Select(attrs={"class": "form-control"}),
     )
+    table = forms.ModelChoiceField(
+        queryset=Table.objects.none(),  # По умолчанию пустой QuerySet
+        required=False,  # Поле не обязательно
+        empty_label="Любой столик",  # Метка для пустого значения
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
 
     class Meta:
         model = Reservation
@@ -81,6 +87,7 @@ class ReservationForm(forms.ModelForm):
             "date",
             "time",
             "guests",
+            "table",
             "customer_name",
             "customer_phone",
             "customer_email",
@@ -115,12 +122,22 @@ class ReservationForm(forms.ModelForm):
         self.place = place
         self.fields["time"].choices = self.get_time_choices()
 
-        # Получаем объект BookingSettings для заведения
+        # Получаем объект настроек бронирования заведения
         booking_settings = getattr(place, "booking_settings", None)
 
         # Устанавливаем количество гостей по умолчанию из BookingSettings, если он существует
         if booking_settings:
             self.fields["guests"].initial = booking_settings.default_guest_count
+
+            # Проверяем, включен ли выбор столика и есть ли столики у заведения
+            if booking_settings.allow_table_selection:
+                tables = Table.objects.filter(hall__place=place)
+                if tables.exists():
+                    self.fields["table"].queryset = tables
+                else:
+                    del self.fields["table"]  # Удаляем поле, если нет столиков
+            else:
+                del self.fields["table"]  # Удаляем поле, если выбор столика отключен
 
         # Установка данных пользователя, если он авторизован
         if user and user.is_authenticated:
@@ -132,6 +149,10 @@ class ReservationForm(forms.ModelForm):
         self.fields["date"].label = "Дата"
         self.fields["time"].label = "Время"
         self.fields["guests"].label = "Кол-во гостей"
+
+        if "table" in self.fields:
+            self.fields["table"].label = "Столик"
+
         self.fields["customer_email"].help_text = (
             "Укажите для получения сообщений о статусах заказа."
         )

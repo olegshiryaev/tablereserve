@@ -847,7 +847,7 @@ class Table(models.Model):
     def save(self, *args, **kwargs):
         # Автоматическая генерация названия столика
         if not self.name:
-            self.name = f"Столик в {self.hall.name} на {self.seats}-х"
+            self.name = f"Столик - {self.hall.name} на {self.seats}-х"
         super().save(*args, **kwargs)
 
     def __str__(self):

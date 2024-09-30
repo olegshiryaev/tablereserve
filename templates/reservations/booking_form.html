@@ -1,0 +1,59 @@
+<div class="place-detail-booking">
+    <div class="booking-popup">
+        <form method="post" class="booking-popup-form"
+            action="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}">
+            {% csrf_token %}
+            <div class="booking-popup-wrapper">
+                <div class="booking-popup-wrapper-container">
+                    <h3>Заказ столика</h3>
+                    <div class="form-row">
+                        <div class="form-col">
+                            {{ reservation_form.date.label_tag }}
+                            {{ reservation_form.date }}
+                        </div>
+                        <div class="form-col">
+                            {{ reservation_form.time.label_tag }}
+                            {{ reservation_form.time }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            {{ reservation_form.customer_phone.label_tag }}
+                            {{ reservation_form.customer_phone }}
+                        </div>
+                        <div class="form-col">
+                            {{ reservation_form.guests.label_tag }}
+                            {{ reservation_form.guests }}
+                        </div>
+                    </div>
+                    {{ reservation_form.table.label_tag }}
+                    {{ reservation_form.table }}
+                    {{ reservation_form.customer_name.label_tag }}
+                    {{ reservation_form.customer_name }}
+                    {{ reservation_form.customer_email.label_tag }}
+                    {{ reservation_form.customer_email }}
+                    {% if reservation_form.customer_email.help_text %}
+                        <small class="form-text text-muted">{{ reservation_form.customer_email.help_text }}</small>
+                    {% endif %}
+                    {{ reservation_form.wishes.label_tag }}
+                    {{ reservation_form.wishes }}
+                    {% if reservation_form.errors %}
+                        <div class="form-errors">
+                            {% for field in reservation_form %}
+                                {% for error in field.errors %}
+                                    <div class="error-message">{{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in reservation_form.non_field_errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <button type="submit">
+                        Забронировать
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

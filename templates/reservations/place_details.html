@@ -1,0 +1,122 @@
+{% load static %}
+{% load floattags %}
+{% load custom_filters %}
+<!-- Меню по странице -->
+<div class="page-navigation-menu">
+    <ul class="page-navigation-list">
+        <li><a href="#place-type">О {{ place_type_phrase }}</a></li>
+        <li><a href="#menu-prices">Меню и цены</a></li>
+        <li><a href="#reviews">Отзывы</a></li>
+        <li><a href="#similar-places">Похожие заведения</a></li>
+    </ul>
+</div>
+<div id="place-type" class="place-type-section">
+    <div class="place-detail-section">
+        <div class="place-detail-inner">
+            <div class="place-detail-item">
+                <div class="place-detail-item-label">
+                    Кухня
+                </div>
+                <div class="place-detail-item-body">
+                    <div class="place-detail-item-value">
+                        {% if place.cuisines.all %}
+                            {% for cuisine in place.cuisines.all %}
+                                {{ cuisine.name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <span>-</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="place-detail-item">
+                <div class="place-detail-item-label">
+                    Средний чек
+                </div>
+                <div class="place-detail-item-body">
+                    <div class="place-detail-item-value">
+                        {% if place.average_check %}
+                            {{ place.average_check }} руб.
+                        {% else %}
+                            <span>-</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="place-detail-item">
+                <div class="place-detail-item-label">
+                    Телефон
+                </div>
+                <div class="place-detail-item-body">
+                    <a href="tel:{{ place.phone }}" class="place-detail-item-value">
+                        {{ place.phone|format_phone_number }}
+                    </a>
+                    <div class="place-detail-item-action">
+                        {% if place.telegram %}
+                            <a href="{{ place.telegram }}" target="_blank" class="place-detail-item-action-link">
+                                <img src="{% static 'icons/telegram.svg' %}" alt="Telegram">
+                            </a>
+                        {% endif %}
+                        {% if place.whatsapp %}
+                            <a href="https://wa.me/{{ place.whatsapp }}" target="_blank" class="place-detail-item-action-link">
+                                <img src="{% static 'icons/whatsapp.svg' %}" alt="WhatsApp">
+                            </a>
+                        {% endif %}
+                        {% if place.viber %}
+                            <a href="viber://chat?number={{ place.viber }}" target="_blank" class="place-detail-item-action-link">
+                                <img src="{% static 'icons/viber.svg' %}" alt="Viber">
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="place-detail-item">
+                <div class="place-detail-item-label">
+                    Время работы
+                </div>
+                <div class="place-detail-item-body">
+                    {% if today_schedule %}
+                        {% if today_schedule.is_closed %}
+                            <div class="place-detail-item-value">
+                                сегодня закрыто
+                            </div>
+                        {% else %}
+                            <div class="place-detail-item-value">
+                                сегодня с {{ today_schedule.open_time|time:"H:i" }} до {{ today_schedule.close_time|time:"H:i" }}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="place-detail-item-value">
+                            -
+                        </div>
+                    {% endif %}
+                    {% if schedules %}
+                        <div class="place-detail-item-action" style="position: relative;">
+                            <span class="place-detail-item-action-link work-schedule-link">
+                                График
+                            </span>
+                            <div class="work-schedule-tooltip">
+                                <table class="work-schedule-table">
+                                    {% for schedule in schedules %}
+                                        <tr class="{% if schedule.day == today_weekday %}current-day{% endif %}">
+                                            <td class="work-schedule-day">
+                                                {{ schedule.get_day_display }}
+                                            </td>
+                                            <td class="work-schedule-time">
+                                                {% if schedule.is_closed %}
+                                                    не работает
+                                                {% else %}
+                                                    с {{ schedule.open_time|time:"H:i" }} до {{ schedule.close_time|time:"H:i" }}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

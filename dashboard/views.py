@@ -299,7 +299,7 @@ def reservation_detail(request, reservation_id):
     place = reservation.place
 
     # Проверка, имеет ли пользователь доступ к этому бронированию
-    if not request.user.is_admin and request.user not in place.manager.all():
+    if not request.user.is_admin and request.user != place.manager:
         return HttpResponseForbidden(
             "У вас нет прав на просмотр и редактирование этого бронирования."
         )

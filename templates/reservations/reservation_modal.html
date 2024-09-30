@@ -1,0 +1,13 @@
+<div id="reservationModal" class="reservation-modal" style="display: {% if reservation_successful %} block {% else %} none {% endif %};">
+    <div class="reservation-modal-content">
+        <span class="reservation-modal-close">&times;</span>
+        {% if reservation_data %}
+            <div class="reservation-modal-header">Здравствуйте, {{ reservation_data.name }}!</div>
+            <div class="reservation-modal-body">
+                <p>Мы получили ваш резерв на</p>
+                <p><strong>{{ reservation_message }}</strong></p>
+                <p>Ожидайте подтверждение по СМС на номер <strong>{{ reservation_data.phone }}</strong>.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,46 @@
+<div id="menu-prices" class="menu-prices-section mt-3 mb-3">
+    <!-- Content about the menu and prices -->
+    <div class="place-menu-section">
+        <div class="place-menu-inner">
+            <h2>Меню</h2>
+
+            <!-- Блоки для меню -->
+            <div class="place-menu-category">
+                <h3>Закуски</h3>
+                <ul class="menu-items">
+                    {% for item in place.menu.snacks %}
+                        <li class="menu-item">
+                            <span class="menu-item-name">{{ item.name }}</span>
+                            <span class="menu-item-price">{{ item.price }} руб.</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="place-menu-category">
+                <h3>Основные блюда</h3>
+                <ul class="menu-items">
+                    {% for item in place.menu.main_courses %}
+                        <li class="menu-item">
+                            <span class="menu-item-name">{{ item.name }}</span>
+                            <span class="menu-item-price">{{ item.price }} руб.</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="place-menu-category">
+                <h3>Напитки</h3>
+                <ul class="menu-items">
+                    {% for item in place.menu.drinks %}
+                        <li class="menu-item">
+                            <span class="menu-item-name">{{ item.name }}</span>
+                            <span class="menu-item-price">{{ item.price }} руб.</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <!-- Добавьте больше категорий по мере необходимости -->
+        </div>
+    </div>
+</div>

@@ -11,6 +11,7 @@ from django.db.models import Count
 from django.views import View
 from dashboard.forms import (
     AddPlaceForm,
+    BookingSettingsForm,
     CityCreateForm,
     CityForm,
     CityUpdateForm,
@@ -33,6 +34,7 @@ from dashboard.forms import (
 )
 from dashboard.models import PlaceRequest
 from reservations.models import (
+    BookingSettings,
     City,
     Cuisine,
     Feature,
@@ -122,6 +124,12 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
             self.object.get_absolute_url()
         )
 
+        # Работа с формой настроек бронирования
+        booking_settings, created = BookingSettings.objects.get_or_create(place=place)
+        context["booking_form"] = kwargs.get(
+            "booking_form", BookingSettingsForm(instance=booking_settings)
+        )
+
         # Сначала обложка, затем остальные изображения
         media_list = list(place.images.filter(is_cover=True)) + list(
             place.images.filter(is_cover=False)
@@ -132,24 +140,30 @@ class PlaceDetailView(LoginRequiredMixin, DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = PlaceForm(
+        place_form = PlaceForm(
             request.POST, request.FILES, instance=self.object, user=request.user
         )
-        if form.is_valid():
-            place = form.save(commit=False)
+        booking_form = BookingSettingsForm(
+            request.POST, instance=self.object.booking_settings
+        )
 
-            # Проверяем, изменилось ли название заведения для обновления slug
+        if place_form.is_valid() and booking_form.is_valid():
+            # Сохранение заведения
+            place = place_form.save(commit=False)
             if place.name != self.object.name:
                 place.slug = slugify(place.name)
             place.save()
-            form.save_m2m()  # Сохранение полей ManyToMany
+            place_form.save_m2m()
 
-            # Обновляем расписание работы
+            # Сохранение настроек бронирования
+            booking_form.save()
+
+            # Обновляем расписание работы (если необходимо)
             self.update_work_schedule(request, place)
 
             return redirect("dashboard:place_detail", slug=place.slug)
         else:
-            context = self.get_context_data(form=form)
+            context = self.get_context_data(form=place_form, booking_form=booking_form)
             return self.render_to_response(context)
 
     def update_work_schedule(self, request, place):

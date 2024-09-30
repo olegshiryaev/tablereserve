@@ -90,9 +90,9 @@ def send_reservation_email_to_place(instance, created):
 def send_new_reservation_email_to_place(instance, notification_email):
     """Уведомление заведения о новом бронировании."""
     send_reservation_email(
-        subject=f"Новое бронирование в {instance.place.name}",
+        subject=f"Новое бронирование столика в {instance.place.name}",
         message=(
-            f"Новое бронирование в {instance.place.name}:\n"
+            f"Новое бронирование столика в {instance.place.name}:\n"
             f"Имя клиента: {instance.customer_name}\n"
             f"Телефон: {instance.customer_phone}\n"
             f"Дата: {instance.date.strftime('%Y-%m-%d')}\n"

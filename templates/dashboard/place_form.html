@@ -341,8 +341,68 @@
                 </div>
             </div>
         </div>
-
         {% if place %}
+        <h3 class="mt-5 mb-3">Настройки системы бронирования</h3>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-xl-6">
+                        {{ booking_form.accepts_bookings.label_tag }}
+                        {{ booking_form.accepts_bookings }}
+                        {% if booking_form.accepts_bookings.errors %}
+                            <div class="text-danger mt-1">
+                                {{ booking_form.accepts_bookings.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ booking_form.accepts_bookings.help_text }}</small>
+                    </div>
+                    <div class="col-xl-6">
+                        {{ booking_form.allow_table_selection.label_tag }}
+                        {{ booking_form.allow_table_selection }}
+                        {% if booking_form.allow_table_selection.errors %}
+                            <div class="text-danger mt-1">
+                                {{ booking_form.allow_table_selection.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ booking_form.allow_table_selection.help_text }}</small>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-xl-6">
+                        {{ booking_form.booking_interval.label_tag }}
+                        {{ booking_form.booking_interval }}
+                        {% if booking_form.booking_interval.errors %}
+                            <div class="text-danger mt-1">
+                                {{ booking_form.booking_interval.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ booking_form.booking_interval.help_text }}</small>
+                    </div>
+                    <div class="col-xl-6">
+                        {{ booking_form.default_guest_count.label_tag }}
+                        {{ booking_form.default_guest_count }}
+                        {% if booking_form.default_guest_count.errors %}
+                            <div class="text-danger mt-1">
+                                {{ booking_form.default_guest_count.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ booking_form.default_guest_count.help_text }}</small>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-xl-6">
+                        {{ booking_form.notification_email.label_tag }}
+                        {{ booking_form.notification_email }}
+                        {% if booking_form.notification_email.errors %}
+                            <div class="text-danger mt-1">
+                                {{ booking_form.notification_email.errors|join:" " }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ booking_form.notification_email.help_text }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
         <h3 class="mt-5 mb-3">Зоны</h3>
         <div class="card mb-3">
             <div class="card-body">

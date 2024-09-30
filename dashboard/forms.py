@@ -2,6 +2,7 @@
 from django import forms
 from dashboard.models import PlaceRequest
 from reservations.models import (
+    BookingSettings,
     City,
     Cuisine,
     Feature,
@@ -221,6 +222,32 @@ class PlaceForm(forms.ModelForm):
         if commit:
             place.save()
         return place
+
+
+class BookingSettingsForm(forms.ModelForm):
+    class Meta:
+        model = BookingSettings
+        fields = [
+            "accepts_bookings",
+            "booking_interval",
+            "default_guest_count",
+            "allow_table_selection",
+            "notification_email",
+        ]
+        widgets = {
+            "accepts_bookings": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "booking_interval": forms.NumberInput(attrs={"class": "form-control"}),
+            "default_guest_count": forms.NumberInput(attrs={"class": "form-control"}),
+            "allow_table_selection": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "notification_email": forms.EmailInput(attrs={"class": "form-control"}),
+        }
+        help_texts = {
+            "notification_email": "Оставьте пустым, чтобы не получать уведомления",
+        }
 
 
 class PlaceUpdateRequestForm(forms.ModelForm):

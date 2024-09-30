@@ -290,6 +290,7 @@ class Place(models.Model):
         verbose_name="Город",
         db_index=True,
     )
+    # Адрес заведения: тип улицы, название улицы, номер дома и этаж
     street_type = models.CharField(
         max_length=50,
         choices=STREET_TYPES,
@@ -311,6 +312,7 @@ class Place(models.Model):
         verbose_name="Этаж",
         help_text="Укажите этаж, если заведение находится не на первом этаже",
     )
+    # Поля для контактной информации: телефон, соцсети, эл. почта, вебсайт
     phone = models.CharField(
         max_length=12,
         validators=[
@@ -321,7 +323,6 @@ class Place(models.Model):
         ],
         verbose_name="Телефон",
     )
-    # Социальные сети
     facebook = models.URLField(
         max_length=255,
         blank=True,
@@ -386,6 +387,7 @@ class Place(models.Model):
         validators=[EmailValidator],
     )
     website = models.URLField(blank=True, verbose_name="Веб-сайт")
+    # Прочие поля: описание, рейтинг, особенности, вместимость и т.д.
     cuisines = models.ManyToManyField(
         Cuisine, related_name="places", blank=True, verbose_name="Кухни"
     )
@@ -415,6 +417,7 @@ class Place(models.Model):
         verbose_name="Рейтинг",
         db_index=True,
     )
+    # Слаг и лого
     slug = models.SlugField(
         max_length=100,
         unique=True,
@@ -422,6 +425,10 @@ class Place(models.Model):
         db_index=True,
         verbose_name="Уникальный идентификатор",
     )
+    logo = models.ImageField(
+        upload_to=upload_logo_to, verbose_name="Логотип", null=True, blank=True
+    )
+    # Поле manager для представителя заведения
     manager = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -429,9 +436,7 @@ class Place(models.Model):
         blank=True,
         verbose_name="Представитель",
     )
-    logo = models.ImageField(
-        upload_to=upload_logo_to, verbose_name="Логотип", null=True, blank=True
-    )
+    # Состояние заведения (активность, популярность и т.д.)
     is_active = models.BooleanField(
         default=True, db_index=True, verbose_name="Активное"
     )
@@ -448,6 +453,11 @@ class Place(models.Model):
         ordering = ["name"]
 
     def save(self, *args, **kwargs):
+        """
+        Переопределение метода save:
+        1. Генерация slug на основе имени заведения, если оно не задано.
+        2. Обработка изображения логотипа: ресайз до 100x100 для оптимизации.
+        """
         # Генерация slug, если его нет или изменено название
         if not self.slug or self.slug != slugify(self.name):
             self.slug = slugify(self.name)
@@ -621,7 +631,12 @@ def create_default_work_schedule(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Place)
 def create_booking_settings(sender, instance, created, **kwargs):
     if created:
-        BookingSettings.objects.create(place=instance)
+        # Создаем настройки бронирования
+        booking_settings = BookingSettings.objects.create(place=instance)
+        # Устанавливаем email менеджера в notification_email
+        if instance.manager:
+            booking_settings.notification_email = instance.manager.email
+            booking_settings.save(update_fields=["notification_email"])
 
 
 @receiver(pre_save, sender=City)
@@ -649,23 +664,30 @@ class BookingSettings(models.Model):
         verbose_name="Заведение",
     )
     accepts_bookings = models.BooleanField(
-        default=False, verbose_name="Доступно для бронирования"
+        default=False,
+        verbose_name="Доступно для бронирования",
+        help_text="Отметьте, если хотите разрешить бронирования для этого заведения",
     )
     booking_interval = models.PositiveIntegerField(
-        default=30, verbose_name="Интервал между бронированиями (минуты)"
+        default=30,
+        verbose_name="Интервал между бронированиями (минуты)",
+        help_text="Укажите интервал в минутах. Не менее 30 минут",
+        validators=[MinValueValidator(30)],
     )
     default_guest_count = models.PositiveIntegerField(
         default=2, verbose_name="Количество гостей по умолчанию"
     )
     allow_table_selection = models.BooleanField(
-        default=False, verbose_name="Выбор столика на форме бронирования"
+        default=False,
+        verbose_name="Выбор столика на форме бронирования",
+        help_text="Столики нужно добавить в разделе «Столики»",
     )
     notification_email = models.EmailField(
         max_length=255,
         blank=True,
         null=True,
         verbose_name="Email для уведомлений о бронированиях",
-        help_text="Оставьте пустым, чтобы не получать уведомления",
+        help_text="Оставьте пустым, чтобы не получать уведомления по электронной почте",
     )
 
     class Meta:

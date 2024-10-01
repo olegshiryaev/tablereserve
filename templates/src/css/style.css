@@ -933,7 +933,7 @@ h2 {
 }
 
 .place-address svg, .place-phone svg, .place-cuisines svg, .place-average-check svg {
-    margin-right: 8px;
+    margin-right: 5px;
     fill: #2E8BC0;
 }
 
@@ -1747,7 +1747,54 @@ footer a:hover {
     align-items: center;
 }
 
-.left-info {
+.place-info-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #fff; /* Белый фон */
+    border-bottom: 1px solid #ddd; /* Нижняя граница */
+    border-radius: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    min-height: 44px;
+}
+
+.place-info-left {
+    flex: 1;
+}
+
+.place-info-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 20px;
+}
+
+.place-info-left h1 {
+    font-size: 28px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.place-address {
+    display: block;
+    margin-top: 5px;
+    font-size: 16px;
+    color: #1e1e1e;
+}
+
+.place-phone {
+    font-size: 16px;
+    color: #1e1e1e;
+}
+
+.icon {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+/* .left-info {
     display: flex;
     align-items: center;
 }
@@ -1771,7 +1818,7 @@ footer a:hover {
 .place-rating-and-reviews {
     display: flex;
     align-items: center;
-}
+} */
 
 .review-count {
     margin-right: 10px;

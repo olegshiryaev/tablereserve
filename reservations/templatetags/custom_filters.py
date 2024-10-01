@@ -69,5 +69,5 @@ def format_phone_number(value):
     # Удаляем все нецифровые символы
     value = re.sub(r"\D", "", value)
     if len(value) == 11:
-        return f"+7 ({value[1:4]}) {value[4:7]} {value[7:9]} {value[9:]}"
+        return f"+7 ({value[1:4]}) {value[4:7]}-{value[7:9]}-{value[9:]}"
     return value

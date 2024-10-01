@@ -295,7 +295,7 @@ def place_list(request, city_slug):
     city_name = city.name
     city_name_case = inflect_word(city_name, "loct")
 
-    title = f"Поиск мест в {city_name_case.capitalize()} | Reserve.cafe"
+    title = f"RESERVE - бронирования столиков в {city_name_case.capitalize()}"
 
     context = {
         "features_on_card": features_on_card,
@@ -465,15 +465,18 @@ def place_detail(request, city_slug, place_slug):
     place_type_str = str(place.type) if place.type else "Тип заведения не указан"
     place_type_phrase = inflect_word(place_type_str, "loct")
 
+    # Склоняем название города в предложный падеж (например, 'loct')
+    city_name = city.name
+    city_name_case = inflect_word(city_name, "loct").capitalize()
+
     # Формируем заголовок страницы
     place_type = place.type
     place_name = place.name
     place_address = place.address
     title = format_html(
-        "{} {}, {}: меню, фото, отзывы | Reserve.cafe",
-        place_type,
+        "Забронировать столик в {} в {}",
         place_name,
-        place_address,
+        city_name_case,
     )
 
     return render(

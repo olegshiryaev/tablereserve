@@ -4,6 +4,7 @@
         <h2>Столики</h2>
         <div class="halls-grid">
             {% for hall in halls %}
+            {% if hall.tables.all %} <!-- Проверяем наличие столиков -->
             <div class="hall-section">
                 <h3 class="hall-name">{{ hall.name }}</h3>
                 <div class="hall-tables-list">
@@ -13,7 +14,7 @@
                         <img src="{{ table.photo.url }}" alt="{{ table.name }}" class="hall-table-image">
                         {% else %}
                         <div class="hall-table-placeholder">
-                            Скоро здесь будет фото – интерьер уже позирует
+                            <i class="fas fa-camera"></i> <!-- Иконка фотоаппарата -->
                         </div>
                         {% endif %}
                         <div class="hall-table-info">
@@ -25,6 +26,7 @@
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
             {% endfor %}
         </div>
     </div>

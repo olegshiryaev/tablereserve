@@ -2736,7 +2736,7 @@ a.place-detail-item-value:hover {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 24px;
     text-align: center;
     padding: 10px;
     border: 1px solid #dfdfdf;
@@ -2776,7 +2776,6 @@ a.place-detail-item-value:hover {
 .hall-book-button:hover {
     background-color: #e64a19;
 }
-
 
 /* Основной стиль аккордеона */
 .accordion {

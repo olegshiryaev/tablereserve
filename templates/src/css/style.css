@@ -2607,9 +2607,16 @@ a.place-detail-item-value:hover {
 }
 
 .halls-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* Автоматически заполняет доступное пространство */
-    gap: 20px; /* Расстояние между карточками зон */
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* Отступ между секциями зон */
+}
+
+.hall-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .hall-card {
@@ -2716,9 +2723,10 @@ a.place-detail-item-value:hover {
 
 .hall-table-placeholder, 
 .hall-table-image {
-    height: 130px; /* Одинаковая фиксированная высота */
-    width: 100%; /* Ширина на весь контейнер */
-    border-radius: 8px; /* Закругленные углы */
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    margin-right: 15px;
 }
 
 .hall-table-placeholder {
@@ -2732,6 +2740,28 @@ a.place-detail-item-value:hover {
     text-align: center;
     padding: 10px;
     border: 1px solid #dfdfdf;
+}
+
+.hall-table-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1; /* Занимает доступное пространство между изображением и кнопкой */
+}
+
+.hall-table-info h4,
+.hall-table-info p {
+    margin: 0;
+}
+
+.hall-table-name {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.hall-table-seats {
+    font-size: 14px;
+    color: #666;
 }
 
 .hall-book-button {
@@ -2780,8 +2810,24 @@ a.place-detail-item-value:hover {
 }
 
 .hall-name {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.hall-tables-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Отступ между строками столиков */
+}
+
+.hall-table-row {
+    display: flex;
+    align-items: center;
+    border: 1px solid #dfdfdf;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .hall-description, .hall-seats, .hall-kind {

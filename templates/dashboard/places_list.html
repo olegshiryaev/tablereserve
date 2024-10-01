@@ -16,11 +16,13 @@
 
 {% block content %}
 <div class="container-fluid p-0">
-    <h1 class="h3 mb-3"> Список заведений</h1>
-    {% if request.user.is_authenticated and request.user.is_admin %}
-    <!-- Кнопка для добавления нового заведения -->
-    <a href="{% url 'dashboard:place_create' %}" class="btn btn-primary mb-3">Добавить новое заведение</a>
-    {% endif %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Список заведений</h1>
+        {% if request.user.is_authenticated %}
+        <!-- Кнопка для добавления нового заведения -->
+        <a href="{% url 'dashboard:place_create' %}" class="btn btn-primary">Добавить новое заведение</a>
+        {% endif %}
+    </div>
     <!-- Таблица с заведениями -->
     <div class="card">
         <div class="card-body">

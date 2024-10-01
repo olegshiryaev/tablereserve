@@ -38,13 +38,14 @@ def inflect_word(word, case):
 
 def format_russian_date(date):
     """
-    Форматирует дату в формате '17 сентября'.
+    Форматирует дату в формате '2 октября 2024г.'.
     :param date: Объект даты.
     :return: Отформатированная строка.
     """
     day = date.day
     month = MONTHS_IN_LOCATIVE[date.month]
-    return f"{day} {month}"
+    year = date.year
+    return f"{day} {month} {year}г."
 
 
 # def get_available_booking_times(date, place_id):

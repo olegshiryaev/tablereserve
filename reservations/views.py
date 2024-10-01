@@ -429,14 +429,14 @@ def place_detail(request, city_slug, place_slug):
 
             if reservation_date == today:
                 reservation_message = (
-                    f"сегодня в {formatted_time} на {guests_count} {guest_word}."
+                    f"На сегодня в {formatted_time} на {guests_count} {guest_word}."
                 )
             elif reservation_date == tomorrow:
                 reservation_message = (
-                    f"завтра в {formatted_time} на {guests_count} {guest_word}."
+                    f"На завтра в {formatted_time} на {guests_count} {guest_word}."
                 )
             else:
-                reservation_message = f"{reservation_date.strftime('%d.%m.%Y')} в {formatted_time} на {guests_count} {guest_word}."
+                reservation_message = f"На {reservation_date.strftime('%d.%m.%Y')} в {formatted_time} на {guests_count} {guest_word}."
 
             reservation_data = {
                 "name": reservation.customer_name,

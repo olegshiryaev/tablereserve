@@ -133,3 +133,43 @@
 .btn-danger:hover {
     background-color: #c82333; /* Темнее при наведении */
 }
+
+.custom-avatar {
+    top: 8px;
+    width: 28px; /* Ширина иконки */
+    height: 28px; /* Высота иконки */
+    object-fit: cover;
+    border-radius: 50%; /* Круглая иконка */
+    margin-right: 8px; /* Отступ справа от иконки */
+    vertical-align: middle; /* Выравнивание по центру */
+}
+
+.fixed-buttons {
+    position: fixed;
+    bottom: 20px; /* Расположим обе кнопки внизу экрана */
+    right: 20px;  /* Отступ справа */
+    z-index: 1000;
+    display: flex;
+    gap: 10px; /* Расстояние между кнопками */
+}
+
+.save-button-fixed {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save-button-fixed {
+    background-color: #007bff;
+    color: white;
+}
+
+.save-button-fixed:hover {
+    background-color: #0056b3;
+}
+
+#btn-back-to-top {
+    display: none;
+}

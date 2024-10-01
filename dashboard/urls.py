@@ -39,6 +39,16 @@ urlpatterns = [
         name="reservation_detail",
     ),
     path(
+        "dashboard/reservations/<int:id>/accept/",
+        views.reservation_accept,
+        name="reservation_accept",
+    ),
+    path(
+        "dashboard/reservations/<int:id>/reject/",
+        views.reservation_reject,
+        name="reservation_reject",
+    ),
+    path(
         "dashboard/places/<int:place_id>/reservations/",
         views.reservations_list,
         name="reservations_list",

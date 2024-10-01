@@ -664,7 +664,7 @@ class BookingSettings(models.Model):
         verbose_name="Заведение",
     )
     accepts_bookings = models.BooleanField(
-        default=False,
+        default=True,
         verbose_name="Доступно для бронирования",
         help_text="Отметьте, если хотите разрешить бронирования для этого заведения",
     )
@@ -678,7 +678,7 @@ class BookingSettings(models.Model):
         default=2, verbose_name="Количество гостей по умолчанию"
     )
     allow_table_selection = models.BooleanField(
-        default=False,
+        default=True,
         verbose_name="Выбор столика на форме бронирования",
         help_text="Столики нужно добавить в разделе «Столики»",
     )

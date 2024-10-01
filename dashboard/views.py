@@ -74,6 +74,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.views.generic import TemplateView
+from django.contrib import messages
 
 
 @login_required
@@ -291,18 +292,23 @@ def reservations_list(request, place_id):
 
 @login_required
 def all_reservations(request):
+    # Если пользователь является администратором
     if request.user.is_admin:
-        # Администратор видит все бронирования
-        reservations = Reservation.objects.all().order_by("-created_at")
+        # Администратор видит все бронирования, отсортированные по дате создания
+        reservations = (
+            Reservation.objects.all().select_related("place").order_by("-created_at")
+        )
     else:
         # Владелец видит только бронирования своих заведений
-        user_places = Place.objects.filter(manager=request.user)
-        reservations = Reservation.objects.filter(place__in=user_places).order_by(
-            "-created_at"
+        owner_places = Place.objects.filter(manager=request.user)
+        reservations = (
+            Reservation.objects.filter(place__in=owner_places)
+            .select_related("place")
+            .order_by("-created_at")
         )
 
     context = {
-        "reservations": reservations,
+        "reservations": reservations,  # Передача списка бронирований в шаблон
     }
     return render(request, "dashboard/all_reservations.html", context)
 
@@ -330,6 +336,46 @@ def reservation_detail(request, reservation_id):
 
     context = {"reservation": reservation, "place": place, "form": form}
     return render(request, "dashboard/reservation_detail.html", context)
+
+
+@login_required
+def reservation_accept(request, id):
+    # Получаем бронирование по ID или 404, если не найдено
+    reservation = get_object_or_404(Reservation, id=id)
+
+    # Проверяем права доступа
+    if not request.user.is_admin and reservation.place.manager != request.user:
+        messages.error(request, "У вас нет прав для принятия этого бронирования.")
+        return redirect("dashboard:reservation_list")
+
+    # Меняем статус на "Подтверждено" (confirmed)
+    reservation.status = "confirmed"
+    reservation.save()
+
+    # Сообщение об успешном принятии
+    messages.success(request, f"Бронирование №{reservation.id} успешно подтверждено.")
+
+    return redirect("dashboard:reservation_list")
+
+
+@login_required
+def reservation_reject(request, id):
+    # Получаем бронирование по ID или 404, если не найдено
+    reservation = get_object_or_404(Reservation, id=id)
+
+    # Проверяем права доступа
+    if not request.user.is_admin and reservation.place.manager != request.user:
+        messages.error(request, "У вас нет прав для отклонения этого бронирования.")
+        return redirect("dashboard:reservation_list")
+
+    # Меняем статус на "Отменено рестораном" (cancelled_by_restaurant)
+    reservation.status = "cancelled_by_restaurant"
+    reservation.save()
+
+    # Сообщение об успешном отклонении
+    messages.success(request, f"Бронирование №{reservation.id} успешно отклонено.")
+
+    return redirect("dashboard:reservation_list")
 
 
 @login_required

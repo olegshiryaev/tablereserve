@@ -45,7 +45,7 @@
             {% if user.is_authenticated %}
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle no-caret" href="#" id="userDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{{ user.profile.get_avatar_url }}" alt="{{ user.profile.name }}" class="profile-icon rounded-circle" />
+                        <img src="{{ user.profile.get_avatar_url }}" alt="{{ user.profile }}" class="profile-icon rounded-circle" />
                         {{ user.profile }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggle">
@@ -79,8 +79,8 @@
         {% if user.is_authenticated %}
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle no-caret" href="#" id="userDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
-                <img src="{{ user.profile.get_avatar_url }}" alt="{{ user.profile.name }}" class="profile-icon rounded-circle" />
-                {{ user.profile.name }}
+                <img src="{{ user.profile.get_avatar_url }}" alt="{{ user.profile }}" class="profile-icon rounded-circle" />
+                {{ user.profile }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggle">
                 {% if user.is_admin %}

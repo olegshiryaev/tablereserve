@@ -20,6 +20,17 @@ def rating_color(value):
 
 
 @register.filter
+def status_color(status):
+    if status == "confirmed":
+        return "confirmed"
+    elif status in ["cancelled_by_restaurant", "cancelled_by_customer"]:
+        return "cancelled"
+    elif status == "pending":
+        return "pending"
+    return ""
+
+
+@register.filter
 def review_word(count):
     if 11 <= count % 100 <= 19:
         return "отзывов"

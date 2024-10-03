@@ -26,6 +26,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import LoginForm
 from django.core.mail import send_mail
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -83,32 +84,65 @@ class ProfileDetailView(DetailView):
         is_owner = profile_user == current_user
         context["is_owner"] = is_owner
 
-        # Показываем бронирования и избранное только владельцу профиля
+        # Получаем текущее время
+        now = timezone.now()
+
+        # Фильтрация бронирований
+        filter_type = self.request.GET.get("filter", "current")
+
         if is_owner:
-            context["reservations"] = profile_user.reservations.select_related(
-                "place"
-            ).all()
+            if filter_type == "current":
+                # Текущие бронирования
+                reservations = profile_user.reservations.filter(
+                    date__gt=now.date(),  # Бронирования на даты позже текущей
+                    status__in=["confirmed", "pending"],
+                ) | profile_user.reservations.filter(
+                    date=now.date(),  # Бронирования на текущую дату с временем позже текущего
+                    time__gte=now.time(),
+                    status__in=["confirmed", "pending"],
+                )
+            elif filter_type == "past":
+                # Прошедшие бронирования
+                reservations = profile_user.reservations.filter(
+                    date__lt=now.date(),  # Бронирования на даты раньше текущей
+                    status__in=["confirmed", "pending"],
+                ) | profile_user.reservations.filter(
+                    date=now.date(),  # Бронирования на текущую дату с временем раньше текущего
+                    time__lt=now.time(),
+                    status__in=["confirmed", "pending"],
+                )
+            elif filter_type == "cancelled":
+                # Отменённые бронирования
+                reservations = profile_user.reservations.filter(
+                    status__in=["cancelled_by_restaurant", "cancelled_by_customer"]
+                )
+            else:
+                reservations = profile_user.reservations.all()
+
+            # Добавляем бронирования в контекст
+            context["reservations"] = reservations.order_by("-date", "-time")
+
+            # Добавляем избранные места
             context["favorites"] = profile_user.favorites.prefetch_related(
                 "place"
             ).all()
 
-        # Всегда показываем отзывы (их могут видеть все)
+        # Всегда показываем отзывы
         reviews = profile_user.reviews.select_related("place", "place__type").filter(
             status="approved"
         )
         for review in reviews:
             if review.place and review.place.type:
                 review.place_type_phrase = inflect_word(review.place.type.name, "loct")
-
         context["reviews"] = reviews
 
         # Добавляем название страницы
         context["title"] = f"Страница пользователя: {profile_user.profile}"
 
-        # Добавляем сообщение о последнем визите
+        # Сообщение о последнем визите
         context["last_seen_message"] = time_since_last_seen(profile_user)
 
-        # Проверяем, подтверждён ли email пользователя
+        # Проверка подтверждения email
         context["email_verified"] = (
             EmailAddress.objects.filter(user=profile_user, email=profile_user.email)
             .first()

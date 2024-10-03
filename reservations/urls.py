@@ -1,7 +1,13 @@
 from django.urls import path
 from . import views
+from django.views.generic import TemplateView
 
 urlpatterns = [
+    path(
+        "privacy/",
+        TemplateView.as_view(template_name="reservations/privacy.html"),
+        name="privacy",
+    ),
     path("<str:city_slug>/", views.main_page, name="main_page"),
     path("<str:city_slug>/places/", views.place_list, name="place_list"),
     path(

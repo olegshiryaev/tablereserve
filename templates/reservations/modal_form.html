@@ -1,0 +1,74 @@
+<div id="reservationModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Бронирование столика</h2>
+        <form method="post" id="reservationForm">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Забронировать</button>
+        </form>
+        <div id="modal-response"></div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("reservationModal");
+        const closeModalBtn = document.querySelector(".close-modal");
+        const modalContent = document.querySelector(".modal-content");
+        
+        // Открытие модального окна при нажатии на кнопку "Забронировать"
+        document.querySelectorAll(".hall-book-button").forEach(button => {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                const tableId = this.getAttribute("data-table-id");
+                const placeSlug = this.getAttribute("data-place-slug");
+
+                // AJAX запрос для получения формы
+                fetch(`/places/${placeSlug}/get_reservation_form/${tableId}/`)
+                    .then(response => response.text())
+                    .then(data => {
+                        modalContent.innerHTML = data;
+                        modal.style.display = "block";
+
+                        // Повторная инициализация формы после обновления контента
+                        const reservationForm = document.getElementById("reservationForm");
+                        reservationForm.addEventListener("submit", function (event) {
+                            event.preventDefault();
+                            const formData = new FormData(this);
+
+                            // Отправка формы через AJAX
+                            fetch(this.action, {
+                                method: "POST",
+                                body: formData,
+                                headers: {
+                                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    document.getElementById("modal-response").innerHTML = "<p>Бронирование успешно!</p>";
+                                } else {
+                                    document.getElementById("modal-response").innerHTML = "<p>Ошибка при бронировании.</p>";
+                                }
+                            })
+                            .catch(error => console.error('Ошибка:', error));
+                        });
+                    })
+                    .catch(error => console.error('Ошибка:', error));
+            });
+        });
+
+        // Закрытие модального окна при нажатии на крестик
+        closeModalBtn.addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+
+        // Закрытие модального окна при клике за его пределами
+        window.addEventListener("click", function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        });
+    });
+</script>

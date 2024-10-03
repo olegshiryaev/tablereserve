@@ -1887,7 +1887,7 @@ footer a:hover {
     display: block;
     width: 100%;
     padding: 10px;
-    background-color: #5cb85c;
+    background-color: #ff6600;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -1897,7 +1897,7 @@ footer a:hover {
 }
 
 .booking-popup-form button[type="submit"]:hover {
-    background-color: #4cae4c;
+    background-color: #e65500;
 }
 
 .booking-popup-form label {
@@ -2727,6 +2727,7 @@ a.place-detail-item-value:hover {
     height: 80px;
     border-radius: 8px;
     margin-right: 15px;
+    object-fit: cover;
 }
 
 .hall-table-placeholder {
@@ -2765,7 +2766,7 @@ a.place-detail-item-value:hover {
 }
 
 .hall-book-button {
-    background-color: #FF5722;
+    background-color: #5cb85c;
     color: white;
     padding: 8px 15px;
     border: none;
@@ -2774,7 +2775,7 @@ a.place-detail-item-value:hover {
 }
 
 .hall-book-button:hover {
-    background-color: #e64a19;
+    background-color: #4cae4c;
 }
 
 /* Основной стиль аккордеона */
@@ -3355,4 +3356,59 @@ User Profile
 
 .btn-uniform-width{
     width: 100%;
+}
+
+/* Контейнер для бронирований */
+.reservations-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Карточка бронирования */
+.reservation-item {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.reservation-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.reservation-item img {
+    border-radius: 10px 0 0 10px;
+    object-fit: cover;
+    height: 100%;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.card-text {
+    font-size: 14px;
+    color: #555;
+}
+
+/* Цвета статусов */
+.reservation-item.confirmed {
+    border-left: 5px solid #28a745; /* Зеленая полоса для подтвержденных бронирований */
+}
+
+.reservation-item.pending {
+    border-left: 5px solid #ffc107; /* Желтая полоса для ожидающих подтверждения */
+}
+
+.reservation-item.cancelled {
+    border-left: 5px solid #dc3545; /* Красная полоса для отмененных бронирований */
 }

@@ -16,6 +16,7 @@ class CityMiddleware:
             "place/",
             "welcome/",
             "user/",
+            "privacy/",
         ]
 
     def __call__(self, request):

@@ -78,7 +78,7 @@ class Cuisine(models.Model):
     name = models.CharField(
         max_length=100, unique=True, verbose_name="Наименование кухни", db_index=True
     )
-    description = models.TextField(blank=True, null=True, verbose_name="Описание кухни")
+    description = models.TextField(blank=True, verbose_name="Описание кухни")
     slug = models.SlugField(
         max_length=100,
         unique=True,
@@ -688,7 +688,10 @@ class BookingSettings(models.Model):
         null=True,
         verbose_name="Email для уведомлений о бронированиях",
         help_text="Оставьте пустым, чтобы не получать уведомления по электронной почте",
+        validators=[EmailValidator(message="Введите корректный email адрес.")],
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     class Meta:
         verbose_name = "Настройки бронирования"
@@ -938,6 +941,14 @@ class Reservation(models.Model):
 
     def __str__(self):
         return f"{self.user or self.customer_name} - {self.place.name} - {self.date} {self.time}"
+    
+    @property
+    def is_past(self):
+        return self.date < timezone.now().date()
+
+    @property
+    def is_cancelled(self):
+        return self.status in ['cancelled_by_restaurant', 'cancelled_by_customer']
 
     def get_absolute_url(self):
         return reverse("users:reservation-detail", kwargs={"pk": self.pk})

@@ -2,8 +2,8 @@
 {% load static %}
 <!-- Нижняя часть страницы (Футер) -->
 {% load static %}
-<footer class="footer mt-auto py-4">
-    <div class="container d-flex justify-content-between align-items-center">
+<footer class="footer mt-auto">
+    <div class="container d-flex justify-content-between align-items-center py-4">
         <div class="footer-left d-flex align-items-center">
             <!-- Логотип с ссылкой -->
             <a href="https://FASIE.RU" target="_blank" class="d-flex align-items-center" style="text-decoration: none;">
@@ -20,4 +20,22 @@
             <a href="{% url 'dashboard:place_create' %}" class="btn add-place-btn">Добавить заведение</a>
         </div>
     </div>
+
+    <!-- Разделительная черта -->
+    <hr style="border-top: 1px solid #ccc; margin: 0;">
+
+    <!-- Сабфутер -->
+    <div class="subfooter py-2">
+        <div class="container d-flex justify-content-between align-items-center">
+            <!-- Слева товарный знак -->
+            <p class="mb-0" style="color: #000; font-size: 0.875rem;">
+                &copy; 2024 RESERVE
+            </p>
+            <!-- Справа ссылка на политику конфиденциальности -->
+            <a href="{% url 'privacy' %}" style="text-decoration: none; color: #000; font-size: 0.875rem;">
+                Политика конфиденциальности
+            </a>
+        </div>
+    </div>
 </footer>
+

@@ -80,6 +80,14 @@ class ReservationForm(forms.ModelForm):
         empty_label="Любой столик",  # Метка для пустого значения
         widget=forms.Select(attrs={"class": "form-control"}),
     )
+    consent = forms.BooleanField(
+        required=True,
+        initial=True,
+        error_messages={
+            "required": "Вы должны дать согласие на обработку персональных данных."
+        },
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
 
     class Meta:
         model = Reservation
@@ -92,6 +100,7 @@ class ReservationForm(forms.ModelForm):
             "customer_phone",
             "customer_email",
             "wishes",
+            "consent",
         ]
         widgets = {
             "date": forms.DateInput(

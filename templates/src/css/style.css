@@ -2755,7 +2755,7 @@ a.place-detail-item-value:hover {
     margin: 0;
 }
 
-.hall-table-name {
+ .hall-table-name {
     font-size: 16px;
     margin-bottom: 5px;
 }
@@ -3411,4 +3411,208 @@ User Profile
 
 .reservation-item.cancelled {
     border-left: 5px solid #dc3545; /* Красная полоса для отмененных бронирований */
+}
+
+/* Стили для блока Афиша */
+.events-poster-section {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.events-poster-inner {
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+}
+
+.events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.events-header h3 {
+    font-size: 24px;
+    color: #333;
+}
+
+.view-all-link {
+    font-size: 14px;
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.view-all-link:hover {
+    text-decoration: underline;
+}
+
+/* Сетка для списка событий */
+.events-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px; /* Расстояние между карточками */
+}
+
+/* Каждая карточка */
+.event-item {
+    background-color: #fff;
+    padding: 0; /* Убираем отступы у карточки */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow: hidden; /* Чтобы изображение обрезалось по краям карточки */
+}
+
+.event-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    margin: 0; /* Убираем отступы у изображения */
+    border-top-left-radius: 8px; /* Оставляем скругление углов сверху */
+    border-top-right-radius: 8px;
+}
+
+.event-details {
+    padding: 15px; /* Добавляем отступы только для текста */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.event-name {
+    font-size: 18px;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.event-place {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+.event-date {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.event-description {
+    font-size: 14px;
+    color: #444;
+    line-height: 20px;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 1024px) {
+    .events-list {
+        grid-template-columns: repeat(2, 1fr); /* 2 карточки в ряд на узких экранах */
+    }
+}
+
+@media (max-width: 768px) {
+    .events-list {
+        grid-template-columns: 1fr; /* 1 карточка в ряд на мобильных устройствах */
+    }
+}
+
+/* Секция отзывов */
+.city-reviews-section {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.city-reviews-section h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.city-reviews-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 2 колонки для отзывов */
+    gap: 20px;
+}
+
+.city-review-item {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.place-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.city-review-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.city-review-place {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+.city-review-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.city-review-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Разделяем аватар и имя с оценкой */
+    margin-bottom: 10px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.city-review-author {
+    font-size: 14px;
+    color: #444;
+    margin-right: auto; /* Для выравнивания с оценкой */
+}
+
+.city-review-rating {
+    font-size: 14px;
+    color: #f39c12; /* Цвет для звёзд */
+}
+
+.city-review-text {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.city-review-date {
+    font-size: 12px;
+    color: #999;
+}
+
+/* Адаптивность для отзывов */
+@media (max-width: 768px) {
+    .city-reviews-list {
+        grid-template-columns: 1fr; /* Одна колонка для мобильных */
+    }
 }

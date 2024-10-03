@@ -107,24 +107,36 @@
     </div>
 </section>
 
-<!-- Секция с предстоящими событиями -->
-<section class="upcoming-events">
-    <div class="container">
-        <h2>Предстоящие события</h2>
-        <div class="event-cards">
-            {% for event in upcoming_events %}
-            <div class="event-card">
-                <h3>{{ event.title }}</h3>
-                <p>{{ event.description|truncatewords:15 }}</p>
-                <p>Дата: {{ event.date }} Время: {{ event.start_time }}</p>
-                <button>Узнать больше</button>
+<!-- Афиша города -->
+<div class="container">
+    <div id="events-poster" class="events-poster-section">
+        <div class="events-poster-inner">
+            <div class="events-header">
+                <h3>Афиша Архангельска</h3>
+                <a href="#" class="view-all-link">Вся афиша</a>
             </div>
-            {% endfor %}
+            
+            <!-- Список событий -->
+            <div class="events-list">
+                {% for event in upcoming_events %}
+                    <div class="event-item">
+                        <img src="{{ event.image.url }}" alt="{{ event.name }}" class="event-image">
+                        <div class="event-details">
+                            <h4 class="event-name">{{ event.name }}</h4>
+                            <p class="event-place">{{ event.place.name }}, {{ event.place.address }}</p>
+                            <p class="event-date">{{ event.date }} | {{ event.start_time }} - {{ event.end_time }}</p>
+                            <p class="event-description">{{ event.description|truncatechars:100 }}</p>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>Нет предстоящих событий.</p>
+                {% endfor %}
+            </div>
         </div>
     </div>
-</section>
+</div>
 
-<!-- Секция с акциями и предложениями -->
+{% comment %} <!-- Секция с акциями и предложениями -->
 <section class="special-offers">
     <div class="container">
         <h2>Специальные предложения</h2>
@@ -144,9 +156,9 @@
             {% endfor %}
         </div>
     </div>
-</section>
+</section> {% endcomment %}
 
-<!-- Секция "Как это работает" -->
+{% comment %} <!-- Секция "Как это работает" -->
 <section class="how-it-works">
     <div class="container">
         <h2>Как это работает</h2>
@@ -157,27 +169,46 @@
             <li>Наслаждайтесь визитом</li>
         </ol>
     </div>
-</section>
+</section> {% endcomment %}
 
 <!-- Отзывы клиентов -->
-<section class="reviews">
-    <div class="container">
-        <h2>Отзывы наших клиентов</h2>
-        <div class="review-cards">
-            <div class="review-card">
-                <img src="client1.jpg" alt="Клиент 1" />
-                <p>Отличный сервис! Очень удобно бронировать столики.</p>
-                <p>Рейтинг: ★★★★★</p>
-            </div>
-            <div class="review-card">
-                <img src="client2.jpg" alt="Клиент 2" />
-                <p>Прекрасный выбор ресторанов и быстрое бронирование.</p>
-                <p>Рейтинг: ★★★★☆</p>
-            </div>
-            <!-- Добавьте больше отзывов по необходимости -->
+<div class="container mb-3">
+    <div id="city-reviews-section" class="city-reviews-section">
+        <h3>Отзывы о заведениях</h3>
+        <div class="city-reviews-list">
+            {% for review in random_reviews %}
+                <div class="city-review-item">
+                    <img src="{{ review.place.get_cover_image }}" alt="Изображение {{ review.place.name }}" class="place-image">
+                    <div class="city-review-content">
+                        <div class="city-review-place">
+                            <strong>{{ review.place.name }}</strong>
+                            <p>{{ review.place.address }}</p>
+                        </div>
+                        <div class="city-review-body">
+                            <div class="city-review-header">
+                                <img src="{{ review.user.profile.get_avatar_url }}" alt="{{ review.user.username }}'s avatar" class="user-avatar">
+                                <div class="city-review-author">{{ review.user.username }}</div>
+                                <div class="city-review-rating">
+                                    {% for i in "12345" %}
+                                        {% if i|add:"0" <= review.rating %}
+                                            ★
+                                        {% else %}
+                                            ☆
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="city-review-text">{{ review.text|truncatechars:150 }}</p>
+                            <p class="city-review-date">{{ review.created_at|date:"j E Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>Отзывов пока нет.</p>
+            {% endfor %}
         </div>
     </div>
-</section>
+</div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const favoriteButtons = document.querySelectorAll(".favorite-button");

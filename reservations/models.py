@@ -941,14 +941,14 @@ class Reservation(models.Model):
 
     def __str__(self):
         return f"{self.user or self.customer_name} - {self.place.name} - {self.date} {self.time}"
-    
+
     @property
     def is_past(self):
         return self.date < timezone.now().date()
 
     @property
     def is_cancelled(self):
-        return self.status in ['cancelled_by_restaurant', 'cancelled_by_customer']
+        return self.status in ["cancelled_by_restaurant", "cancelled_by_customer"]
 
     def get_absolute_url(self):
         return reverse("users:reservation-detail", kwargs={"pk": self.pk})
@@ -1119,6 +1119,14 @@ class ReviewResponse(models.Model):
         return f"Ответ на отзыв {self.review.id} для {self.place.name} от {self.user.username}"
 
 
+class EventManager(models.Manager):
+    def get_upcoming_events(self, place, limit=5):
+        today = date.today()
+        return self.filter(place=place, date__gte=today, is_active=True).order_by(
+            "date", "start_time"
+        )[:limit]
+
+
 class Event(models.Model):
     place = models.ForeignKey(
         Place, on_delete=models.CASCADE, related_name="events", verbose_name="Заведение"
@@ -1133,14 +1141,10 @@ class Event(models.Model):
     )
     is_active = models.BooleanField(default=True, verbose_name="Активное мероприятие")
 
+    objects = EventManager()  # Привязываем менеджер
+
     def __str__(self):
         return f"{self.name} - {self.place.name}"
-
-    def get_upcoming_events(self, limit=5):
-        today = date.today()
-        return Event.objects.filter(
-            place=self.place, date__gte=today, is_active=True
-        ).order_by("date", "start_time")[:limit]
 
     class Meta:
         verbose_name = "Событие"

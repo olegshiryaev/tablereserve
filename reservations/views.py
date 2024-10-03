@@ -88,6 +88,13 @@ def main_page(request, city_slug):
         place_features__display_on_card=True
     ).distinct()[:2]
 
+    # Случайные последние отзывы (5 штук)
+    random_reviews = (
+        Review.objects.filter(place__city=city, status="approved")
+        .order_by("?")  # Случайный порядок
+        .select_related("user", "place")[:3]  # Теперь 3 отзыва
+    )
+
     # Добавляем особенности к заведениям
     for place in popular_places:
         place.features_on_card = place.features.filter(
@@ -108,6 +115,7 @@ def main_page(request, city_slug):
         "total_places_count": total_places_count,
         "features_on_card": features_on_card,
         "city_name_locative": city_name_locative,
+        "random_reviews": random_reviews,
         "search": search_query,
     }
 

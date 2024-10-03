@@ -38,7 +38,7 @@
         <div class="review-item {% if review.rating >= 4 %}positive{% else %}negative{% endif %}">
             <div class="d-flex justify-content-between">
                 <div class="review-author">
-                    <img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.profile }}" class="review-avatar">
+                    <img src="{{ review.user.profile.get_avatar_url }}" alt="{{ review.user.profile }}" class="review-avatar">
                     <strong>
                         <a href="{% url 'users:profile' id=review.user.id %}">
                             {{ review.user.profile }}
@@ -91,7 +91,7 @@
             <div class="review-response" style="margin-left: 60px; padding-left: 10px;">
                 <div>
                     <div class="review-author">
-                        <img src="{{ review.response.user.profile.avatar.url }}" alt="{{ review.response.user.profile }}" class="review-avatar">
+                        <img src="{{ review.response.user.profile.get_avatar_url }}" alt="{{ review.response.user.profile }}" class="review-avatar">
                         <strong>
                             <a href="{% url 'users:profile' id=review.response.user.id %}">
                                 {{ review.response.user.profile }}

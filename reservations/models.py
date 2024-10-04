@@ -1137,7 +1137,7 @@ class Event(models.Model):
     start_time = models.TimeField(verbose_name="Время начала")
     end_time = models.TimeField(verbose_name="Время окончания")
     image = models.ImageField(
-        upload_to="events/", null=True, blank=True, verbose_name="Изображение"
+        upload_to="events/", blank=False, null=False, verbose_name="Изображение"
     )
     is_active = models.BooleanField(default=True, verbose_name="Активное мероприятие")
 

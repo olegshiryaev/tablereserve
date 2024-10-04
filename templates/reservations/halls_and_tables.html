@@ -21,7 +21,7 @@
                             <h4 class="hall-table-name">Столик</h4>
                             <p class="hall-table-seats">Мест: {{ table.seats }}</p>
                         </div>
-                        <a href="#" class="hall-book-button">Забронировать</a>
+                        <a href="#" class="hall-book-button" data-table-id="{{ table.id }}">Забронировать</a>
                     </div>
                     {% endfor %}
                 </div>
@@ -31,38 +31,97 @@
         </div>
     </div>
 </div>
-
+<!-- Модальное окно для бронирования -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookingModalLabel">Заказ столика</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Форма бронирования -->
+                <form method="post" id="modal-booking-form" class="booking-popup-form"
+                    data-place-id="{{ place.id }}" action="{% url 'reserve_table' city_slug=selected_city.slug place_slug=place.slug %}">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-col">
+                            {{ reservation_form.date.label_tag }}
+                            {{ reservation_form.date }}
+                        </div>
+                        <div class="form-col">
+                            {{ reservation_form.time.label_tag }}
+                            {{ reservation_form.time }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            {{ reservation_form.customer_phone.label_tag }}
+                            {{ reservation_form.customer_phone }}
+                        </div>
+                        <div class="form-col">
+                            {{ reservation_form.guests.label_tag }}
+                            {{ reservation_form.guests }}
+                        </div>
+                    </div>
+                    {{ reservation_form.table.label_tag }}
+                    {{ reservation_form.table }}
+                    {{ reservation_form.customer_name.label_tag }}
+                    {{ reservation_form.customer_name }}
+                    {{ reservation_form.customer_email.label_tag }}
+                    {{ reservation_form.customer_email }}
+                    {% if reservation_form.customer_email.help_text %}
+                        <small class="form-text text-muted">{{ reservation_form.customer_email.help_text }}</small>
+                    {% endif %}
+                    {{ reservation_form.wishes.label_tag }}
+                    {{ reservation_form.wishes }}
+                    <div class="form-group form-check mb-3">
+                        {{ reservation_form.consent }}
+                        <label class="form-check-label" for="{{ reservation_form.consent.id_for_label }}" style="margin-left: 10px; font-size: 12px;">
+                            Нажимая кнопку "Забронировать", я соглашаюсь с <a href="{% url 'privacy' %}" target="_blank" style="text-decoration: underline;">политикой обработки персональных данных</a>.
+                        </label>
+                    </div>
+                    {% if reservation_form.errors %}
+                        <div class="form-errors">
+                            {% for field in reservation_form %}
+                                {% for error in field.errors %}
+                                    <div class="error-message">{{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in reservation_form.non_field_errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary">Забронировать</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
-    document.querySelectorAll('.view-tables-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const hallId = this.dataset.hallId;
-            document.getElementById('hall-modal-' + hallId).style.display = 'block';
-        });
-    });
+    document.addEventListener("DOMContentLoaded", function() {
+        // Все ссылки "Забронировать"
+        const bookingButtons = document.querySelectorAll(".hall-book-button");
+        const modal = new bootstrap.Modal(document.getElementById('bookingModal'), {});
+        
+        bookingButtons.forEach(button => {
+            button.addEventListener("click", function(event) {
+                event.preventDefault(); // Отменяем стандартное поведение ссылки
+                const tableId = this.dataset.tableId; // Получаем ID столика из data-атрибута
     
-    document.querySelectorAll('.hall-close-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const hallId = this.dataset.hallId;
-            document.getElementById('hall-modal-' + hallId).style.display = 'none';
-        });
-    });
+                // Открываем модальное окно
+                modal.show();
     
-    // Закрытие модального окна при клике вне модального контента
-    window.addEventListener('click', function(event) {
-        document.querySelectorAll('.hall-modal').forEach(modal => {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        });
-    });
-    
-    // Закрытие модального окна при нажатии на клавишу Esc
-    document.addEventListener('keydown', function(event) {
-        if (event.key === "Escape") {
-            document.querySelectorAll('.hall-modal').forEach(modal => {
-                modal.style.display = 'none';
+                // Устанавливаем выбранный столик в форме
+                const tableSelect = document.getElementById("id_table");
+                if (tableSelect) {
+                    tableSelect.value = tableId; // Устанавливаем значение поля выбора столика
+                }
             });
-        }
-    });    
+        });
+    });
 </script>
 {% endif %}

@@ -186,8 +186,8 @@
                         </div>
                         <div class="city-review-body">
                             <div class="city-review-header">
-                                <img src="{{ review.user.profile.get_avatar_url }}" alt="{{ review.user.username }}'s avatar" class="user-avatar">
-                                <div class="city-review-author">{{ review.user.username }}</div>
+                                <img src="{{ review.user.profile.get_avatar_url }}" alt="{{ review.user.profile }}'s avatar" class="city-review-avatar">
+                                <div class="city-review-author">{{ review.user.profile }}</div>
                                 <div class="city-review-rating">
                                     {% for i in "12345" %}
                                         {% if i|add:"0" <= review.rating %}

@@ -39,36 +39,42 @@
 </section>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const dateInput = document.getElementById("id_date");
-        const timeSelect = document.getElementById("id_time");
-        
-        // Установка текущей даты при загрузке страницы
-        const today = new Date().toISOString().split("T")[0];
-        dateInput.value = today;
-
-        // Загрузка доступных временных слотов для текущей даты
-        updateAvailableTimeSlots(today);
-
-        // Обновление временных слотов при изменении даты
-        dateInput.addEventListener("change", function () {
-            const selectedDate = dateInput.value;
-            updateAvailableTimeSlots(selectedDate);
+        const forms = document.querySelectorAll("form.booking-popup-form");
+    
+        forms.forEach(function(form) {
+            const dateInput = form.querySelector("[id^='id_date']");
+            const timeSelect = form.querySelector("[id^='id_time']");
+            
+            if (!dateInput || !timeSelect) return;  // Проверка на наличие полей
+    
+            // Установка текущей даты при загрузке страницы
+            const today = new Date().toISOString().split("T")[0];
+            dateInput.value = today;
+    
+            // Загрузка доступных временных слотов для текущей даты
+            updateAvailableTimeSlots(today, timeSelect, form);
+    
+            // Обновление временных слотов при изменении даты
+            dateInput.addEventListener("change", function () {
+                const selectedDate = dateInput.value;
+                updateAvailableTimeSlots(selectedDate, timeSelect, form);
+            });
         });
-
-        function updateAvailableTimeSlots(date) {
-            const placeId = "{{ place.id }}";  // ID заведения
-
+    
+        function updateAvailableTimeSlots(date, timeSelect, form) {
+            const placeId = form.dataset.placeId;  // ID заведения из атрибута data
+    
             // Добавляем индикатор загрузки или блокируем выбор времени
             timeSelect.disabled = true;
             timeSelect.innerHTML = '<option>Загрузка...</option>';
-
+    
             // Выполняем запрос на сервер для получения временных слотов
             fetch(`/place/${placeId}/available-time-slots/?date=${date}`)
                 .then(response => response.json())
                 .then(data => {
                     // Очистка текущих опций времени
                     timeSelect.innerHTML = '';
-                    
+    
                     if (data.length > 0) {
                         // Добавляем доступные временные слоты
                         data.forEach(timeSlot => {
@@ -94,7 +100,7 @@
                     timeSelect.disabled = true;  // Блокируем выбор
                 });
         }
-    });
+    });      
 </script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {

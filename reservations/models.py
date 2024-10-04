@@ -1057,6 +1057,10 @@ class Review(models.Model):
         verbose_name_plural = "Отзывы"
         unique_together = ["user", "place"]
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=['place']),
+            models.Index(fields=['user']),
+        ]
 
     def __str__(self):
         return f"Review by {self.user.username} for {self.place.name}"

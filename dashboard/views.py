@@ -44,6 +44,7 @@ from reservations.models import (
     PlaceImage,
     PlaceType,
     Reservation,
+    Review,
     Table,
     Tag,
     WorkSchedule,
@@ -1110,3 +1111,23 @@ class PlaceFeatureDeleteView(DeleteView):
         return reverse(
             "dashboard:place_detail", kwargs={"slug": self.object.place.slug}
         )
+
+
+class ReviewListView(LoginRequiredMixin, ListView):
+    model = Review
+    template_name = "dashboard/review_list.html"
+    context_object_name = "reviews"
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            # Если пользователь - администратор, получаем все отзывы
+            return Review.objects.select_related("user", "place").order_by(
+                "-created_at"
+            )
+        else:
+            # Если пользователь - менеджер, получаем отзывы только по его заведениям
+            return (
+                Review.objects.filter(place__manager=self.request.user)
+                .select_related("user")
+                .order_by("-created_at")
+            )

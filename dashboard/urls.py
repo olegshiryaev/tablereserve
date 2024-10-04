@@ -53,6 +53,7 @@ urlpatterns = [
         views.reservations_list,
         name="reservations_list",
     ),
+    path("dashboard/reviews/", views.ReviewListView.as_view(), name="review_list"),
     path("welcome/", views.add_place, name="welcome"),
     path("add_place_success/", views.add_place_success, name="add_place_success"),
     path(

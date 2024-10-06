@@ -3,7 +3,7 @@
     <div class="similar-places-container">
         <!-- Проверяем, есть ли похожие заведения -->
         {% if similar_places %}
-            {% for similar_place in similar_places %}
+            {% for similar_place in similar_places|slice:":4" %}
                 <div class="similar-place-item">
                     {% if similar_place.get_cover_image %}
                         <img src="{{ similar_place.get_cover_image }}" alt="Image of {{ similar_place.name }}" class="similar-place-image"/>

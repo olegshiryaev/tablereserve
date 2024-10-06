@@ -18,7 +18,8 @@
 <div class="container-fluid p-0">
     <h1 class="h3 mb-3">Заявки на резерв столов</h1>
     <!-- Карточка с таблицей бронирований -->
-    <div class="card">
+    {% for reservation in reservations %}
+    <div class="card mb-4 shadow-lg">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -35,56 +36,53 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for reservation in reservations %}
-                        <tr>
-                            <td>{{ reservation.number }}</td> <!-- Номер бронирования -->
-                            <td>{{ reservation.place.name }}</td> <!-- Название заведения -->
-                            <td>{{ reservation.date }}</td> <!-- Дата бронирования -->
-                            <td>{{ reservation.time }}</td> <!-- Время бронирования -->
-                            <td>{{ reservation.table.hall.name }}</td> <!-- Зона (если указано) -->
-                            <td>{{ reservation.table|default:"Любой" }}</td> <!-- Столик (если указано) -->
+                        <tr class="border-bottom"> <!-- Добавление границы снизу -->
+                            <td>{{ reservation.number }}</td>
+                            <td>{{ reservation.place.name }}</td>
+                            <td>{{ reservation.date }}</td>
+                            <td>{{ reservation.time }}</td>
+                            <td>{{ reservation.table.hall.name }}</td>
+                            <td>{{ reservation.table|default:"Любой" }}</td>
                             <td>
                                 {% if reservation.status == "confirmed" %}
                                     <span class="badge bg-success">{{ reservation.get_status_display }}</span>
                                 {% elif reservation.status == "pending" %}
                                     <span class="badge bg-warning">{{ reservation.get_status_display }}</span>
-                                {% elif reservation.status == "cancelled_by_restaurant" %}
-                                    <span class="badge bg-danger">{{ reservation.get_status_display }}</span>
-                                {% elif reservation.status == "cancelled_by_customer" %}
+                                {% elif reservation.status == "cancelled_by_restaurant" or reservation.status == "cancelled_by_customer" %}
                                     <span class="badge bg-danger">{{ reservation.get_status_display }}</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <!-- Кнопки для действий -->
-                                <a href="{% url 'dashboard:reservation_accept' reservation.id %}" class="btn btn-sm btn-success w-100 mb-1">Принять</a>
-                                <a href="{% url 'dashboard:reservation_reject' reservation.id %}" class="btn btn-sm btn-danger w-100 mb-1">Отклонить</a>
+                                <!-- Проверяем статус бронирования и изменяем действия -->
+                                {% if reservation.status == "confirmed" %}
+                                    <button class="btn btn-sm btn-secondary w-100 mb-1" disabled>Подтверждено</button>
+                                {% elif reservation.status == "cancelled_by_restaurant" or reservation.status == "cancelled_by_customer" %}
+                                    <button class="btn btn-sm btn-secondary w-100 mb-1" disabled>Отклонено</button>
+                                {% else %}
+                                    <a href="{% url 'dashboard:reservation_accept' reservation.id %}" class="btn btn-sm btn-success w-100 mb-1">Принять</a>
+                                    <a href="{% url 'dashboard:reservation_reject' reservation.id %}" class="btn btn-sm btn-danger w-100 mb-1">Отклонить</a>
+                                {% endif %}
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="border-bottom mb-4 pb-2"> <!-- Добавление отступов -->
                             <td></td>
                             <td colspan="2">
-                                <!-- Имя клиента -->
                                 <strong>Имя:</strong> {{ reservation.customer_name }}
                             </td>
                             <td colspan="4">
-                                <!-- Телефон клиента -->
                                 <strong>Телефон:</strong> {{ reservation.customer_phone }}
                             </td>
                             <td>
-                                <!-- Кнопка "Подробнее" с той же шириной, что и другие кнопки -->
                                 <a href="{% url 'dashboard:reservation_detail' reservation.id %}" class="btn btn-sm btn-outline-secondary w-100">Подробнее</a>
                             </td>
                         </tr>
-                        {% empty %}
-                        <!-- Если бронирований нет -->
-                        <tr>
-                            <td colspan="8">Нет бронирований</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                    </tbody>                    
                 </table>
             </div>
         </div>
     </div>
+    {% empty %}
+    <div class="alert alert-info">Нет бронирований</div>
+    {% endfor %}
 </div>
 {% endblock %}

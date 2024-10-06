@@ -131,74 +131,98 @@ class ReservationForm(forms.ModelForm):
         self.place = place
         self.fields["time"].choices = self.get_time_choices()
 
-        # Получаем объект настроек бронирования заведения
         booking_settings = getattr(place, "booking_settings", None)
 
-        # Устанавливаем количество гостей по умолчанию из BookingSettings, если он существует
+        # Установка количества гостей по умолчанию
         if booking_settings:
             self.fields["guests"].initial = booking_settings.default_guest_count
+            self.configure_table_field(booking_settings)
 
-            # Проверяем, включен ли выбор столика и есть ли столики у заведения
-            if booking_settings.allow_table_selection:
-                tables = Table.objects.filter(hall__place=place)
-                if tables.exists():
-                    self.fields["table"].queryset = tables
-                else:
-                    del self.fields["table"]  # Удаляем поле, если нет столиков
-            else:
-                del self.fields["table"]  # Удаляем поле, если выбор столика отключен
-
-        # Установка данных пользователя, если он авторизован
         if user and user.is_authenticated:
-            self.fields["customer_name"].initial = user.profile.name or ""
-            self.fields["customer_phone"].initial = user.profile.phone_number or ""
-            self.fields["customer_email"].initial = user.email or ""
+            self.prefill_user_data(user)
 
-        # Настройка меток полей
         self.fields["date"].label = "Дата"
         self.fields["time"].label = "Время"
         self.fields["guests"].label = "Кол-во гостей"
-
         if "table" in self.fields:
             self.fields["table"].label = "Столик"
-
         self.fields["customer_email"].help_text = (
-            "Укажите для получения сообщений о статусах заказа."
+            "Укажите для получения сообщений о статусах заказа"
         )
 
-        # Установка начального значения для даты и времени
-        if self.instance.pk is None:  # Проверяем, создается ли новая запись
-            self.fields["date"].initial = datetime.today().date()  # Текущая дата
+        if self.instance.pk is None:
+            self.fields["date"].initial = datetime.today().date()
+
+    def configure_table_field(self, booking_settings):
+        """
+        Настраивает поле выбора столика в зависимости от доступных настроек заведения
+        """
+        if booking_settings.allow_table_selection:
+            tables = Table.objects.filter(hall__place=self.place)
+            if tables.exists():
+                self.fields["table"].queryset = tables
+            else:
+                del self.fields["table"]
+        else:
+            del self.fields["table"]
+
+    def prefill_user_data(self, user):
+        """
+        Предзаполняет данные клиента, если он авторизован
+        """
+        self.fields["customer_name"].initial = user.profile.name or ""
+        self.fields["customer_phone"].initial = user.profile.phone_number or ""
+        self.fields["customer_email"].initial = user.email or ""
 
     def get_time_choices(self):
-        # Получаем дату из данных формы или из начального значения
+        """
+        Возвращает доступные временные слоты для бронирования, основанные на интервале
+        и недоступном интервале перед текущим временем.
+        """
         date_str = self.data.get(
             "booking_date", self.initial.get("booking_date", timezone.now().date())
         )
 
         if isinstance(date_str, str):
-            # Если дата пришла как строка, преобразуем её в объект date
             try:
                 date = datetime.strptime(date_str, "%Y-%m-%d").date()
             except ValueError:
-                date = timezone.now().date()  # fallback в случае неверного формата
+                date = timezone.now().date()
         else:
             date = date_str
+
+        booking_settings = getattr(self.place, "booking_settings", None)
+
+        # Получаем недоступный интервал для бронирования
+        unavailable_interval = (
+            timedelta(minutes=booking_settings.unavailable_interval)
+            if booking_settings
+            else timedelta(minutes=30)
+        )
 
         # Получаем доступные слоты
         slots = self.place.get_available_time_slots(date)
 
         now = datetime.now()
         if date == now.date():
-            # Найдем ближайший получасовой слот для сегодняшнего дня
-            if now.minute < 30:
-                next_half_hour = now.replace(minute=30, second=0, microsecond=0)
-            else:
-                next_half_hour = (now + timedelta(hours=1)).replace(
-                    minute=0, second=0, microsecond=0
+            # Вычисляем время с учетом недоступного интервала
+            next_available_time = now + unavailable_interval
+
+            # Корректируем ближайший доступный слот в зависимости от шага минут
+            if booking_settings:
+                booking_interval = timedelta(minutes=booking_settings.booking_interval)
+                # Ищем ближайший слот, который подходит по шагу
+                next_available_time = next_available_time + (
+                    booking_interval
+                    - timedelta(
+                        minutes=next_available_time.minute
+                        % booking_interval.seconds
+                        // 60
+                    )
                 )
-            # Фильтруем слоты, которые уже прошли для текущей даты
-            slots = [slot for slot in slots if slot >= next_half_hour.time()]
+
+            # Фильтруем слоты, которые начинаются после next_available_time
+            slots = [slot for slot in slots if slot >= next_available_time.time()]
 
         return [(slot.strftime("%H:%M"), slot.strftime("%H:%M")) for slot in slots]
 

@@ -129,28 +129,36 @@ def calculate_available_time_slots(place, selected_date):
     time_slots = []
     current_time = datetime.combine(selected_date, open_time)
 
+    # Учет недоступного интервала для бронирования
+    unavailable_interval = timedelta(
+        minutes=place.booking_settings.unavailable_interval
+    )
+
     # Если выбранная дата - сегодня, то вычисляем ближайший доступный интервал
     now = datetime.now()
     if selected_date == now.date():
-        # Рассчитываем ближайший 30-минутный интервал
-        minutes = now.minute
-        next_interval = now.replace(
-            minute=(minutes // place.booking_settings.booking_interval + 1)
+        next_available_time = now + unavailable_interval
+        next_interval = next_available_time.replace(
+            minute=(
+                next_available_time.minute // place.booking_settings.booking_interval
+                + 1
+            )
             * place.booking_settings.booking_interval
             % 60,
             hour=(
-                now.hour
-                + (minutes // place.booking_settings.booking_interval + 1)
+                next_available_time.hour
+                + (
+                    next_available_time.minute
+                    // place.booking_settings.booking_interval
+                    + 1
+                )
                 // (60 // place.booking_settings.booking_interval)
             )
             % 24,
             second=0,
             microsecond=0,
         )
-
-        current_time = max(
-            current_time, next_interval
-        )  # Берём максимальное из времени открытия или ближайшего интервала
+        current_time = max(current_time, next_interval)
 
     end_time = datetime.combine(selected_date, close_time)
 

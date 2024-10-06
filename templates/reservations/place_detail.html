@@ -57,6 +57,14 @@
             // Обновление временных слотов при изменении даты
             dateInput.addEventListener("change", function () {
                 const selectedDate = dateInput.value;
+    
+                // Блокируем прошлые даты
+                if (new Date(selectedDate) < new Date()) {
+                    timeSelect.disabled = true;
+                    timeSelect.innerHTML = '<option>Выберите дату в будущем</option>';
+                    return;
+                }
+    
                 updateAvailableTimeSlots(selectedDate, timeSelect, form);
             });
         });
@@ -88,7 +96,7 @@
                         // Сообщение, если слоты недоступны
                         const option = document.createElement("option");
                         option.value = '';
-                        option.text = 'Закрыто';
+                        option.text = 'Нет доступных временных слотов';
                         timeSelect.appendChild(option);
                         timeSelect.disabled = true;  // Блокируем выбор
                     }
@@ -96,11 +104,11 @@
                 .catch(error => {
                     console.error('Ошибка при получении временных слотов:', error);
                     // В случае ошибки показываем сообщение
-                    timeSelect.innerHTML = '<option>Ошибка загрузки</option>';
+                    timeSelect.innerHTML = '<option>Ошибка загрузки временных слотов</option>';
                     timeSelect.disabled = true;  // Блокируем выбор
                 });
         }
-    });      
+    });       
 </script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {

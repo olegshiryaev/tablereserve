@@ -4,6 +4,7 @@ from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 import calendar
+import random
 from django.core.exceptions import PermissionDenied
 
 from reservations.utils import calculate_available_time_slots
@@ -50,7 +51,8 @@ def main_page(request, city_slug):
     popular_places = (
         Place.objects.filter(city=city, is_active=True)
         .order_by("-rating")
-        .prefetch_related("features")[:9]
+        .select_related("city")
+        .prefetch_related("features", "events")[:9]
     )
     total_places_count = Place.objects.filter(city=city, is_active=True).count()
 
@@ -91,9 +93,12 @@ def main_page(request, city_slug):
     # Случайные последние отзывы (5 штук)
     random_reviews = (
         Review.objects.filter(place__city=city, status="approved")
-        .order_by("?")  # Случайный порядок
-        .select_related("user", "place")[:3]  # Теперь 3 отзыва
+        .order_by("-id")[:100]  # Сначала берем последние 100 отзывов
+        .select_related("user", "place")
     )
+    random_reviews = random.sample(
+        list(random_reviews), 3
+    )  # Затем выбираем случайные 3
 
     # Добавляем особенности к заведениям
     for place in popular_places:
@@ -123,14 +128,23 @@ def main_page(request, city_slug):
 
 
 def get_place_word(count):
+    """
+    Возвращает правильное склонение слова 'заведение' в зависимости от числа.
+    """
+    # Проверяем исключение для чисел от 11 до 19, которые всегда склоняются как 'заведений'
     if 11 <= count % 100 <= 19:
         return "заведений"
-    elif count % 10 == 1:
+
+    # Проверяем окончание для чисел, оканчивающихся на 1 (например, 1, 21, 31), кроме исключений
+    if count % 10 == 1:
         return "заведение"
-    elif 2 <= count % 10 <= 4:
+
+    # Проверяем числа, оканчивающиеся на 2, 3, 4 (например, 2, 3, 4, 22, 23, 24)
+    if 2 <= count % 10 <= 4:
         return "заведения"
-    else:
-        return "заведений"
+
+    # Все остальные числа склоняются как 'заведений'
+    return "заведений"
 
 
 def place_list(request, city_slug):
@@ -357,27 +371,39 @@ def handle_reservation(request, place, form_class):
 
 
 def get_review_word(count):
-    # Если число заканчивается на 11, 12, 13, 14 — всегда "отзывов"
+    """
+    Возвращает правильное склонение слова 'отзыв' в зависимости от числа.
+    """
+    # Проверяем исключения для чисел от 11 до 14, которые всегда склоняются как 'отзывов'
     if 11 <= count % 100 <= 14:
         return "отзывов"
-    # Если число заканчивается на 1 (кроме 11) — "отзыв"
-    elif count % 10 == 1:
+
+    # Проверяем окончание для чисел, оканчивающихся на 1 (например, 1, 21, 31), кроме исключений
+    if count % 10 == 1:
         return "отзыв"
-    # Если число заканчивается на 2, 3, 4 (кроме 12, 13, 14) — "отзыва"
-    elif 2 <= count % 10 <= 4:
+
+    # Проверяем числа, оканчивающиеся на 2, 3, 4 (например, 2, 3, 4, 22, 23, 24)
+    if 2 <= count % 10 <= 4:
         return "отзыва"
-    # В остальных случаях — "отзывов"
-    else:
-        return "отзывов"
+
+    # Все остальные числа склоняются как 'отзывов'
+    return "отзывов"
 
 
 def get_guest_word(count):
+    """
+    Возвращает правильное склонение слова 'гость' в зависимости от числа.
+    """
+    # Проверяем условия для чисел, оканчивающихся на 1, но не на 11
     if count % 10 == 1 and count % 100 != 11:
         return "гостя"
-    elif count % 10 in [2, 3, 4] and not count % 100 in [12, 13, 14]:
+
+    # Проверяем условия для чисел, оканчивающихся на 2, 3, 4, но не на 12, 13, 14
+    if count % 10 in [2, 3, 4] and count % 100 not in [12, 13, 14]:
         return "гостя"
-    else:
-        return "гостей"
+
+    # Все остальные случаи — 'гостей'
+    return "гостей"
 
 
 def place_detail(request, city_slug, place_slug):
@@ -535,30 +561,40 @@ def update_time_choices(request, place_id, date):
     if work_schedule:
         # Определяем время открытия и закрытия заведения
         start_time = work_schedule.open_time
-        end_time = (
-            datetime.combine(datetime.today(), work_schedule.close_time)
-            - timedelta(hours=1)
-        ).time()
+        end_time = work_schedule.close_time
+
+        # Учитываем закрытие после полуночи
+        if end_time < start_time:
+            end_time = time(23, 59)
 
         # Получаем интервал времени между временными слотами из BookingSettings
         booking_settings = place.booking_settings
         interval = timedelta(minutes=booking_settings.booking_interval)
 
-        # Определяем текущее время и следующий полуторачасовой интервал
+        # Получаем недоступный интервал для бронирования от текущего времени
+        unavailable_interval = timedelta(minutes=booking_settings.unavailable_interval)
+
+        # Определяем текущее время
         now = datetime.now()
-        current_time = now.time()
 
-        if now.minute < 30:
-            next_half_hour = now.replace(minute=30, second=0, microsecond=0)
-        else:
-            next_half_hour = (now + timedelta(hours=1)).replace(
-                minute=0, second=0, microsecond=0
-            )
-
-        # Используем либо начальное время работы, либо следующий полуторачасовой интервал, в зависимости от выбранной даты
+        # Если выбранная дата - сегодня, то вычисляем ближайший доступный временной интервал
         if selected_date == now.date():
-            current_time = max(next_half_hour.time(), start_time)
+            # Рассчитываем ближайшее доступное время с учетом недоступного интервала
+            next_available_time = now + unavailable_interval
+            current_time = max(next_available_time.time(), start_time)
+
+            # Округляем до ближайшего интервала
+            current_time = (
+                next_available_time
+                + interval
+                - timedelta(
+                    seconds=next_available_time.second,
+                    microseconds=next_available_time.microsecond,
+                )
+            ).time()
+
         else:
+            # Если дата в будущем, начнем с времени открытия заведения
             current_time = start_time
 
         # Формируем список доступных временных слотов

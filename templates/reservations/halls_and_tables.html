@@ -80,7 +80,7 @@
                     <div class="form-group form-check mb-3">
                         {{ reservation_form.consent }}
                         <label class="form-check-label" for="{{ reservation_form.consent.id_for_label }}" style="margin-left: 10px; font-size: 12px;">
-                            Нажимая кнопку "Забронировать", я соглашаюсь с <a href="{% url 'privacy' %}" target="_blank" style="text-decoration: underline;">политикой обработки персональных данных</a>.
+                            Нажимая кнопку "Забронировать", я соглашаюсь с <a href="{% url 'privacy' %}" target="_blank" style="text-decoration: underline;">политикой обработки персональных данных</a>
                         </label>
                     </div>
                     {% if reservation_form.errors %}

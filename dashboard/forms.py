@@ -230,6 +230,7 @@ class BookingSettingsForm(forms.ModelForm):
         fields = [
             "accepts_bookings",
             "booking_interval",
+            "unavailable_interval",
             "default_guest_count",
             "allow_table_selection",
             "notification_email",
@@ -238,7 +239,21 @@ class BookingSettingsForm(forms.ModelForm):
             "accepts_bookings": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}
             ),
-            "booking_interval": forms.NumberInput(attrs={"class": "form-control"}),
+            "booking_interval": forms.Select(
+                choices=BookingSettings.BOOKING_INTERVAL_CHOICES,
+                attrs={"class": "form-select"},
+            ),
+            "unavailable_interval": forms.Select(  # Виджет для выбора недоступного интервала
+                choices=[
+                    (10, "10 минут"),
+                    (20, "20 минут"),
+                    (30, "30 минут"),
+                    (40, "40 минут"),
+                    (50, "50 минут"),
+                    (60, "1 час"),
+                ],
+                attrs={"class": "form-select"},
+            ),
             "default_guest_count": forms.NumberInput(attrs={"class": "form-control"}),
             "allow_table_selection": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}

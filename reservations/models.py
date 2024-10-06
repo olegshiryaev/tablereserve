@@ -417,16 +417,13 @@ class Place(models.Model):
         verbose_name="Рейтинг",
         db_index=True,
     )
-    # Слаг и лого
+    # Слаг
     slug = models.SlugField(
         max_length=100,
         unique=True,
         blank=True,
         db_index=True,
         verbose_name="Уникальный идентификатор",
-    )
-    logo = models.ImageField(
-        upload_to=upload_logo_to, verbose_name="Логотип", null=True, blank=True
     )
     # Поле manager для представителя заведения
     manager = models.ForeignKey(
@@ -463,14 +460,6 @@ class Place(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-        # Обработка логотипа: изменение размера изображения до 100x100
-        if self.logo:
-            img = Image.open(self.logo.path)
-            if img.width > 100 or img.height > 100:
-                # Ресайз изображения для оптимизации
-                img.thumbnail((100, 100), Image.Resampling.LANCZOS)
-                img.save(self.logo.path)
-
     def get_absolute_url(self):
         return reverse(
             "place_detail",
@@ -497,9 +486,35 @@ class Place(models.Model):
         return None
 
     def get_similar_places(self):
-        return Place.objects.filter(type=self.type, city=self.city).exclude(id=self.id)[
-            :4
-        ]
+        # Базовый запрос: заведения в том же городе, кроме текущего
+        similar_places = Place.objects.filter(city=self.city).exclude(id=self.id)
+
+        # Фильтрация по типу
+        similar_places = similar_places.filter(type=self.type)
+
+        # Если заведения не найдены, возвращаем случайные заведения из того же города
+        if not similar_places.exists():
+            return (
+                Place.objects.filter(city=self.city)
+                .exclude(id=self.id)
+                .order_by("?")[:max_results]
+            )
+
+        # Дополнительные фильтры по кухне, особенностям и тегам
+        if self.cuisines.exists():
+            similar_places = similar_places.filter(cuisines__in=self.cuisines.all())
+
+        if self.features.exists():
+            similar_places = similar_places.filter(features__in=self.features.all())
+
+        # Если после фильтрации не осталось заведений, ослабляем фильтры
+        if not similar_places.exists():
+            similar_places = Place.objects.filter(
+                type=self.type, city=self.city
+            ).exclude(id=self.id)
+
+        # Перемешиваем результаты и возвращаем
+        return similar_places.order_by("?")
 
     def get_place_features(self):
         return PlaceFeature.objects.filter(place=self).select_related("feature")
@@ -657,6 +672,14 @@ def pre_save_slug(sender, instance, *args, **kwargs):
 
 
 class BookingSettings(models.Model):
+    BOOKING_INTERVAL_CHOICES = [
+        (5, "5 минут"),
+        (10, "10 минут"),
+        (15, "15 минут"),
+        (30, "30 минут"),
+        (60, "1 час"),
+    ]
+
     place = models.OneToOneField(
         Place,
         on_delete=models.CASCADE,
@@ -669,10 +692,23 @@ class BookingSettings(models.Model):
         help_text="Отметьте, если хотите разрешить бронирования для этого заведения",
     )
     booking_interval = models.PositiveIntegerField(
+        choices=BOOKING_INTERVAL_CHOICES,
         default=30,
-        verbose_name="Интервал между бронированиями (минуты)",
-        help_text="Укажите интервал в минутах. Не менее 30 минут",
-        validators=[MinValueValidator(30)],
+        verbose_name="Шаг выбора минут",
+        help_text="Выберите интервал для шагов времени в форме бронирования",
+    )
+    unavailable_interval = models.PositiveIntegerField(
+        default=30,
+        verbose_name="Недоступный интервал для бронирования от текущего времени",
+        help_text="Укажите интервал в минутах, который недоступен для бронирования перед текущим временем",
+        choices=[
+            (10, "10 минут"),
+            (20, "20 минут"),
+            (30, "30 минут"),
+            (40, "40 минут"),
+            (50, "50 минут"),
+            (60, "1 час"),
+        ],
     )
     default_guest_count = models.PositiveIntegerField(
         default=2, verbose_name="Количество гостей по умолчанию"
@@ -1058,8 +1094,8 @@ class Review(models.Model):
         unique_together = ["user", "place"]
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['place']),
-            models.Index(fields=['user']),
+            models.Index(fields=["place"]),
+            models.Index(fields=["user"]),
         ]
 
     def __str__(self):

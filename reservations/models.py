@@ -485,7 +485,7 @@ class Place(models.Model):
             return cover_image.image.url
         return None
 
-    def get_similar_places(self):
+    def get_similar_places(self, max_results=5):
         # Базовый запрос: заведения в том же городе, кроме текущего
         similar_places = Place.objects.filter(city=self.city).exclude(id=self.id)
 
@@ -514,7 +514,7 @@ class Place(models.Model):
             ).exclude(id=self.id)
 
         # Перемешиваем результаты и возвращаем
-        return similar_places.order_by("?")
+        return similar_places.order_by("?")[:max_results]
 
     def get_place_features(self):
         return PlaceFeature.objects.filter(place=self).select_related("feature")

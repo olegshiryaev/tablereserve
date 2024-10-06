@@ -490,7 +490,7 @@ def place_detail(request, city_slug, place_slug):
     review_word = get_review_word(reviews.count())
 
     # Получаем похожие заведения
-    similar_places = place.get_similar_places()
+    similar_places = place.get_similar_places(max_results=10)
 
     # Получение данных о залах и столиках
     halls = place.halls.all()

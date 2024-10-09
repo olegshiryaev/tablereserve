@@ -39,7 +39,20 @@ from .utils import inflect_word
 User = get_user_model()
 
 
+def get_recommended_places(user, limit=None):
+    if user.is_authenticated:
+        recommended_places = Place.objects.recommended_places(user)
+        if limit:
+            recommended_places = recommended_places[:limit]
+        return recommended_places
+    return Place.objects.none()
+
+
 def main_page(request, city_slug):
+    """
+    Обрабатывает главную страницу для указанного города, включая популярные места,
+    предстоящие события, активные скидки, любимые места пользователя и рекомендации.
+    """
     city = get_object_or_404(City, slug=city_slug)
     city_name_genitive = inflect_word(city.name, "gent")
     city_name_locative = inflect_word(city.name, "loct")
@@ -85,26 +98,18 @@ def main_page(request, city_slug):
         .select_related("place")[:5]
     )
 
-    # Особенности на карточках
-    features_on_card = Feature.objects.filter(
-        place_features__display_on_card=True
-    ).distinct()[:2]
-
-    # Случайные последние отзывы (5 штук)
+    # Случайные последние отзывы (3 штуки)
+    reviews = Review.objects.filter(place__city=city, status="approved").order_by(
+        "-created_at"
+    )[
+        :100
+    ]  # Сначала берем последние 100 отзывов
     random_reviews = (
-        Review.objects.filter(place__city=city, status="approved")
-        .order_by("-id")[:100]  # Сначала берем последние 100 отзывов
-        .select_related("user", "place")
+        random.sample(list(reviews), min(len(reviews), 3)) if reviews else []
     )
-    random_reviews = random.sample(
-        list(random_reviews), 3
-    )  # Затем выбираем случайные 3
 
-    # Добавляем особенности к заведениям
-    for place in popular_places:
-        place.features_on_card = place.features.filter(
-            place_features__display_on_card=True
-        )
+    # Получение рекомендованных заведений
+    recommended_places = get_recommended_places(request.user, limit=3)
 
     # Заголовок страницы
     title = f"Рестораны, кафе и бары {city_name_genitive.capitalize()}"
@@ -118,10 +123,10 @@ def main_page(request, city_slug):
         "title": title,
         "favorite_places": favorite_places,
         "total_places_count": total_places_count,
-        "features_on_card": features_on_card,
         "city_name_locative": city_name_locative,
         "random_reviews": random_reviews,
         "search": search_query,
+        "recommended_places": recommended_places,
     }
 
     return render(request, "reservations/main_page.html", context)
@@ -364,9 +369,6 @@ def handle_reservation(request, place, form_class):
             "phone": reservation.customer_phone,
         }
 
-    print("User Name:", user_name)  # Debugging line
-    print("Reservation Data:", reservation_data)  # Debugging line
-
     return form, user_name, reservation_data
 
 
@@ -415,6 +417,15 @@ def place_detail(request, city_slug, place_slug):
         slug=place_slug,
     )
     user = request.user
+
+    can_leave_review = False
+    if user.is_authenticated:
+        yesterday = timezone.now() - timezone.timedelta(days=1)
+        can_leave_review = user.reservations.filter(
+            place=place,
+            status='confirmed',
+            date__gte=yesterday.date()
+        ).exists()
 
     reservation_form = ReservationForm(place=place, user=user)
     schedules = WorkSchedule.get_sorted_schedules(place.id)
@@ -520,6 +531,7 @@ def place_detail(request, city_slug, place_slug):
             "place": place,
             "place_type_phrase": place_type_phrase,
             "reservation_form": reservation_form,
+            "can_leave_review": can_leave_review,
             "selected_city": city,
             "schedules": schedules,
             "today_weekday": today_weekday,
@@ -634,6 +646,19 @@ def add_review(request, city_slug, place_slug):
     place = get_object_or_404(Place, slug=place_slug, city=city)
     review = None
 
+    # Проверка на наличие подтвержденного бронирования за последние 24 часа
+    yesterday = timezone.now() - timezone.timedelta(days=1)
+    confirmed_reservations = request.user.reservations.filter(
+        place=place, status="confirmed", date__gte=yesterday.date()
+    )
+
+    if not confirmed_reservations.exists():
+        messages.error(
+            request,
+            "Вы не можете оставить отзыв, так как у вас нет подтвержденного бронирования в этом заведении за последние 24 часа",
+        )
+        return redirect("place_detail", city_slug=city.slug, place_slug=place.slug)
+
     form = ReviewForm(data=request.POST)
     if form.is_valid():
         # Создаем объект отзыва без сохранения в базу данных
@@ -644,10 +669,16 @@ def add_review(request, city_slug, place_slug):
         review.save()
 
         # Добавляем сообщение об успешной отправке отзыва
-        messages.success(request, "Ваш отзыв был успешно добавлен.")
+        messages.success(request, "Ваш отзыв был успешно добавлен")
 
         # Перенаправляем на страницу заведения
         return redirect("place_detail", city_slug=city.slug, place_slug=place.slug)
+
+    # Обработка ошибок
+    messages.error(
+        request,
+        "Произошла ошибка при добавлении отзыва. Пожалуйста, исправьте ошибки ниже",
+    )
 
     # Если форма невалидна, оставляем пользователя на той же странице
     return render(

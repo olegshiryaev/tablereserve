@@ -11,7 +11,7 @@
 {% include 'account/forgot_password_modal.html' %}
 
 <div id="reviews" class="reviews-section">
-    <h2>
+    <h2 class="mb-2">
         Отзывы
         <span class="rating-display">
             {% if place.rating > 1 %}
@@ -21,6 +21,18 @@
             {% endif %}
         </span>
     </h2>
+    {% if not can_leave_review %}
+        <div> <!-- Добавляем отступ сверху -->
+            <span 
+                class="text-secondary d-inline-block" 
+                style="cursor: pointer; display: block;" 
+                id="popover-review" 
+                data-bs-toggle="popover" 
+                data-bs-content="Забронировать столик на этом сайте и посетить заведение.">
+                Как оставить отзыв?
+            </span>
+        </div>
+    {% endif %}
     
     <!-- Фильтрация отзывов по оценке -->
     {% if reviews.count > 0 %}
@@ -63,7 +75,7 @@
 
             <!-- Кнопка для разворачивания длинных отзывов -->
             {% if review.text|length > 150 %}
-            <a href="javascript:void(0)" class="read-more" onclick="toggleReview({{ review.id }})">Читать дальше</a>
+            <a href="javascript:void(0)" class="read-more" onclick="toggleReview({{ review.id }}, this)">Читать дальше</a>
             {% endif %}
 
             <!-- Кнопка для открытия формы ответа -->
@@ -128,25 +140,27 @@
     {% endif %}
 
     <!-- Форма для добавления отзыва -->
-    <div id="add-review" class="add-review-form">
-        <h3>Добавить отзыв</h3>
-        <form method="POST" action="{% url 'add_review' city_slug=place.city.slug place_slug=place.slug %}">
-            {% csrf_token %}
-            <div class="rating-input">
-                <div class="star-rating">
-                    <input type="radio" id="star5" name="rating" value="5"><label for="star5" title="5 звезд"></label>
-                    <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 звезды"></label>
-                    <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 звезды"></label>
-                    <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 звезды"></label>
-                    <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 звезда"></label>
+    {% if can_leave_review %}
+        <div id="add-review" class="add-review-form">
+            <h3>Добавить отзыв</h3>
+            <form method="POST" action="{% url 'add_review' city_slug=place.city.slug place_slug=place.slug %}" data-require-login="true">
+                {% csrf_token %}
+                <div class="rating-input">
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5"><label for="star5" title="5 звезд"></label>
+                        <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 звезды"></label>
+                        <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 звезды"></label>
+                        <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 звезды"></label>
+                        <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 звезда"></label>
+                    </div>
                 </div>
-            </div>
 
-            <textarea name="text" rows="5" placeholder="Напишите ваш отзыв..." required></textarea>
-            
-            <button type="submit" class="btn btn-success mt-3">Отправить отзыв</button>
-        </form>
-    </div>
+                <textarea name="text" rows="5" placeholder="Напишите ваш отзыв..." required></textarea>
+                
+                <button type="submit" class="btn btn-success mt-3">Отправить отзыв</button>
+            </form>
+        </div>
+        {% endif %}
 </div>
 
 <script>
@@ -157,23 +171,25 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const reviewForm = document.getElementById('reviewForm');
-        const loginModal = document.getElementById('loginModal'); // Your existing login modal
+        const reviewForms = document.querySelectorAll('form[data-require-login="true"]');  // Получаем все формы с атрибутом data-require-login
+        const loginModal = document.getElementById('loginModal'); // Ваше существующее модальное окно входа
     
-        if (reviewForm) {
+        // Цикл для обработки каждой формы
+        reviewForms.forEach(function(reviewForm) {
             reviewForm.addEventListener('submit', function(event) {
-                // Check if the user needs to log in before submitting the form
+                // Проверяем, нужно ли пользователю войти перед отправкой формы
                 if (reviewForm.getAttribute('data-require-login') === 'true') {
-                    event.preventDefault(); // Prevent form submission
-                    loginModal.style.display = 'block'; // Show the login modal
-                    // Optionally, focus on the email input field in the modal
-                    const emailInput = document.getElementById('email');
+                    event.preventDefault(); // Предотвращаем отправку формы
+                    loginModal.style.display = 'block'; // Показываем модальное окно входа
+                    
+                    // Опционально, фокусируемся на поле ввода email в модальном окне
+                    const emailInput = document.getElementById('email'); // Здесь предполагается, что у вас есть поле ввода email с id="email"
                     if (emailInput) {
                         emailInput.focus();
                     }
                 }
             });
-        }
+        });
     });
 </script>
 <script>
@@ -220,10 +236,15 @@
     });
 </script>
 <script>
-function toggleReview(reviewId) {
-    var reviewText = document.getElementById('review-text-' + reviewId);
-    reviewText.classList.toggle('show-full');
-}
+    function toggleReview(reviewId, element) {
+        var reviewText = document.getElementById('review-text-' + reviewId);
+        reviewText.classList.toggle('show-full');
+        
+        // Скрываем ссылку после открытия полного текста
+        if (reviewText.classList.contains('show-full')) {
+            element.style.display = 'none';
+        }
+    }
 </script>
 <script>
     document.querySelectorAll('.star-rating input').forEach(radio => {
@@ -237,4 +258,14 @@ function toggleReview(reviewId) {
             }
         });
     });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var popoverTriggerEl = document.getElementById('popover-review');
+        var popover = new bootstrap.Popover(popoverTriggerEl, {
+            trigger: 'hover',
+            placement: 'bottom',
+            offset: [0, 8],
+        });
+    });    
 </script>

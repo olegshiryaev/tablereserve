@@ -478,7 +478,11 @@ class CityListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
 
     def get_queryset(self):
         # Получаем все города с подсчетом количества заведений и сортируем по имени
-        return City.objects.annotate(place_count=Count("places")).order_by("name")
+        return (
+            City.objects.annotate(place_count=Count("places"))
+            .prefetch_related("places")
+            .order_by("name")
+        )
 
     def get_context_data(self, **kwargs):
         # Добавляем дополнительный контекст в шаблон

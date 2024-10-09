@@ -234,7 +234,7 @@ header.scrolled {
 .switch-to-register,
 .switch-to-login {
     text-align: center;
-    margin-top: 10px; /* Отступ сверху */
+    margin-top: 20px; /* Отступ сверху */
 }
 
 .switch-to-register a,
@@ -316,7 +316,7 @@ header.scrolled {
 
 .modal-content {
     background-color: #fefefe;
-    margin: 15% auto;
+    margin: 10% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
@@ -343,10 +343,11 @@ header.scrolled {
 }
 
 .close {
-    color: #aaa;
-    font-size: 34px;
+    position: absolute;
+    right: 20px;
+    top: 5px;
+    font-size: 36px;
     cursor: pointer;
-    margin-left: auto; /* Отталкивает кнопку вправо */
 }
 
 .close:hover,
@@ -358,6 +359,7 @@ header.scrolled {
 
 /* Стили для заголовка модального окна */
 .modal h2 {
+    display: inline-block;
     margin-top: 0; /* Убираем отступ сверху */
     font-size: 24px; /* Размер шрифта */
 }
@@ -366,6 +368,7 @@ header.scrolled {
 .modal form {
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
 /* Стили для меток (label) */
@@ -396,6 +399,7 @@ header.scrolled {
 
 .login-modal-btn {
     display: block;
+    margin-top: 20px;
     width: 100%;
     background-color: #007bff;
     color: white;
@@ -409,6 +413,12 @@ header.scrolled {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
+}
+
+.show-password,
+.forgot-password {
+    margin-bottom: 10px;
 }
 
 .show-password {
@@ -425,12 +435,20 @@ header.scrolled {
 }
 
 .register-modal-btn {
+    margin-top: 20px;
     background-color: #ff9800; /* Синий цвет фона */
     color: white; /* Белый цвет текста */
 }
 
 .register-modal-btn:hover {
     background-color: #e65500; /* Темнее при наведении */
+}
+
+label.required::after {
+    content: " *";
+    color: #d00;
+    display: inline-block;
+    margin-left: 3px;
 }
 
 .popular-restaurants, .upcoming-events, .special-offers, .how-it-works, .reviews {
@@ -2339,7 +2357,6 @@ a.place-detail-item-value:hover {
     font-size: 16px;
     line-height: 24px;
     color: #333;
-    margin-bottom: 5px;
 }
 
 .review-avatar {

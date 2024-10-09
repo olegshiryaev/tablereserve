@@ -119,7 +119,7 @@ class Profile(models.Model):
         related_name="profile",
         verbose_name="Пользователь",
     )
-    name = models.CharField(max_length=150, blank=True, verbose_name="Имя и фамилия")
+    name = models.CharField(max_length=30, blank=True, verbose_name="Имя и фамилия")
     phone_number = PhoneNumberField(
         unique=True,
         blank=True,

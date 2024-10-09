@@ -5,11 +5,11 @@
         <form method="POST" action="{% url 'account_signup' %}" id="registerForm">
             {% csrf_token %}
             <h2 id="registerModalTitle">Регистрация</h2>
-            <label for="regName">Имя</label>
+            <label for="regName" class="required">Имя</label>
             <input type="text" id="regName" name="name" required>
-            <label for="regEmail">Email</label>
+            <label for="regEmail" class="required">Email</label>
             <input type="email" id="regEmail" name="email" required>
-            <label for="regPassword">Пароль</label>
+            <label for="regPassword" class="required">Пароль</label>
             <input type="password" id="regPassword" name="password1" required>
             <div class="show-password">
                 <input type="checkbox" id="showPasswordRegister">

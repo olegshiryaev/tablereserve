@@ -234,50 +234,31 @@
                                 </div>
                                 {% if place.short_description %}
                                 <div class="restaurant-card__about">
-                                    {{ place.short_description|default_if_none:"" |truncatewords:50 }}
+                                    {{ place.short_description|truncatewords:50 }}
                                 </div>
                                 {% endif %}
                                 <div class="restaurant-card__info">
                                     <ul class="restaurant-card__info-list">
                                         {% with status_data=place.get_status %}
                                             <li class="restaurant-card__info-item _status">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="bi bi-clock gray-icon">
-                                                    <path d="M8 3.5a.5.5 0 0 1 .5.5v4h3a.5.5 0 0 1 0 1h-3.5a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z"/>
-                                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 1a7 7 0 0 1 0 14z"/>
-                                                </svg>
+                                                {% include "svg_icons/clock_icon.html" %}
                                                 <span style="color: {% if status_data.status == 'closed' %}red{% else %}gray{% endif %};">
-                                                    {{ status_data.message }}
+                                                    {{ place.get_status.message }}
                                                 </span>
                                             </li>
                                         {% endwith %}
                                         {% if place.address %}
                                         <li class="restaurant-card__info-item _address gray-text">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="bi bi-geo-alt">
-                                                <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/>
-                                                <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                                            </svg>     
-                                                <span>{{ place.address }}</span>
+                                            {% include "svg_icons/geo_icon.html" %}
+                                            <span>{{ place.address }}</span>
                                         </li>
                                         {% endif %}
-                                        {% with cuisines_list=place.cuisines.all %}
-                                            {% if cuisines_list %}
-                                                <li class="restaurant-card__info-item _cuisines gray-text">
-                                                    <svg width="16" height="16" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M256 410.304V96a32 32 0 0 1 64 0v314.304a96 96 0 0 0 64-90.56V96a32 32 0 0 1 64 0v223.744a160 160 0 0 1-128 156.8V928a32 32 0 1 1-64 0V476.544a160 160 0 0 1-128-156.8V96a32 32 0 0 1 64 0v223.744a96 96 0 0 0 64 90.56zM672 572.48C581.184 552.128 512 446.848 512 320c0-141.44 85.952-256 192-256s192 114.56 192 256c0 126.848-69.184 232.128-160 252.48V928a32 32 0 1 1-64 0V572.48zM704 512c66.048 0 128-82.56 128-192s-61.952-192-128-192-128 82.56-128 192 61.952 192 128 192z"/>
-                                                    </svg>
-                                                    {% if cuisines_list|length > 2 %}
-                                                        {% for cuisine in cuisines_list|slice:":2" %}
-                                                            <span>{{ cuisine.name }}</span>{% if not forloop.last %},&nbsp;{% endif %}
-                                                        {% endfor %}
-                                                        и ещё {{ cuisines_list|length|add:"-2" }}
-                                                    {% else %}
-                                                        {% for cuisine in cuisines_list %}
-                                                            <span>{{ cuisine.name }}</span>{% if not forloop.last %},&nbsp;{% endif %}
-                                                        {% endfor %}
-                                                    {% endif %}
-                                                </li>
-                                            {% endif %}
-                                        {% endwith %}
+                                        {% if place.cuisines.exists %}
+                                        <li class="restaurant-card__info-item _cuisines gray-text">
+                                            {% include "svg_icons/cuisine_icon.html" %}
+                                            <span>{{ place.cuisines.all|slice:":2"|join:", " }}{% if place.cuisines.count > 2 %}, и ещё {{ place.cuisines.count|add:"-2" }}{% endif %}</span>
+                                        </li>
+                                        {% endif %}
                                         {% if place.average_check %}
                                             <li class="restaurant-card__info-item _average_check gray-text">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" id="ruble-2" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color"><path id="primary" d="M14,12A5,5,0,0,0,14,2H9A1,1,0,0,0,8,3v7H6a1,1,0,0,0,0,2H8v2H6a1,1,0,0,0,0,2H8v5a1,1,0,0,0,2,0V16h5a1,1,0,0,0,0-2H10V12ZM10,4h4a3,3,0,0,1,0,6H10Z"></path></svg>

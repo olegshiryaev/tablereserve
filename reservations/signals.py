@@ -19,7 +19,7 @@ def send_reservation_email(subject, message, recipient_email):
 
 @receiver(post_save, sender=Reservation)
 def send_reservation_notifications(sender, instance, created, **kwargs):
-    """Отправляет уведомления как клиенту, так и заведению при создании/изменении бронирования."""
+    """Отправляет уведомления клиенту и заведению при создании/изменении бронирования."""
     # Отправляем уведомления клиенту
     send_reservation_email_to_customer(instance, created)
 
@@ -28,7 +28,7 @@ def send_reservation_notifications(sender, instance, created, **kwargs):
 
 
 def send_reservation_email_to_customer(instance, created):
-    """Отправка уведомления клиенту."""
+    """Отправка уведомления клиенту о бронировании."""
 
     # Форматируем дату и время
     formatted_date = format_russian_date(instance.date)

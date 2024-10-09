@@ -9,10 +9,10 @@ from django.core.validators import (
     EmailValidator,
     MinValueValidator,
     MaxValueValidator,
+    MinLengthValidator,
 )
-from django.db.models.signals import pre_save
-from django.db.models.signals import post_save, post_delete
-from django.db.models import Count, Avg
+from django.db.models.signals import pre_save, post_save, post_delete
+from django.db.models import Count, Avg, Q
 from django.forms import ValidationError
 from pytils.translit import slugify
 from django.dispatch import receiver
@@ -94,6 +94,9 @@ class Cuisine(models.Model):
         verbose_name_plural = "Кухни"
         ordering = ["name"]
 
+    def get_places(self):
+        return self.places.all()  # Возвращает все рестораны данной кухни
+
     def __str__(self):
         return self.name
 
@@ -101,13 +104,16 @@ class Cuisine(models.Model):
 class Feature(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Особенность")
     slug = models.SlugField(
-        max_length=100, blank=True, verbose_name="Уникальный идентификатор"
+        max_length=100, unique=True, blank=True, verbose_name="Уникальный идентификатор"
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     def __str__(self):
         return self.name
+
+    def get_places(self):
+        return self.places.all()  # Получает все места с данной особенностью
 
     class Meta:
         verbose_name = "Особенность"
@@ -147,6 +153,12 @@ class PlaceType(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_places(self):
+        return self.places.all()  # Получает все заведения данного типа
+
+    def get_places_count(self):
+        return self.places.count()  # Возвращает количество заведений данного типа
 
 
 def upload_to_instance_directory(instance, filename):
@@ -198,24 +210,21 @@ class PlaceImage(models.Model):
                     f"Размер изображения должен быть не менее {min_width}x{min_height} пикселей."
                 )
 
+    def resize_image(self, image_path, max_width=1200, max_height=800):
+        with Image.open(image_path) as img:
+            img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+            img = ImageOps.exif_transpose(img)
+            img.save(image_path, quality=85, optimize=True)
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
             try:
-                img = Image.open(self.image.path)
-                max_width, max_height = 1200, 800
-
-                # Изменение размера изображения, если оно превышает заданные параметры
-                if img.width > max_width or img.height > max_height:
-                    img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-
-                # Сжатие изображения и учёт ориентации EXIF
-                img = ImageOps.exif_transpose(img)
-                img.save(self.image.path, quality=85, optimize=True)
+                self.resize_image(self.image.path)
             except Exception as e:
                 raise ValidationError(f"Ошибка при обработке изображения: {e}")
 
-        # Устанавливаем только одно изображение обложки
+        # Обработка обложки
         if self.is_cover:
             self.place.images.exclude(id=self.id).update(is_cover=False)
 
@@ -244,6 +253,9 @@ def delete_image_file(sender, instance, **kwargs):
 
 class PlaceManager(models.Manager):
     def active(self):
+        """
+        Возвращает все активные заведения с предварительно загруженными данными о типе и городе.
+        """
         return (
             self.filter(is_active=True)
             .select_related("type", "city")
@@ -251,11 +263,47 @@ class PlaceManager(models.Manager):
         )
 
     def get_popular_places(self, limit=8):
+        """
+        Возвращает популярные заведения, сортируя по средней оценке и количеству отзывов.
+        Параметр limit ограничивает количество возвращаемых мест.
+        """
         return (
             self.filter(is_active=True)
             .annotate(avg_rating=Avg("reviews__rating"), review_count=Count("reviews"))
             .order_by("-avg_rating", "-review_count")[:limit]
         )
+
+    def recommended_places(self, user):
+        """
+        Возвращает заведения, рекомендованные для пользователя на основе его предыдущих отзывов.
+        """
+        # Получаем кухню и особенности, которые пользователь оценивал в своих отзывах
+        user_reviews = user.reviews.filter(status="approved")
+
+        # Получаем кухни, для которых пользователь оставлял положительные отзывы
+        liked_cuisines = user_reviews.values_list(
+            "place__cuisines", flat=True
+        ).distinct()
+
+        # Получаем особенности, которые пользователь оценил
+        liked_features = user_reviews.values_list(
+            "place__features", flat=True
+        ).distinct()
+
+        # Ищем заведения, которые соответствуют кухне и особенностям
+        recommended_places = (
+            self.filter(Q(cuisines__in=liked_cuisines) | Q(features__in=liked_features))
+            .annotate(
+                calculated_review_count=Count(
+                    "reviews", filter=Q(reviews__status="approved")
+                )
+            )
+            .order_by(
+                "-calculated_review_count"
+            )  # Рекомендуем заведения с наибольшим количеством положительных отзывов
+        )
+
+        return recommended_places.distinct()  # Убираем дубли
 
 
 class Place(models.Model):
@@ -486,34 +534,14 @@ class Place(models.Model):
         return None
 
     def get_similar_places(self, max_results=5):
-        # Базовый запрос: заведения в том же городе, кроме текущего
         similar_places = Place.objects.filter(city=self.city).exclude(id=self.id)
 
-        # Фильтрация по типу
-        similar_places = similar_places.filter(type=self.type)
-
-        # Если заведения не найдены, возвращаем случайные заведения из того же города
-        if not similar_places.exists():
-            return (
-                Place.objects.filter(city=self.city)
-                .exclude(id=self.id)
-                .order_by("?")[:max_results]
-            )
-
-        # Дополнительные фильтры по кухне, особенностям и тегам
         if self.cuisines.exists():
             similar_places = similar_places.filter(cuisines__in=self.cuisines.all())
 
         if self.features.exists():
             similar_places = similar_places.filter(features__in=self.features.all())
 
-        # Если после фильтрации не осталось заведений, ослабляем фильтры
-        if not similar_places.exists():
-            similar_places = Place.objects.filter(
-                type=self.type, city=self.city
-            ).exclude(id=self.id)
-
-        # Перемешиваем результаты и возвращаем
         return similar_places.order_by("?")[:max_results]
 
     def get_place_features(self):
@@ -529,28 +557,36 @@ class Place(models.Model):
     def approved_reviews(self):
         return self.reviews.filter(status="approved")
 
+    def get_review_count(self):
+        return self.reviews.filter(status="approved").count()
+
     def get_status(self):
         current_time = datetime.now()
         work_schedules = self.work_schedule.all()  # Заранее загружаем расписание
         if self.is_open_for_booking(current_time, work_schedules):
-            closing_time = self.get_working_hours(
-                current_time.strftime("%a").upper(), work_schedules
-            )
-            if closing_time:
-                return {
-                    "status": "open",
-                    "message": f"Открыто до {closing_time[-1][1].strftime('%H:%M')}",
-                }
+            return self.get_open_status(current_time, work_schedules)
         else:
-            opening_time = self.get_working_hours(
-                (current_time + timedelta(days=1)).strftime("%a").upper(),
-                work_schedules,
-            )
-            if opening_time:
-                return {
-                    "status": "closed",
-                    "message": f"Закрыто до {opening_time[0][0].strftime('%H:%M')}",
-                }
+            return self.get_closed_status(current_time)
+
+    def get_open_status(self, current_time, work_schedules):
+        closing_time = self.get_working_hours(
+            current_time.strftime("%a").upper(), work_schedules
+        )
+        if closing_time:
+            return {
+                "status": "open",
+                "message": f"Открыто до {closing_time[-1][1].strftime('%H:%M')}",
+            }
+
+    def get_closed_status(self, current_time):
+        opening_time = self.get_working_hours(
+            (current_time + timedelta(days=1)).strftime("%a").upper()
+        )
+        if opening_time:
+            return {
+                "status": "closed",
+                "message": f"Закрыто до {opening_time[0][0].strftime('%H:%M')}",
+            }
         return {"status": "closed", "message": "Закрыто"}
 
     def get_working_hours(self, day=None, work_schedules=None):
@@ -620,12 +656,14 @@ class Place(models.Model):
 
     @property
     def address(self):
+        parts = []
         if self.street_type and self.street_name and self.house_number:
-            base_address = f"{self.get_street_type_display()} {self.street_name}, {self.house_number}"
-            if self.floor:
-                return f"{base_address}, {self.floor} этаж"
-            return base_address
-        return None
+            parts.append(
+                f"{self.get_street_type_display()} {self.street_name}, {self.house_number}"
+            )
+        if self.floor:
+            parts.append(f"{self.floor} этаж")
+        return ", ".join(parts) if parts else None
 
     def __str__(self):
         return self.name
@@ -856,6 +894,13 @@ class WorkSchedule(models.Model):
                     "Введите время открытия и закрытия или отметьте, что заведение в этот день закрыто."
                 )
 
+    def is_open(self):
+        """Проверяет, открыто ли заведение в данный момент."""
+        if self.is_closed:
+            return False
+        current_time = timezone.now().time()
+        return self.open_time <= current_time <= self.close_time
+
     class Meta:
         verbose_name = "Время работы"
         verbose_name_plural = "Время работы"
@@ -984,6 +1029,7 @@ class Reservation(models.Model):
 
     @property
     def is_cancelled(self):
+        """Проверяет, отменено ли бронирование пользователем или рестораном."""
         return self.status in ["cancelled_by_restaurant", "cancelled_by_customer"]
 
     def get_absolute_url(self):
@@ -1078,7 +1124,7 @@ class Review(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews"
     )
-    text = models.TextField()
+    text = models.TextField(validators=[MinLengthValidator(5)])
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
@@ -1100,6 +1146,9 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review by {self.user.username} for {self.place.name}"
+
+    def is_positive(self):
+        return self.rating >= 4
 
 
 @receiver(post_save, sender=Review)
@@ -1144,7 +1193,10 @@ class ReviewResponse(models.Model):
         on_delete=models.CASCADE,
         related_name="review_responses",
     )
-    text = models.TextField(verbose_name="Текст ответа")
+    text = models.TextField(
+        verbose_name="Текст ответа",
+        validators=[MinLengthValidator(5)],
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата ответа")
     updated_at = models.DateTimeField(
         auto_now=True, verbose_name="Дата обновления ответа"
@@ -1162,9 +1214,11 @@ class ReviewResponse(models.Model):
 class EventManager(models.Manager):
     def get_upcoming_events(self, place, limit=5):
         today = date.today()
-        return self.filter(place=place, date__gte=today, is_active=True).order_by(
-            "date", "start_time"
-        )[:limit]
+        return (
+            self.filter(place=place, date__gte=today, is_active=True)
+            .select_related("place")
+            .order_by("date", "start_time")[:limit]
+        )
 
 
 class Event(models.Model):
@@ -1189,6 +1243,15 @@ class Event(models.Model):
     class Meta:
         verbose_name = "Событие"
         verbose_name_plural = "События"
+        ordering = ["date", "start_time"]
+
+
+class DiscountManager(models.Manager):
+    def active_discounts(self, place, limit=5):
+        today = date.today()
+        return self.filter(
+            place=place, start_date__lte=today, end_date__gte=today
+        ).order_by("end_date")[:limit]
 
 
 class Discount(models.Model):
@@ -1211,12 +1274,6 @@ class Discount(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.place.name}"
-
-    def get_active_discounts(self, limit=5):
-        today = date.today()
-        return Discount.objects.filter(
-            place=self.place, start_date__lte=today, end_date__gte=today
-        ).order_by("end_date")[:limit]
 
     class Meta:
         verbose_name = "Акция"

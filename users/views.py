@@ -143,14 +143,11 @@ class ProfileDetailView(DetailView):
         context["last_seen_message"] = time_since_last_seen(profile_user)
 
         # Проверка подтверждения email
-        context["email_verified"] = (
-            EmailAddress.objects.filter(user=profile_user, email=profile_user.email)
-            .first()
-            .verified
-        )
+        email_address = EmailAddress.objects.filter(user=profile_user, email=profile_user.email).first()
+	
+        context["email_verified"] = email_address.verified if email_address else False
 
         return context
-
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     """

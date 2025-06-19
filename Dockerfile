@@ -1,38 +1,34 @@
-# Используем минималистичный образ Python на базе Alpine
 FROM python:3.10-alpine
 
-# Устанавливаем переменные окружения для Python
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Обновляем пакеты и устанавливаем зависимости
-RUN apk update && apk add --no-cache libpq && \
-    apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev && \
-    pip install --upgrade pip
+# Устанавливаем обновления и необходимые модули
+RUN apk update && apk add --no-cache \
+    libpq \
+    poppler-utils \
+    cairo-dev \
+    pango-dev \
+    gdk-pixbuf-dev \
+    jpeg-dev \
+    zlib-dev \
+    && apk add --virtual .build-deps gcc python3-dev musl-dev postgresql-dev
 
-# Создаем пользователя и группу deploy
-RUN addgroup -S deploy && adduser -S deploy -G deploy
+# Обновление pip python
+RUN pip install --upgrade pip
+
+# Установка пакетов для проекта
+COPY requirements.txt ./requirements.txt
+RUN pip install -r requirements.txt
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файл зависимостей и устанавливаем зависимости Python
-COPY --chown=deploy:deploy requirements.txt /app/
-RUN pip install -r requirements.txt
-
-# Копируем проект с правами пользователя deploy
-COPY --chown=deploy:deploy . .
-
-# Удаляем зависимости для сборки
+# Удаляем зависимости билда
 RUN apk del .build-deps
 
-# Создаем необходимые директории и настраиваем права
-RUN mkdir -p /app/static /app/media /app/docker/logs /app/logs \
-    && chown -R deploy:deploy /app \
-    && chmod -R 755 /app
+# Копирование проекта
+COPY . .
 
-# Переключаемся на пользователя deploy
-USER deploy
-
-# Команда запуска приложения
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "tablereserve.wsgi:application"]
+# Настройка записи и доступа
+RUN chmod -R 777 ./

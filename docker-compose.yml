@@ -4,8 +4,6 @@ volumes:
   pgdata:
   static:
   media:
-  celery_logs:
-  django_logs:
 
 services:
 
@@ -15,13 +13,13 @@ services:
     ports:
       - '8000:8000'
     container_name: django
+    restart: unless-stopped
     env_file:
       - docker/env/.env.prod
     volumes:
       - ./:/app
       - static:/app/static
       - media:/app/media
-      - django_logs:/app/docker/logs
     depends_on:
       - postgres
       - redis
@@ -61,6 +59,7 @@ services:
   redis:
     image: redis:alpine
     container_name: redis
+    restart: always
     env_file:
       - docker/env/.env.prod
     expose:
@@ -77,7 +76,6 @@ services:
     volumes:
       - ./:/app
       - media:/app/media
-      - celery_logs:/app/docker/logs
     command: celery -A tablereserve worker --loglevel=info --logfile=./docker/logs/celery-worker.log
     depends_on:
       - redis
@@ -85,6 +83,7 @@ services:
   celery-beat:
       build: .
       container_name: celery-beat
+      restart: unless-stopped
       env_file:
           - docker/env/.env.prod
       depends_on: 
@@ -93,7 +92,6 @@ services:
       volumes:
           - media:/app/media
           - ./:/app
-          - celery_logs:/app/docker/logs
 
   certbot:
       image: certbot/certbot

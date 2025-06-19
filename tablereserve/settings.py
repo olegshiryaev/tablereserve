@@ -113,14 +113,13 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = "users.CustomUser"
 
-# Настройки Django Allauth
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_UNIQUE = True
-ACCOUNT_USERNAME_REQUIRED = False
+
+ACCOUNT_LOGIN_METHODS = {"email"}  # Альтернатива: {"email", "username"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]  # '*' = обязательное поле
+
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_UNIQUE = True
 ACCOUNT_EMAIL_VERIFICATION = "optional"
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = "/"
@@ -140,7 +139,6 @@ ACCOUNT_FORMS = {
     "signup": "users.forms.CustomSignupForm",
     "login": "users.forms.CustomLoginForm",
 }
-
 # end django-allauth
 
 SESSION_COOKIE_AGE = 1209600  # 2 недели

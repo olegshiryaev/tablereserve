@@ -11,7 +11,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.templatetags.static import static
 from django.core.files.storage import default_storage
-from reservations.models import City, Place
 from users.utils import get_avatar_upload_path
 
 
@@ -148,7 +147,7 @@ class Profile(models.Model):
         verbose_name="Ваш пол",
     )
     city = models.ForeignKey(
-        City,
+        'locations.City',
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -205,24 +204,3 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
     else:
         instance.profile.save()
-
-
-class Favorite(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="favorites",
-        verbose_name="Пользователь",
-    )
-    place = models.ForeignKey(
-        Place,
-        on_delete=models.CASCADE,
-        related_name="favorited_by",
-        verbose_name="Заведение",
-    )
-    added_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
-
-    class Meta:
-        unique_together = ("user", "place")
-        verbose_name = "Избранное"
-        verbose_name_plural = "Избранные"

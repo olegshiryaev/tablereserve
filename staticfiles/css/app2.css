@@ -1,0 +1,175 @@
+.short-field {
+    width: 100%;
+}
+
+.medium-field {
+    width: 100%;
+}
+
+.form-horizontal .row {
+    margin-bottom: 15px;
+}
+
+.form-horizontal .form-group .form-check {
+    padding-left: 0;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.is-invalid {
+    border-color: #dc3545; /* Красная рамка */
+}
+
+.text-danger {
+    margin-top: 5px;
+    font-size: 0.875em; /* Меньший размер текста */
+    color: #dc3545; /* Красный цвет */
+}
+
+.form-check-input {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.form-check-label {
+    font-weight: 500;
+}
+
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-height: 200px;
+}
+
+.image-fit {
+    max-height: 200px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.col-md-3 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.mt-2 {
+    margin-top: 10px;
+}
+
+.form-group .form-label {
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+}
+
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+}
+
+.form-text.text-muted {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
+.form-control {
+    margin-bottom: 0.5rem;
+}
+
+/* Стиль для бейджа "Обложка" */
+.cover-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    border-radius: 3px;
+    z-index: 10;
+}
+
+/* Стиль для бейджа "Сделать обложкой" */
+.make-cover-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: #6c757d; /* Цвет серого бейджа */
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    border-radius: 3px;
+    z-index: 10;
+    text-decoration: none; /* Убираем подчеркивание ссылки */
+}
+
+.make-cover-badge:hover {
+    background-color: #5a6268; /* Более тёмный цвет при наведении */
+    text-decoration: none;
+}
+
+.btn-danger {
+    background-color: #dc3545; /* Красный цвет */
+    border: none; /* Убираем границы */
+}
+
+.btn-danger:hover {
+    background-color: #c82333; /* Темнее при наведении */
+}
+
+.custom-avatar {
+    top: 8px;
+    width: 28px; /* Ширина иконки */
+    height: 28px; /* Высота иконки */
+    object-fit: cover;
+    border-radius: 50%; /* Круглая иконка */
+    margin-right: 8px; /* Отступ справа от иконки */
+    vertical-align: middle; /* Выравнивание по центру */
+}
+
+.fixed-buttons {
+    position: fixed;
+    bottom: 20px; /* Расположим обе кнопки внизу экрана */
+    right: 20px;  /* Отступ справа */
+    z-index: 1000;
+    display: flex;
+    gap: 10px; /* Расстояние между кнопками */
+}
+
+.save-button-fixed {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save-button-fixed {
+    background-color: #007bff;
+    color: white;
+}
+
+.save-button-fixed:hover {
+    background-color: #0056b3;
+}
+
+#btn-back-to-top {
+    display: none;
+}

@@ -24,6 +24,7 @@ from .models import (
     Tag,
     WorkSchedule,
     Event,
+    Favorite
 )
 
 
@@ -413,3 +414,9 @@ class PlaceUpdateRequestAdmin(admin.ModelAdmin):
         queryset.update(status="rejected")
 
     reject_requests.short_description = "Отклонить выбранные запросы"
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ("user", "place")
+    search_fields = ("user__email", "place__name")

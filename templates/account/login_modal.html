@@ -1,10 +1,10 @@
 {% load static %}
-{% load socialaccount %}
+
 <!-- Модальное окно входа -->
 <div id="loginModal" class="modal" aria-hidden="true" aria-labelledby="loginModalTitle">
     <div class="modal-content">
         <span class="close" aria-label="Закрыть">&times;</span>
-        <form method="POST" action="{% url 'account_login' %}" id="loginForm">
+        <form method="POST" action="{% url 'users:account_login' %}" id="loginForm">
             {% csrf_token %}
             <h2 id="loginModalTitle">Вход</h2>
             <input type="hidden" name="next" value="{{ request.path }}">

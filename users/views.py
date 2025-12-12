@@ -6,32 +6,23 @@ from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator as token_generator
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
-from allauth.account.models import EmailAddress
-from django.shortcuts import redirect, HttpResponse
 from django.conf import settings
-from django.http import HttpResponseRedirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
+from django.contrib.auth.views import LoginView as AuthLoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import DetailView, UpdateView
+from django.contrib import messages
+from django.utils import timezone
 
 from reservations.models import Place, Reservation
-from reservations.utils import inflect_word
 from users.forms import ProfileForm
-from users.models import CustomUser, Favorite, Profile
+from users.models import CustomUser, Profile
+from reservations.models import Favorite
 from users.utils import time_since_last_seen
-from collections import defaultdict
-from django.template.loader import render_to_string
-from allauth.account.views import LoginView
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from .forms import LoginForm
-from django.core.mail import send_mail
-from django.utils import timezone
 
 User = get_user_model()
 
-
-class CustomLoginView(LoginView):
+class CustomLoginView(AuthLoginView):
     template_name = "account/login_modal.html"
     redirect_field_name = "next"
 
@@ -43,21 +34,6 @@ class CustomLoginView(LoginView):
             return JsonResponse({"errors": errors}, status=400)
 
         return response
-
-
-def activate(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-        user = None
-
-    if user is not None and token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        return redirect("login")
-    else:
-        return render(request, "users/activation_invalid.html")
 
 
 class ProfileDetailView(DetailView):
@@ -133,7 +109,7 @@ class ProfileDetailView(DetailView):
         )
         for review in reviews:
             if review.place and review.place.type:
-                review.place_type_phrase = inflect_word(review.place.type.name, "loct")
+                review.place_type_phrase = review.place.type.name
         context["reviews"] = reviews
 
         # Добавляем название страницы
@@ -141,11 +117,6 @@ class ProfileDetailView(DetailView):
 
         # Сообщение о последнем визите
         context["last_seen_message"] = time_since_last_seen(profile_user)
-
-        # Проверка подтверждения email
-        email_address = EmailAddress.objects.filter(user=profile_user, email=profile_user.email).first()
-	
-        context["email_verified"] = email_address.verified if email_address else False
 
         return context
 
@@ -190,37 +161,6 @@ def toggle_favorite(request, place_id):
         return JsonResponse({"status": "removed"})
 
     return JsonResponse({"status": "added"})
-
-
-def activate_account(request, email, token):
-    user = get_object_or_404(CustomUser, email=email)
-    if default_token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        # Перенаправление на страницу успешной активации
-        return redirect("activation_success")
-    else:
-        # Обработка неудачной активации
-        return redirect("activation_failed")
-
-
-def custom_email_verification(request, key):
-    """
-    Представление для автоматического подтверждения email.
-    """
-    try:
-        email_address = EmailAddress.objects.get(key=key)
-        if email_address.verified:
-            return HttpResponse("Email уже подтвержден.")
-
-        # Подтверждаем email
-        email_address.verified = True
-        email_address.save()
-
-        # Перенаправляем пользователя на нужную страницу после подтверждения
-        return redirect(settings.ACCOUNT_EMAIL_CONFIRMATION_REDIRECT_URL)
-    except EmailAddress.DoesNotExist:
-        return HttpResponse("Неверный ключ подтверждения.")
 
 
 class ReservationDetailView(LoginRequiredMixin, DetailView):

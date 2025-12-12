@@ -31,47 +31,7 @@ from django.db import transaction
 from PIL import Image as PILImage
 from io import BytesIO
 from django.core.files.base import ContentFile
-
-
-def upload_to_city_image(instance, filename):
-    ext = filename.split(".")[-1]
-    filename = f"{instance.slug}.{ext}"
-    return os.path.join("city_images", filename)
-
-
-class City(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="Город")
-    image = models.ImageField(
-        upload_to=upload_to_city_image,
-        blank=True,
-        null=True,
-        default="images/city_images/default.jpg",
-        verbose_name="Изображение",
-    )
-    description = models.TextField(blank=True, verbose_name="Описание города")
-    latitude = models.DecimalField(
-        max_digits=9, decimal_places=6, blank=True, null=True, verbose_name="Широта"
-    )
-    longitude = models.DecimalField(
-        max_digits=9, decimal_places=6, blank=True, null=True, verbose_name="Долгота"
-    )
-    slug = models.SlugField(
-        max_length=100,
-        unique=True,
-        blank=True,
-        verbose_name="Уникальный идентификатор",
-        db_index=True,
-    )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Город"
-        verbose_name_plural = "Города"
-        ordering = ["name"]
+from locations.models import City
 
 
 class Cuisine(models.Model):
@@ -1445,3 +1405,24 @@ class Booking(models.Model):
             raise ValidationError("Заведение закрыто в выбранное время.")
 
         # Дополнительные проверки, например, на максимальное количество гостей или наличие свободных столиков
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        verbose_name="Пользователь",
+    )
+    place = models.ForeignKey(
+        Place,
+        on_delete=models.CASCADE,
+        related_name="favorited_by",
+        verbose_name="Заведение",
+    )
+    added_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
+
+    class Meta:
+        unique_together = ("user", "place")
+        verbose_name = "Избранное"
+        verbose_name_plural = "Избранные"

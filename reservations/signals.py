@@ -2,7 +2,24 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
 from .models import Reservation
-from .utils import inflect_word, format_russian_date
+from .utils import format_russian_date
+
+
+# Словарь склонений типов заведений
+PLACE_TYPE_CASES = {
+    "Ресторан": {"loct": "Ресторане"},
+    "Кафе": {"loct": "Кафе"},
+    "Бар": {"loct": "Баре"},
+    # Добавьте другие типы заведений при необходимости
+}
+
+
+def get_place_type_in_case(place_type_name, case="loct"):
+    """
+    Возвращает тип заведения в нужном падеже.
+    Если падеж или тип заведения не указан, возвращает оригинальное название.
+    """
+    return PLACE_TYPE_CASES.get(place_type_name, {}).get(case, place_type_name)
 
 
 def send_reservation_email(subject, message, recipient_email):
@@ -86,7 +103,7 @@ def send_reservation_confirmed_email_to_customer(instance, recipient_email):
     formatted_time = instance.time.strftime("%H:%M")
 
     # Получаем падежное окончание для типа заведения
-    place_type_name = inflect_word(instance.place.type.name, "loct")
+    place_type_name = get_place_type_in_case(instance.place.type.name, "loct")
 
     # Проверяем наличие столика и зала
     zone_info = (

@@ -2,7 +2,7 @@
 <div id="registerModal" class="modal" aria-hidden="true" aria-labelledby="registerModalTitle" style="display: none;">
     <div class="modal-content">
         <span class="close" aria-label="Закрыть">&times;</span>
-        <form method="POST" action="{% url 'account_signup' %}" id="registerForm">
+        {% comment %} <form method="POST" action="{% url 'users:account_signup' %}" id="registerForm"> {% endcomment %}
             {% csrf_token %}
             <h2 id="registerModalTitle">Регистрация</h2>
             <label for="regName" class="required">Имя</label>

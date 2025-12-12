@@ -25,8 +25,6 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.crypto import get_random_string
 from django.conf import settings
-from allauth.account.models import EmailAddress
-from allauth.account.utils import send_email_confirmation
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.core.validators import validate_email
@@ -162,30 +160,22 @@ class PlaceForm(forms.ModelForm):
         email = self.cleaned_data.get("representative_email")
         if not email:
             return None
-
         try:
             validate_email(email)
             user, created = CustomUser.objects.get_or_create(email=email)
             if created:
                 raw_password = get_random_string(8)
                 user.set_password(raw_password)
-                user.username = f"User-{user.id}"
+                user.username = f"user_{user.id}"
                 user.role = "owner"
                 user.save()
 
-                EmailAddress.objects.create(
-                    user=user, email=email, verified=False, primary=True
-                )
+                # Отправляем только письмо с паролем
+                self.send_welcome_email(user, self.cleaned_data.get("name"), raw_password)
 
-                self.send_welcome_email(
-                    user, self.cleaned_data.get("name"), raw_password
-                )
-                send_email_confirmation(self.request, user)
-            else:
-                # Если пользователь уже существует, обновляем его роль, если она не owner
-                if user.role != "owner":
-                    user.role = "owner"
-                    user.save()  # Сохраняем изменения в роли
+            if user.role != "owner":
+                user.role = "owner"
+                user.save()
 
             return user
         except ValidationError:
@@ -193,22 +183,19 @@ class PlaceForm(forms.ModelForm):
 
     def send_welcome_email(self, user, place_name, raw_password):
         message = f"""
-        Добрый день!
+            Добрый день!
+            Вы создали заведение "{place_name}" на сайте {settings.SITE_NAME}.
 
-        Вы создали заведение "{place_name}" на сайте {settings.SITE_NAME}.
-        Теперь Вам доступен личный кабинет для управления информацией и общения с гостями.
+            Логин: {user.email}
+            Пароль: {raw_password}
 
-        Для входа в систему используйте логин и пароль ниже:
-        Логин: {user.email}
-        Пароль: {raw_password}
+            Ссылка для входа: {self.request.build_absolute_uri(reverse("users:account_login"))}
 
-        Ссылка для входа: {self.request.build_absolute_uri(reverse("account_login"))}
-
-        С уважением,
-        Команда {settings.SITE_NAME}
+            С уважением,
+            Команда {settings.SITE_NAME}.
         """
         send_mail(
-            f"Ваша учетная запись для управления заведением {place_name}",
+            f"Доступ к заведению {place_name}",
             message,
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
@@ -221,6 +208,7 @@ class PlaceForm(forms.ModelForm):
             place.manager = self.cleaned_data.get("representative_email")
         if commit:
             place.save()
+            self.save_m2m()
         return place
 
 

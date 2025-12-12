@@ -1,34 +1,23 @@
 from django.urls import path
-from allauth.account.views import logout
-from allauth.account.views import SignupView
-from .views import (
-    CustomLoginView,
-    ReservationDetailView,
-    activate,
-    custom_email_verification,
-    ProfileUpdateView,
-    ProfileDetailView,
-    toggle_favorite,
-)
-
+from django.contrib.auth.views import LoginView, LogoutView
+from . import views
 
 app_name = "users"
 
 urlpatterns = [
-    path("accounts/login/", CustomLoginView.as_view(), name="account_login"),
-    path("signup/", SignupView.as_view(), name="account_signup"),
-    path("<int:id>/", ProfileDetailView.as_view(), name="profile"),
-    path("edit/", ProfileUpdateView.as_view(), name="profile-edit"),
-    path(
-        "accounts/confirm-email/<str:key>/",
-        custom_email_verification,
-        name="custom_confirm_email",
-    ),
-    path("activate/<uidb64>/<token>/", activate, name="activate"),
-    path("favorites/toggle/<int:place_id>/", toggle_favorite, name="toggle_favorite"),
-    path(
-        "order/<int:pk>/",
-        ReservationDetailView.as_view(),
-        name="reservation-detail",
-    ),
+    # Вход
+    path("login/", LoginView.as_view(template_name="account/login_modal.html"), name="account_login"),
+    
+    # Выход
+    path("logout/", LogoutView.as_view(next_page="/"), name="account_logout"),
+    
+    # Профиль
+    path("<int:id>/", views.ProfileDetailView.as_view(), name="profile"),
+    path("edit/", views.ProfileUpdateView.as_view(), name="profile-edit"),
+    
+    # Избранное
+    path("favorites/toggle/<int:place_id>/", views.toggle_favorite, name="toggle_favorite"),
+    
+    # Детали бронирования
+    path("order/<int:pk>/", views.ReservationDetailView.as_view(), name="reservation-detail"),
 ]

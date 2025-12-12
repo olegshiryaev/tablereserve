@@ -68,8 +68,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse, reverse_lazy
 from .mixins import AdminRequiredMixin
 from django.contrib.auth import authenticate, login
-from allauth.account.utils import send_email_confirmation
-from allauth.account.models import EmailAddress
 from django.utils.crypto import get_random_string
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
@@ -934,34 +932,27 @@ def approve_place_request(request, request_id):
             email=place_request.owner_email,
             defaults={"name": place_request.owner_name, "role": "owner"},
         )
-
         if created:
-            # Установите пароль автоматически после подтверждения email
-            password = get_random_string(length=8)
+            password = get_random_string(length=12)
             user.set_password(password)
             user.save()
+            # Просто отправляем пароль — без подтверждения email
+            send_password_email(user.email, password)
 
-            email_address, created = EmailAddress.objects.get_or_create(
-                user=user,
-                email=user.email,
-                defaults={"verified": False, "primary": True},
-            )
-            if created:
-                send_email_confirmation(
-                    request, user
-                )  # Отправка только письма с подтверждением
-
-        # Создание заведения
+        # Создаём заведение
         place = Place.objects.create(
-            name=place_request.name, city=place_request.city, phone=place_request.phone
+            name=place_request.name,
+            city=place_request.city,
+            phone=place_request.phone,
         )
         place.manager.add(user)
+        place.is_active = True
         place.save()
 
-        # Обновление статуса заявки
         place_request.status = "approved"
         place_request.save()
 
+        messages.success(request, f"Заявка одобрена! Пароль отправлен на {user.email}")
     return redirect("dashboard:review_place_requests")
 
 

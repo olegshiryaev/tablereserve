@@ -30,7 +30,6 @@ __init__.py
 # ---------------------------------------
 media/*
 static/*
-**/migrations/*
 db.sqlite3
 .env
 env/

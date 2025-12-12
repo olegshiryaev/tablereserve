@@ -15,12 +15,7 @@ services:
       set -e &&
       poetry run python manage.py migrate --no-input &&
       poetry run python manage.py collectstatic --no-input --clear &&
-      poetry run gunicorn tablereserve.wsgi:application
-        --bind 0.0.0.0:8000
-        --workers 4
-        --worker-class sync
-        --max-requests 1000
-        --max-requests-jitter 100
+      poetry run gunicorn tablereserve.wsgi:application --bind 0.0.0.0:8000 --workers 4 --worker-class sync --max-requests 1000 --max-requests-jitter 100
       "
     depends_on:
       - postgres

@@ -131,8 +131,8 @@ CACHES = {
 }
 
 # Безопасность
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = False # Временно, пока http
+CSRF_COOKIE_SECURE = False # Временно, пока http
 SESSION_COOKIE_AGE = 1209600
 SESSION_SAVE_EVERY_REQUEST = True
 

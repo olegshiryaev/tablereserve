@@ -13,14 +13,14 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS").split()
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split()
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
     "django.contrib.contenttypes",
+    "users.apps.UsersConfig",
+    "django.contrib.auth",
+    "django.contrib.admin",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-    "users.apps.UsersConfig",
     "django_hosts",
     "locations",
     "dashboard",

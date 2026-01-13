@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Prefetch, Subquery
 
 from .models import (
     Cuisine, Feature, Place, PlaceType, Reservation,
@@ -143,7 +143,9 @@ def main_page(request, city_slug):
 
 def place_list(request, city_slug):
     city = get_object_or_404(City, slug=city_slug)
-    search_query = request.GET.get("search", "")
+
+    # --- Параметры GET ---
+    search_query = request.GET.get("search", "").strip()
     sort_by = request.GET.get("sort", "rating")
     place_type_filters = request.GET.getlist("place_type")
     cuisine_filters = request.GET.getlist("cuisine")
@@ -151,104 +153,148 @@ def place_list(request, city_slug):
     feature_filters = request.GET.getlist("feature")
     rating_filter = request.GET.get("rating", "")
 
-    places = (
-        Place.objects.active()
-        .filter(city=city)
-        .annotate(approved_reviews_count=Count("reviews", filter=Q(reviews__status="approved")))
-        .select_related("type")
+    # --- Базовый queryset ---
+    card_features_prefetch = Prefetch(
+        "features",
+        queryset=Feature.objects.filter(place_features__display_on_card=True),
+        to_attr="features_on_card"
     )
 
-    favorite_places = []
-    if request.user.is_authenticated:
-        favorite_places = Favorite.objects.filter(user=request.user).values_list("place_id", flat=True)
+    places_qs = (
+        Place.objects.active()
+        .filter(city=city)
+        .select_related("type")
+        .prefetch_related("cuisines", "features", card_features_prefetch)
+        .annotate(
+            approved_reviews_count=Count(
+                "reviews", filter=Q(reviews__status="approved")
+            )
+        )
+    )
 
+    # --- Поиск ---
     if search_query:
-        places = places.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query))
+        places_qs = places_qs.filter(
+            Q(name__icontains=search_query) | Q(description__icontains=search_query)
+        )
 
-    # Filters
+    # --- Фильтры ---
     if place_type_filters:
-        places = places.filter(type__slug__in=place_type_filters).distinct()
+        places_qs = places_qs.filter(type__slug__in=place_type_filters).distinct()
+
     if cuisine_filters:
-        cuisines = Cuisine.objects.filter(slug__in=cuisine_filters)
-        places = places.filter(cuisines__in=cuisines).distinct()
+        places_qs = places_qs.filter(cuisines__slug__in=cuisine_filters).distinct()
+
     if average_check_filters:
         q_avg = Q()
         for check in average_check_filters:
-            if check == "<500":
-                q_avg |= Q(average_check__lt=500)
-            elif check == "500-1000":
-                q_avg |= Q(average_check__gte=500, average_check__lte=1000)
-            elif check == "1000-1500":
-                q_avg |= Q(average_check__gte=1000, average_check__lte=1500)
-            elif check == "1500-2000":
-                q_avg |= Q(average_check__gte=1500, average_check__lte=2000)
-            elif check == ">2000":
-                q_avg |= Q(average_check__gt=2000)
-        places = places.filter(q_avg)
-    if feature_filters:
-        features = Feature.objects.filter(id__in=feature_filters)
-        places = places.filter(features__in=features).distinct()
-    if rating_filter:
-        places = places.filter(rating__gte=rating_filter)
+            match check:
+                case "<500":
+                    q_avg |= Q(average_check__lt=500) | Q(average_check__isnull=True)
+                case "500-1000":
+                    q_avg |= Q(average_check__gte=500, average_check__lte=1000)
+                case "1000-1500":
+                    q_avg |= Q(average_check__gte=1000, average_check__lte=1500)
+                case "1500-2000":
+                    q_avg |= Q(average_check__gte=1500, average_check__lte=2000)
+                case ">2000":
+                    q_avg |= Q(average_check__gt=2000)
+        places_qs = places_qs.filter(q_avg)
 
-    # Sorting
+    if feature_filters:
+        places_qs = places_qs.filter(features__id__in=feature_filters).distinct()
+
+    if rating_filter:
+        places_qs = places_qs.filter(rating__gte=rating_filter)
+
+    # --- Сортировка ---
     sort_options = {
         "name": "name",
         "rating": "-rating",
         "low_to_high": "average_check",
         "high_to_low": "-average_check",
     }
-    if sort_by in sort_options:
-        places = places.order_by(sort_options[sort_by])
+    places_qs = places_qs.order_by(sort_options.get(sort_by, "-rating"))
 
-    # Pagination
-    paginator = Paginator(places, 18)
-    page = request.GET.get("page", 1)
-    try:
-        places = paginator.page(page)
-    except PageNotAnInteger:
-        places = paginator.page(1)
-    except EmptyPage:
-        places = paginator.page(paginator.num_pages)
+    # --- Фильтры: все варианты для города, без счётчиков ---
+    place_types = (
+        PlaceType.objects.filter(places__city=city, places__is_active=True)
+        .distinct()
+        .order_by("name")
+    )
 
-    total_places = paginator.count
-    shown_places = len(places)
-    place_word = get_place_word(shown_places)
+    cuisines = (
+        Cuisine.objects.filter(places__city=city, places__is_active=True)
+        .distinct()
+        .order_by("name")
+    )
 
-    # Features for cards
-    features = Feature.objects.filter(places__city=city).distinct()
+    features = (
+        Feature.objects.filter(places__city=city, places__is_active=True)
+        .distinct()
+        .order_by("name")
+    )
+
+    # Особенности для карточек
     features_on_card = features.filter(place_features__display_on_card=True)[:2]
 
-    # Context
-    for place in places:
-        place.status = place.get_status()
-        place.features_list = place.features.all()
-        place.features_on_card = place.features.filter(place_features__display_on_card=True)
-        place.review_word = get_review_word(place.approved_reviews_count)
+    # --- Пагинация ---
+    paginator = Paginator(places_qs, 18)
+    page_number = request.GET.get("page")
+    try:
+        places_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        places_page = paginator.page(1)
+    except EmptyPage:
+        places_page = paginator.page(paginator.num_pages)
 
+    total_places = paginator.count
+    shown_places = len(places_page)
+    place_word = get_place_word(shown_places)
+
+    # --- Избранное ---
+    favorite_set = set()
+    if request.user.is_authenticated:
+        favorite_set = set(
+            Favorite.objects.filter(
+                user=request.user, place__in=places_page.object_list
+            ).values_list("place_id", flat=True)
+        )
+
+    for place in places_page:
+        place.status = place.get_status()
+        place.review_word = get_review_word(place.approved_reviews_count)
+        place.is_favorite = place.id in favorite_set
+
+    # --- SEO ---
     city_name_case = inflect_city(city.name, "loct")
     title = f"RESERVE - бронирования столиков в {city_name_case.capitalize()}"
 
+    # --- Контекст ---
     context = {
-        "features_on_card": features_on_card,
-        "places": places,
-        "selected_city": city,
         "title": title,
+        "selected_city": city,
+        "places": places_page,
         "total_places": total_places,
         "shown_places": shown_places,
         "place_word": place_word,
         "sort_by": sort_by,
-        "place_types": PlaceType.objects.all(),
-        "cuisines": Cuisine.objects.all(),
+        "search_query": search_query,
+
+        "place_types": place_types,
+        "cuisines": cuisines,
         "features": features,
+        "features_on_card": features_on_card,
+
         "selected_place_types": place_type_filters,
         "selected_cuisines": cuisine_filters,
         "selected_average_checks": average_check_filters,
-        "selected_features": feature_filters,
-        "selected_rating": rating_filter,
-        "favorite_places": favorite_places,
+        "selected_features": [int(f) for f in feature_filters if f],
+        "selected_rating": rating_filter or "",
+
         "paginator": paginator,
     }
+
     return render(request, "reservations/place_list.html", context)
 
 

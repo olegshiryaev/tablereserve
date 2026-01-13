@@ -8,7 +8,7 @@
             </a>
         </div>
 
-        <!-- Выбор города -->
+        <!-- Выбор города (без изменений) -->
         <div class="city-selector dropdown">
             <a href="#" class="nav-link dropdown-toggle" id="cityDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
                 {% if selected_city %}
@@ -24,14 +24,14 @@
             </ul>
         </div>
 
-        <!-- Гамбургер для мобильного меню -->
+        <!-- Гамбургер для мобильного меню (без изменений) -->
         <div class="hamburger d-lg-none" aria-expanded="false" aria-haspopup="true">
             <span></span>
             <span></span>
             <span></span>
         </div>
 
-        <!-- Десктопное меню -->
+        <!-- Десктопное меню (без изменений) -->
         <ul class="nav col-12 col-lg-auto mb-2 justify-content-end mb-md-0 d-none d-lg-flex">
             <li class="nav-item"><a class="nav-link" href="{% if selected_city %}{% url 'place_list' selected_city.slug %}{% else %}#{% endif %}">Места</a></li>
             <li class="nav-item"><a class="nav-link" href="#">События</a></li>
@@ -56,7 +56,8 @@
                             <li><a class="dropdown-item" href="{% url 'dashboard:main' %}" target="_blank">Дашборд</a></li>
                         {% endif %}
                         <li><a class="dropdown-item" href="{% url 'users:profile' id=user.id %}">Профиль</a></li>
-                        <li><a class="dropdown-item" href="{% url 'users:account_logout' %}?next={{ request.path }}">Выйти</a></li>
+                        <li><a class="dropdown-item" href="#" id="logoutLink">Выйти</a>
+                        </li>
                     </ul>
                 </div>
             {% else %}
@@ -66,7 +67,7 @@
     </div>
 </header>
 
-<!-- Мобильное меню -->
+<!-- Мобильное меню (аналогично: добавь id="logoutLinkMobile" для мобильной версии) -->
 <nav class="mobile-nav">
     <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link" href="{% if selected_city %}{% url 'place_list' selected_city.slug %}{% else %}#{% endif %}">Места</a></li>
@@ -78,11 +79,11 @@
         </li>
         {% if user.is_authenticated %}
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle no-caret" href="#" id="userDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle no-caret" href="#" id="userDropdownToggleMobile" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="{{ user.profile.get_avatar_url }}" alt="{{ user.profile }}" class="profile-icon rounded-circle" />
                 {{ user.profile }}
             </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggle">
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownToggleMobile">
                 {% if user.is_admin %}
                     <li><a class="dropdown-item" href="{% url 'admin:index' %}" target="_blank">Админ-панель</a></li>
                 {% endif %}
@@ -90,7 +91,8 @@
                     <li><a class="dropdown-item" href="{% url 'dashboard:main' %}" target="_blank">Дашборд</a></li>
                 {% endif %}
                 <li><a class="dropdown-item" href="{% url 'users:profile' id=user.id %}">Профиль</a></li>
-                <li><a class="dropdown-item" href="{% url 'users:account_logout' %}?next={{ request.path }}">Выйти</a></li>
+                <li><a class="dropdown-item" href="#" id="logoutLinkMobile">Выйти</a>
+                </li>
             </ul>
         </li>
         {% else %}
@@ -101,15 +103,12 @@
     </ul>
 </nav>
 
-<!-- Модальное окно входа -->
+<!-- Модальные окна (без изменений) -->
 {% include 'account/login_modal.html' %}
-
-<!-- Модальное окно регистрации -->
 {% include 'account/register_modal.html' %}
-
-<!-- Модальное окно восстановления пароля -->
 {% include 'account/forgot_password_modal.html' %}
 
+<!-- JS для выбора города (без изменений) -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const cityLinks = document.querySelectorAll('.city-link');
@@ -125,4 +124,45 @@
             });
         });
     });
-    </script>
+</script>
+
+<!-- Новый JS для logout (добавь в конец) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutLinks = document.querySelectorAll('#logoutLink, #logoutLinkMobile');
+    
+    logoutLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            fetch("{% url 'users:account_logout' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network error');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Перенаправляем на главную или текущую страницу без авторизации
+                    window.location.reload();
+                } else {
+                    // Опционально: показать уведомление через toastr или alert
+                    alert('Не удалось выйти. Попробуйте позже.');
+                }
+            })
+            .catch(error => {
+                console.error('Logout error:', error);
+                // Можно показать toast вместо alert, если используете toastr
+                alert('Произошла ошибка при выходе. Обновите страницу.');
+            });
+        });
+    });
+});
+</script>

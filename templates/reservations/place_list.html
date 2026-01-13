@@ -28,15 +28,12 @@
                 <label>Тип заведения</label>
                 <div class="form-check filter-items">
                     {% for place_type in place_types %}
-                        {% if place_type.count > 0 %}
-                            <div class="filter-item {% if forloop.counter > 5 %}custom-hidden-item{% endif %}">
-                                <label class="form-check-label">
-                                    <input class="form-check-input" type="checkbox" name="place_type" value="{{ place_type.slug }}" {% if place_type.slug in selected_place_types %}checked{% endif %}>
-                                    {{ place_type.name }}
-                                </label>
-                                <span class="filter-count">{{ place_type.count }}</span>
-                            </div>
-                        {% endif %}
+                        <div class="filter-item {% if forloop.counter > 5 %}custom-hidden-item{% endif %}">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" name="place_type" value="{{ place_type.slug }}" {% if place_type.slug in selected_place_types %}checked{% endif %}>
+                                {{ place_type.name }}
+                            </label>
+                        </div>
                     {% endfor %}
                 </div>
                 {% if place_types|length > 5 %}
@@ -124,7 +121,6 @@
                                 <input class="form-check-input" type="checkbox" name="cuisine" value="{{ cuisine.slug }}" {% if cuisine.slug in selected_cuisines %}checked{% endif %}>
                                 {{ cuisine.name }}
                             </label>
-                            <span class="filter-count">{{ cuisine.count }}</span>
                         </div>
                     {% endfor %}
                 </div>
@@ -145,7 +141,6 @@
                                 <input class="form-check-input" type="checkbox" name="feature" value="{{ feature.id }}" {% if feature.id|stringformat:"s" in selected_features %}checked{% endif %}>
                                 {{ feature.name }}
                             </label>
-                            <span class="filter-count">{{ feature.count }}</span>
                         </div>
                     {% endfor %}
                 </div>
@@ -200,22 +195,28 @@
                                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                             </svg>
                         </span>
-                        {% if place.get_cover_image %}
                         <a href="{{ place.get_absolute_url }}" class="restaurant-image _cover">
-                            <picture>
-                                <img src="{{ place.get_cover_image }}" alt="{{ place.name }}">
-                            </picture>
+                            {% if place.cover_image_url %}
+                                <picture>
+                                    <img src="{{ place.cover_image_url }}"
+                                        alt="{{ place.name }}"
+                                        loading="lazy"
+                                        class="restaurant-cover-img">
+                                </picture>
+                            {% else %}
+                                <div class="no-images-placeholder">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        height="96px"
+                                        viewBox="0 -960 960 960"
+                                        width="96px"
+                                        fill="#888"
+                                        class="no-images-icon">
+                                        <path d="M479.5-267q72.5 0 121.5-49t49-121.5q0-72.5-49-121T479.5-607q-72.5 0-121 48.5t-48.5 121q0 72.5 48.5 121.5t121 49Zm0-60q-47.5 0-78.5-31.5t-31-79q0-47.5 31-78.5t78.5-31q47.5 0 79 31t31.5 78.5q0 47.5-31.5 79t-79 31.5ZM140-120q-24 0-42-18t-18-42v-513q0-23 18-41.5t42-18.5h147l73-87h240l73 87h147q23 0 41.5 18.5T880-693v513q0 24-18.5 42T820-120H140Zm0-60h680v-513H645l-73-87H388l-73 87H140v513Zm340-257Z"/>
+                                    </svg>
+                                    <p class="no-images-message">Скоро здесь будет фото – интерьер уже позирует</p>
+                                </div>
+                            {% endif %}
                         </a>
-                        {% else %}
-                        <div class="no-images-placeholder">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="96px" viewBox="0 -960 960 960" width="96px" fill="#888" class="no-images-icon">
-                                <path d="M479.5-267q72.5 0 121.5-49t49-121.5q0-72.5-49-121T479.5-607q-72.5 0-121 48.5t-48.5 121q0 72.5 48.5 121.5t121 49Zm0-60q-47.5 0-78.5-31.5t-31-79q0-47.5 31-78.5t78.5-31q47.5 0 79 31t31.5 78.5q0 47.5-31.5 79t-79 31.5ZM140-120q-24 0-42-18t-18-42v-513q0-23 18-41.5t42-18.5h147l73-87h240l73 87h147q23 0 41.5 18.5T880-693v513q0 24-18.5 42T820-120H140Zm0-60h680v-513H645l-73-87H388l-73 87H140v513Zm340-257Z"/>
-                            </svg>
-                            <a href="{{ place.get_absolute_url }}">
-                                <p class="no-images-message">Скоро здесь будет фото – интерьер уже позирует</p>
-                            </a>
-                        </div>
-                        {% endif %}
                     </div>
             
                     <div class="restaurant-card__main">

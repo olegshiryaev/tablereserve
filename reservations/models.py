@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from functools import cached_property
 from django.utils.safestring import mark_safe
 import os
 from PIL import Image, ImageOps
@@ -125,8 +126,17 @@ def upload_to_instance_directory(instance, filename):
     return os.path.join("restaurant_images", instance.place.slug, filename)
 
 
-def upload_logo_to(instance, filename):
-    return os.path.join("place_logos", instance.slug, filename)
+def validate_image_min_size(image):
+    """
+    Валидатор — вызывается ТОЛЬКО при загрузке нового файла
+    """
+    img = Image.open(image)
+    min_width, min_height = 1200, 800
+
+    if img.width < min_width or img.height < min_height:
+        raise ValidationError(
+            f"Размер изображения должен быть не менее {min_width}×{min_height} пикселей."
+        )
 
 
 class PlaceImage(models.Model):
@@ -147,6 +157,7 @@ class PlaceImage(models.Model):
     image = models.ImageField(
         upload_to=upload_to_instance_directory,
         verbose_name="Изображение",
+        validators=[validate_image_min_size],
         blank=True,
         null=True,
     )
@@ -158,27 +169,42 @@ class PlaceImage(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name="Описание")
     upload_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
 
+    class Meta:
+        verbose_name = "Медиа заведения"
+        verbose_name_plural = "Медиа заведений"
+
     def __str__(self):
         return f"Медиа {self.place.name}"
 
-    def clean(self):
-        if self.image:
-            img = Image.open(self.image)
-            min_width, min_height = 1200, 800
-            if img.width < min_width or img.height < min_height:
-                raise ValidationError(
-                    f"Размер изображения должен быть не менее {min_width}x{min_height} пикселей."
-                )
-
-    def resize_image(self, image_path, max_width=1200, max_height=800):
+    # =============================
+    # Работа с изображением
+    # =============================
+    def resize_image(self, image_path, width=1200, height=800):
         with Image.open(image_path) as img:
-            img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
             img = ImageOps.exif_transpose(img)
+
+            img = ImageOps.fit(
+                img,
+                (width, height),
+                method=Image.Resampling.LANCZOS,
+                centering=(0.5, 0.5),
+            )
+
             img.save(image_path, quality=85, optimize=True)
 
     def save(self, *args, **kwargs):
+        is_new_image = False
+
+        if self.pk:
+            old = PlaceImage.objects.filter(pk=self.pk).first()
+            if old and old.image != self.image:
+                is_new_image = True
+        else:
+            is_new_image = True
+
         super().save(*args, **kwargs)
-        if self.image:
+
+        if self.image and is_new_image:
             try:
                 self.resize_image(self.image.path)
             except Exception as e:
@@ -188,19 +214,21 @@ class PlaceImage(models.Model):
         if self.is_cover:
             self.place.images.exclude(id=self.id).update(is_cover=False)
 
-    class Meta:
-        verbose_name = "Медиа заведения"
-        verbose_name_plural = "Медиа заведений"
-
+    # =============================
+    # Отображение медиа
+    # =============================
     def get_media_display(self):
         if self.embed_code:
             return mark_safe(self.embed_code)
         elif self.video_url:
             return mark_safe(
-                f'<iframe width="840" height="560" src="{self.video_url}" frameborder="0" allowfullscreen></iframe>'
+                f'<iframe width="840" height="560" '
+                f'src="{self.video_url}" frameborder="0" allowfullscreen></iframe>'
             )
         elif self.image:
-            return mark_safe(f'<img src="{self.image.url}" alt="{self.place.name}" />')
+            return mark_safe(
+                f'<img src="{self.image.url}" alt="{self.place.name}" />'
+            )
         return "Нет медиа"
 
 
@@ -311,7 +339,7 @@ class Place(models.Model):
         max_length=255, blank=True, null=True, verbose_name="Название улицы"
     )
     house_number = models.CharField(
-        max_length=5, blank=True, null=True, verbose_name="Номер дома"
+        max_length=15, blank=True, null=True, verbose_name="Номер дома"
     )
     floor = models.CharField(
         max_length=5,
@@ -488,9 +516,29 @@ class Place(models.Model):
         self.save(update_fields=["rating"])
 
     def get_cover_image(self):
+        """
+        Возвращает URL обложки заведения, если она существует и файл реально загружен.
+        """
         cover_image = self.images.filter(is_cover=True).first()
-        if cover_image:
-            return cover_image.image.url
+        if cover_image and cover_image.image and cover_image.image.name:
+            try:
+                return cover_image.image.url
+            except ValueError:
+                return None
+        return None
+    
+    @cached_property
+    def cover_image_url(self):
+        """
+        Безопасное свойство: возвращает URL обложки или None.
+        Используется в шаблонах: place.cover_image_url
+        """
+        cover = self.images.filter(is_cover=True).first()
+        if cover and cover.image and hasattr(cover.image, 'url'):
+            try:
+                return cover.image.url
+            except ValueError:
+                pass
         return None
 
     def get_similar_places(self, max_results=5):

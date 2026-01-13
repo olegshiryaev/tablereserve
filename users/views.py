@@ -1,21 +1,22 @@
-from django.http import JsonResponse
+from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator as token_generator
 from django.views.decorators.http import require_POST
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.conf import settings
-from django.urls import reverse
-from django.contrib.auth.views import LoginView as AuthLoginView, LogoutView
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth.views import LoginView as AuthLoginView, LogoutView as AuthLogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import DetailView, UpdateView
+from django.contrib.auth import login
+from django.views.generic import DetailView, UpdateView, FormView
 from django.contrib import messages
 from django.utils import timezone
 
 from reservations.models import Place, Reservation
-from users.forms import ProfileForm
+from users.forms import CustomLoginForm, CustomSignupForm, ProfileForm
 from users.models import CustomUser, Profile
 from reservations.models import Favorite
 from users.utils import time_since_last_seen
@@ -24,16 +25,82 @@ User = get_user_model()
 
 class CustomLoginView(AuthLoginView):
     template_name = "account/login_modal.html"
+    form_class = CustomLoginForm
+    redirect_authenticated_user = True
     redirect_field_name = "next"
 
     def form_invalid(self, form):
         response = super().form_invalid(form)
 
         if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
-            errors = {field: error[0] for field, error in form.errors.items()}
+            errors = {}
+            for field, error_list in form.errors.items():
+                errors[field] = [str(err) for err in error_list]
+            # Добавляем non_field_errors, если есть
+            if form.non_field_errors():
+                errors["non_field"] = [str(err) for err in form.non_field_errors()]
             return JsonResponse({"errors": errors}, status=400)
 
         return response
+
+    def form_valid(self, form):
+        # Сначала авторизуем пользователя
+        response = super().form_valid(form)  # здесь происходит login()
+
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            # Возвращаем JSON вместо редиректа
+            redirect_to = self.get_success_url()
+            return JsonResponse({
+                "success": True,
+                "redirect": redirect_to
+            })
+
+        return response
+    
+
+class CustomLogoutView(AuthLogoutView):
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        request.session.flush()
+
+        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({'success': True})
+        return redirect('/')
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponseNotAllowed(['POST'])
+    
+
+class CustomSignupView(FormView):
+    form_class = CustomSignupForm
+    success_url = reverse_lazy("main_page")
+
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({
+                "success": True,
+                "redirect": str(self.success_url),
+            })
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            errors = {}
+
+            for field, field_errors in form.errors.items():
+                key = "non_field_errors" if field == "__all__" else field
+                errors[key] = [str(e) for e in field_errors]
+
+            return JsonResponse(
+                {"success": False, "errors": errors},
+                status=400
+            )
+
+        return super().form_invalid(form)
 
 
 class ProfileDetailView(DetailView):

@@ -2,33 +2,40 @@
 <div id="registerModal" class="modal" aria-hidden="true" aria-labelledby="registerModalTitle" style="display: none;">
     <div class="modal-content">
         <span class="close" aria-label="Закрыть">&times;</span>
-        {% comment %} <form method="POST" action="{% url 'users:account_signup' %}" id="registerForm"> {% endcomment %}
+
+        <form method="POST" action="{% url 'users:account_signup' %}" id="registerForm">
             {% csrf_token %}
+
             <h2 id="registerModalTitle">Регистрация</h2>
+
+            <!-- Общие ошибки -->
+            <div class="general-errors"></div>
+
             <label for="regName" class="required">Имя</label>
             <input type="text" id="regName" name="name" required>
+            <div class="field-error"></div>
+
             <label for="regEmail" class="required">Email</label>
             <input type="email" id="regEmail" name="email" required>
+            <div class="field-error"></div>
+
             <label for="regPassword" class="required">Пароль</label>
-            <input type="password" id="regPassword" name="password1" required>
+            <input type="password" id="regPassword" name="password" required>
+            <div class="field-error"></div>
+
             <div class="show-password">
                 <input type="checkbox" id="showPasswordRegister">
                 <label for="showPasswordRegister">Показать пароль</label>
             </div>
-            {% if register_form.errors %}
-                <div id="registerFormErrors" class="form-errors">
-                    {% for field in register_form %}
-                        {% for error in field.errors %}
-                            <div class="error-message">{{ error }}</div>
-                        {% endfor %}
-                    {% endfor %}
-                    {% for error in register_form.non_field_errors %}
-                        <div class="error-message">{{ error }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-            <button type="submit" class="register-modal-btn">Зарегистрироваться</button>
+
+            <button type="submit" class="register-modal-btn">
+                Зарегистрироваться
+            </button>
         </form>
-        <p class="switch-to-login">Уже есть аккаунт? <a href="#" id="switchToLogin">Войти</a></p>
+
+        <p class="switch-to-login">
+            Уже есть аккаунт?
+            <a href="#" id="switchToLogin">Войти</a>
+        </p>
     </div>
 </div>

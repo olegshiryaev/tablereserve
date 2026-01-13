@@ -6,10 +6,12 @@ app_name = "users"
 
 urlpatterns = [
     # Вход
-    path("login/", LoginView.as_view(template_name="account/login_modal.html"), name="account_login"),
+    path("login/", views.CustomLoginView.as_view(), name="account_login"),
     
     # Выход
-    path("logout/", LogoutView.as_view(next_page="/"), name="account_logout"),
+    path("logout/", views.CustomLogoutView.as_view(), name="account_logout"),
+
+    path("signup/", views.CustomSignupView.as_view(), name="account_signup"),
     
     # Профиль
     path("<int:id>/", views.ProfileDetailView.as_view(), name="profile"),

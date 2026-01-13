@@ -5,7 +5,6 @@ from django.utils.html import format_html
 from reservations.forms import WorkScheduleForm
 from .models import (
     BookingSettings,
-    City,
     Cuisine,
     Discount,
     Feature,
@@ -26,22 +25,6 @@ from .models import (
     Event,
     Favorite
 )
-
-
-@admin.register(City)
-class CityAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "image_thumbnail")
-    search_fields = ("name",)
-    prepopulated_fields = {"slug": ("name",)}
-
-    def image_thumbnail(self, obj):
-        if obj.image:
-            return format_html(
-                '<img src="{}" style="width: 50px; height: auto;" />', obj.image.url
-            )
-        return "-"
-
-    image_thumbnail.short_description = "Image"
 
 
 @admin.register(Cuisine)
@@ -113,9 +96,19 @@ class PlaceTypeAdmin(admin.ModelAdmin):
 
 @admin.register(PlaceImage)
 class PlaceImageAdmin(admin.ModelAdmin):
-    list_display = ("place", "image", "is_cover", "upload_date")
-    search_fields = ("place__name", "sector__name")
+    list_display = ("place", "preview", "is_cover", "upload_date")
     list_filter = ("place", "is_cover")
+    search_fields = ("place__name",)
+
+    def preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" width="60" style="border-radius:4px;" />',
+                obj.image.url,
+            )
+        return "—"
+
+    preview.short_description = "Превью"
 
 
 class PlaceImageInline(admin.TabularInline):
@@ -142,7 +135,6 @@ class PlaceAdmin(admin.ModelAdmin):
         "is_active",
         "can_be_booked",
         "cover_image_display",
-        "logo_display",
         "manager",
     )
     search_fields = ("name", "city__name", "address", "phone", "tags__name")
@@ -202,7 +194,6 @@ class PlaceAdmin(admin.ModelAdmin):
                     "cuisines",
                     "tags",
                     "capacity",
-                    "logo",
                     "rating",
                     "manager",
                 )
@@ -230,18 +221,13 @@ class PlaceAdmin(admin.ModelAdmin):
     can_be_booked.short_description = "Доступно для бронирования"
 
     def cover_image_display(self, obj):
-        return format_html(
-            '<img src="{}" width="50" height="50" />', obj.get_cover_image()
-        )
+        if obj.get_cover_image():
+            return format_html(
+                '<img src="{}" width="50" height="50" />', obj.get_cover_image()
+            )
+        return "—"
 
     cover_image_display.short_description = "Обложка"
-
-    def logo_display(self, obj):
-        if obj.logo:
-            return format_html('<img src="{}" width="50" height="50" />', obj.logo.url)
-        return "-"
-
-    logo_display.short_description = "Логотип"
 
 
 @admin.register(WorkSchedule)

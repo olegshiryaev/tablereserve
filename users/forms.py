@@ -1,14 +1,57 @@
 from django import forms
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm, AuthenticationForm
 from .models import CustomUser, Profile
 from locations.models import City
 
+
+User = get_user_model()
 
 class CustomLoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].widget.attrs.update({"class": "form-control", "placeholder": "Email"})
         self.fields["password"].widget.attrs.update({"class": "form-control", "placeholder": "Пароль"})
+
+
+class CustomSignupForm(forms.ModelForm):
+    name = forms.CharField(
+        max_length=30,
+        label="Имя и фамилия",
+        required=True,
+    )
+    email = forms.EmailField(
+        label="Email",
+        required=True,
+    )
+    password = forms.CharField(
+        label="Пароль",
+        strip=False,
+        widget=forms.PasswordInput,
+    )
+
+    class Meta:
+        model = User
+        fields = ("email",)
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("Пользователь с таким email уже существует.")
+        return email
+
+    def save(self, commit=True):
+        user = User.objects.create_user(
+            email=self.cleaned_data["email"],
+            password=self.cleaned_data["password"],
+        )
+
+        user.profile.name = self.cleaned_data["name"]
+        user.profile.save()
+
+        return user
 
 
 class CustomUserCreationForm(UserCreationForm):

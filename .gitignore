@@ -33,10 +33,22 @@ db.sqlite3
 .env
 env/
 venv/
-docker/*
+
+# Docker secrets/runtime
+docker/env/.env.prod
+docker/logs/*
+docker/redis/data/*
+docker/certbot/conf/live/*
+docker/certbot/conf/archive/*
+docker/certbot/conf/accounts/*
+
 logs/*
 cache/*
 .dockerignore
 
 # celery beat schedule file
 celerybeat-schedule
+
+# Allow template env files
+!docker/env/
+!docker/env/.env.example

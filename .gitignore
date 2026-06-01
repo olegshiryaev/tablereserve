@@ -21,7 +21,6 @@ Thumbs.db
 # PYTHON FILES
 # ---------------------------------------
 __pycache__
-__init__.py
 *.pyc
 .venv/
 .coverage
